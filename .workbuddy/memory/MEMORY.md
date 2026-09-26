@@ -87,6 +87,13 @@
   `unawaited(autoCheckIfDue())`（不阻塞启动、不弹窗打断）。
 - **`RandomAccessFile.writeFrom(list, start, end)` 第三个参数是下标 `end` 不是长度**；写错时第一条命令
   （cursor=0）恰好正确、第二条才抛 `RangeError`——**只有多条命令才暴露**。
+- **`tool/release.py` 的约定**：`--bump` 自增版本号并写回 `pubspec.yaml`；**推送必须显式 `--push`**
+  （标签是一次性的，试探性的本地跑不该造出不可回收的标签）；`--no-commit` 是真空跑（不提交不打标签）；
+  `--skip-upload` 只产本地产物。分差基准取**严格小于当前 versionCode 里最大的那个**，
+  不能取"清单里第一个不是自己的"（清单降序排，补发旧版本时会拿到更新的版本当基准，方向就反了）。
+  **基准包缓存 `dist/releases/<code>/` 是分差的地基**——动过里面的 APK 就必须删掉整个 `dist/` 重跑，
+  否则下次拿污染的包当基准。
+- **`CHANGELOG.md` 里没有对应版本节时 release.py 直接拒绝发布**（设计如此，不是 bug）。
 
 ## 构建
 - `flutter build apk --release`；签名走 `android/key.properties` → `android/keystore.jks`（不入库）。
