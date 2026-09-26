@@ -499,6 +499,32 @@ def read_token() -> str | None:
     return None
 
 
+def token_file_status() -> str:
+    """说明 TOKEN_FILE 当前为什么取不到值。
+
+    「文件不存在」和「文件在、但等号右边是空的」处置完全不同：前者要新建，
+    后者是粘贴没落盘。原来的日志两种情况都只说"没有可用的 GITHUB_TOKEN"，
+    用户明明看到文件就躺在那儿，只会以为是脚本读错了路径。
+    """
+    if not os.path.exists(TOKEN_FILE):
+        return "%s 不存在" % TOKEN_FILE
+    try:
+        with open(TOKEN_FILE, "r", encoding="utf-8") as handle:
+            content = handle.read()
+    except OSError as error:
+        return "%s 读取失败：%s" % (TOKEN_FILE, error)
+    if "GITHUB_TOKEN" not in content:
+        return "%s 里没有 GITHUB_TOKEN= 这一行" % TOKEN_FILE
+    for line in content.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        if key.strip() == "GITHUB_TOKEN" and value.strip().strip('"').strip("'"):
+            return "%s 里有值但没能取出来（检查是否混入了不可见字符）" % TOKEN_FILE
+    return "%s 里的 GITHUB_TOKEN= 后面是空的" % TOKEN_FILE
+
+
 def token_looks_truncated(token: str) -> bool:
     """粗判 PAT 是不是被复制截断了。
 
@@ -584,9 +610,9 @@ def main(argv: list[str]) -> int:
         verify_token(token)
     else:
         log("没有可用的 GITHUB_TOKEN，本次只生成本地产物（不会建 Release）。")
-        log("    把 token 写进 %s 后重跑即可上传（产物已就绪，可加 --no-build）："
-            % TOKEN_FILE)
-        log("    GITHUB_TOKEN=github_pat_xxx python tool/release.py --no-bump --no-build")
+        log("    原因：%s" % token_file_status())
+        log("    写进一行 `GITHUB_TOKEN=github_pat_xxx` 后重跑即可上传"
+            "（产物已就绪，加 --no-build 免重新构建）")
 
     name, code = read_version()
     log("当前版本：%s+%d" % (name, code))

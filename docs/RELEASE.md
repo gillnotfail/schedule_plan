@@ -77,6 +77,17 @@ export GITHUB_TOKEN=github_pat_xxx
 家目录那个文件**故意放在仓库之外** —— 仓库里的任何文件都有被 `git add -A`
 顺手带上去的风险，PAT 泄露不可逆。建议 `chmod 600`。
 
+> **别把 token 贴进任何对话 / issue / 聊天窗口。** token 都是长随机串，
+> 在聊天链路里被截断是常见事故（症状是服务端只回一句 `401 Bad credentials`，
+> 极容易被误判成"权限不够"而反复重新生成）。用编辑器直接写进上面那个文件，
+> 不经过剪贴板以外的任何环节。实测过的两种截断形态：
+>
+> - `github_pat_` 只跟了 20 个字符就断（共 31 字符，连第二个下划线都没有）
+> - 长度看着够、但服务端拒绝
+>
+> 脚本对前者会在**联网之前**拦下来并说明长度不对；对后者会明确提示是"令牌被拒绝"，
+> 而不是让你去猜权限。
+
 脚本的行为：
 
 - **在打包之前**先验一次 token（`GET /user` + `GET /repos/...`）。token 无效或
@@ -85,6 +96,9 @@ export GITHUB_TOKEN=github_pat_xxx
 - 两者都没有时**跳过上传**，只生成本地产物，并在日志里给出补上 token 后重跑的
   命令（产物已就绪，可加 `--no-build` 免重新构建）。所以发现"Release 建好了但
   没有附件"时，先检查 token。
+- 跳过上传时会明确说明**为什么**取不到 token：文件不存在 / 文件里没有那一行 /
+  等号右边是空的 / 有值但读不出来。这四种情况的处置完全不同，混成一句
+  "没有可用的 GITHUB_TOKEN" 会让人对着一个明明存在的文件反复怀疑路径。
 
 ### 3. 下载地址要不要配镜像
 
@@ -298,8 +312,9 @@ python tool/delta_patch.py apply old.apk patch.spdp out.apk
 | 现象 | 原因 |
 | --- | --- |
 | `git push` 提示 Permission denied | 公钥没加到 GitHub，或没走 443（见 §2.1） |
-| Release 建好了但没有附件 | 没设 `GITHUB_TOKEN`，脚本静默跳过上传 |
-| `401 Bad credentials` | token 复制时被截断了（细粒度 PAT 共 93 字符）；或已过期；或细粒度 token 没给 Contents: Read and write |
+| Release 建好了但没有附件 | 没设 `GITHUB_TOKEN`，脚本跳过上传（日志里会说明具体是哪种情况） |
+| 日志说"没有可用的 GITHUB_TOKEN"但文件明明在 | 看紧跟的「原因」一行：多半是等号右边是空的（编辑器没保存/粘贴没落盘） |
+| `401 Bad credentials` | 先用日志里的字符数判断：细粒度 PAT 只有 93 字符才是完整的，不够就是复制时被截断了 |
 | 应用内看不到新版本 | `updates/latest.json` 没推到 `main` 分支 |
 | 应用内看到新版但走整包 | 本机 APK 指纹和 `deltas[].baseSha256` 对不上（装过第三方渠道包）；或补丁没省到九折以下 |
 | 安装失败 `INSTALL_FAILED_VERSION_DOWNGRADE` | `pubspec.yaml` 的 `+N` 没递增 |
