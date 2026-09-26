@@ -25,12 +25,15 @@
     python tool/release.py --bump patch --skip-upload --no-commit
 
     # 首次发布（版本号已经是最终的，不想再动）：
-    python tool/release.py --no-bump --skip-upload
+    python tool/release.py --no-bump --push
 
 环境变量
 --------
-    GITHUB_TOKEN  建 Release 与上传附件所需的令牌（需要 repo 权限）。
-                  没给就自动跳过上传，只生成本地产物。
+    GITHUB_TOKEN  建 Release 与上传附件所需的令牌。
+                  优先读环境变量，其次读 ~/.schedule_plan-release.env
+                  （里面写 `GITHUB_TOKEN=github_pat_xxx`，权限请置 600）。
+                  两者都没有就跳过上传，只生成本地产物。
+                  脚本会在**打包之前**先验一次 token，避免白等一轮构建。
 """
 
 from __future__ import annotations
@@ -58,6 +61,11 @@ MANIFEST = os.path.join(ROOT, "updates", "latest.json")
 REPOSITORY = "gillnotfail/schedule_plan"
 ASSETS_BASE = "https://github.com/%s/releases/download" % REPOSITORY
 API_BASE = "https://api.github.com/repos/%s" % REPOSITORY
+
+# 发布凭据的落地位置。故意放在**家目录**而不是仓库里：仓库里的任何文件都有
+# 被 `git add -A` 顺手带上去的风险，PAT 泄露是不可逆的。发版要反复执行，
+# 每次把 PAT 明文写进命令行会落进 shell 历史，所以留一个 dotenv 风格的文件。
+TOKEN_FILE = os.path.join(os.path.expanduser("~"), ".schedule_plan-release.env")
 
 APK_DIR = os.path.join(ROOT, "build", "app", "outputs", "flutter-apk")
 
@@ -387,10 +395,20 @@ def commit_and_tag(version_name: str, tag: str, push: bool) -> None:
         git("commit", "-m", message)
     else:
         log("  没有需要提交的改动")
+    # 标签是"一次性"的，但**同一次发布重跑**必须允许：上传成功、推送失败
+    # 这类半途而废的场面很常见，如果这时死磕"标签已存在"，就只能手动删标签。
+    # 所以只在"标签指向别的提交"时才拒绝——那才是真的想复用版本号。
     existing = git("tag", "--list", tag).stdout.strip()
     if existing:
-        die("标签 %s 已存在。版本号需要递增，或手动删掉旧标签。" % tag)
-    git("tag", "-a", tag, "-m", message)
+        head = git("rev-parse", "HEAD").stdout.strip()
+        tagged = git("rev-parse", "%s^{}" % tag).stdout.strip()
+        if tagged != head:
+            die("标签 %s 已存在，且指向 %s（当前 HEAD 是 %s）。\n"
+                "    要么递增版本号，要么确认后手动删掉旧标签再重试。"
+                % (tag, tagged[:8], head[:8]))
+        log("  标签 %s 已存在且就指向当前提交，跳过创建" % tag)
+    else:
+        git("tag", "-a", tag, "-m", message)
     if push:
         git("push", "origin", "HEAD")
         git("push", "origin", tag)
@@ -419,7 +437,12 @@ def github_api(method: str, url: str, token: str, payload: dict | None = None,
             return json.loads(body) if body.strip() else {}
     except urllib.error.HTTPError as error:
         detail = error.read().decode("utf-8", "replace")
-        die("GitHub API %s %s 失败：%s %s" % (method, url, error.code, detail))
+        hint = ""
+        if error.code in (401, 403):
+            hint = ("\n    → 令牌被拒绝了：确认 GITHUB_TOKEN 没有过期，"
+                    "细粒度 token 的 Contents 权限是 Read and write。")
+        die("GitHub API %s %s 失败：%s %s%s"
+            % (method, url, error.code, detail, hint))
     except urllib.error.URLError as error:
         die("连不上 GitHub：%s（必要时给 git/命令行配代理）" % error)
 
@@ -447,6 +470,76 @@ def upload_release(tag: str, version_name: str, notes: list[str],
             content_type="application/octet-stream",
         )
     log("  Release 地址：%s" % release["html_url"])
+
+
+def read_token() -> str | None:
+    """取 GitHub token：环境变量优先，其次 TOKEN_FILE。
+
+    文件格式就是最朴素的 dotenv：
+
+        GITHUB_TOKEN=github_pat_xxx
+
+    `#` 开头的行和空行忽略；值两边的引号会被剥掉（从网页复制时常常会带上）。
+    """
+    from_env = os.environ.get("GITHUB_TOKEN")
+    if from_env and from_env.strip():
+        return from_env.strip()
+    try:
+        with open(TOKEN_FILE, "r", encoding="utf-8") as handle:
+            for line in handle:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, _, value = line.partition("=")
+                if key.strip() != "GITHUB_TOKEN":
+                    continue
+                return value.strip().strip('"').strip("'") or None
+    except FileNotFoundError:
+        return None
+    return None
+
+
+def token_looks_truncated(token: str) -> bool:
+    """粗判 PAT 是不是被复制截断了。
+
+    细粒度 PAT（`github_pat_`）有 93 个字符、中间还有一个下划线，从网页上
+    复制时截断一半是很容易犯的错——症状却是服务端一句没头没脑的
+    `401 Bad credentials`。在发请求之前拦一下，把 401 变成一句能看懂的话。
+    """
+    if token.startswith("github_pat_"):
+        return len(token) < 80
+    if token.startswith(("ghp_", "gho_", "ghu_", "ghs_")):
+        return len(token) < 36
+    return len(token) < 20
+
+
+def verify_token(token: str) -> str:
+    """打包**之前**确认 token 可用，返回 token 对应的登录名。
+
+    这件事必须提前做。原先是在构建完、清单写完、产物缓存完才用 token，
+    结果是：token 坏了要白白等一轮几分钟的构建，而且工作区里已经躺着被
+    改过的 pubspec.yaml 和 updates/latest.json，还得手动还原。
+    """
+    if token_looks_truncated(token):
+        die(
+            "GITHUB_TOKEN 看起来被截断了（当前只有 %d 个字符）。\n"
+            "    细粒度 PAT 形如 github_pat_<22位>_<59位>，共 93 个字符；\n"
+            "    经典 PAT 形如 ghp_<36位>。请到 GitHub 的\n"
+            "    Settings → Developer settings → Personal access tokens 重新复制。\n"
+            "    注意：token 只在创建的那一瞬间完整显示一次，离开页面就再也看不到了，\n"
+            "    所以大概率需要重新生成一个。" % len(token)
+        )
+    account = github_api("GET", "https://api.github.com/user", token)
+    repository = github_api("GET", API_BASE, token)
+    login = account.get("login")
+    if not (repository.get("permissions") or {}).get("push"):
+        die(
+            "token 属于 %s，但对 %s 没有写权限，无法创建 Release。\n"
+            "    细粒度 token 请在该仓库的权限里把 Contents 设为 Read and write。"
+            % (login, REPOSITORY)
+        )
+    log("GitHub 身份：%s（对 %s 有写权限）" % (login, REPOSITORY))
+    return login
 
 
 # ---------------------------------------------------------------------------
@@ -486,6 +579,15 @@ def main(argv: list[str]) -> int:
     if args.bump and args.no_bump:
         die("--bump 与 --no-bump 不能同时给")
 
+    token = None if args.skip_upload else read_token()
+    if token:
+        verify_token(token)
+    else:
+        log("没有可用的 GITHUB_TOKEN，本次只生成本地产物（不会建 Release）。")
+        log("    把 token 写进 %s 后重跑即可上传（产物已就绪，可加 --no-build）："
+            % TOKEN_FILE)
+        log("    GITHUB_TOKEN=github_pat_xxx python tool/release.py --no-bump --no-build")
+
     name, code = read_version()
     log("当前版本：%s+%d" % (name, code))
 
@@ -499,10 +601,9 @@ def main(argv: list[str]) -> int:
         write_version(name, code)
         log("新版本：  %s+%d" % (name, code))
     elif already_released:
-        log("提示：版本 %d 已在清单里，将覆盖它的条目（不新增历史）")
+        log("提示：版本 %d 已在清单里，将覆盖它的条目（不新增历史）" % code)
     else:
-        code_from_pubspec = code
-        log("不改版本号，直接发布 %s+%d" % (name, code_from_pubspec))
+        log("不改版本号，直接发布 %s+%d" % (name, code))
 
     tag = "v%s" % name
 
@@ -557,13 +658,10 @@ def main(argv: list[str]) -> int:
 
     cache_current_apks(code, abis)
 
-    token = os.environ.get("GITHUB_TOKEN")
     if args.skip_upload:
-        log("跳过 GitHub Release（--skip-upload）。要上传时请设置 GITHUB_TOKEN 后重跑。")
+        log("跳过 GitHub Release（--skip-upload）。")
     elif not token:
-        log("未设置 GITHUB_TOKEN，跳过上传。")
-        log("设置后重跑本脚本即可上传（产物都已就绪，可用 --no-build 免重新构建）：")
-        log("    GITHUB_TOKEN=xxx python tool/release.py --no-bump --no-build")
+        log("没有可用的 token，跳过上传（产物与清单都已就绪）。")
     else:
         upload_release(tag, name, entry["notes"], uploads, token)
 
@@ -575,8 +673,11 @@ def main(argv: list[str]) -> int:
     else:
         commit_and_tag(name, tag, push=args.push and not args.no_push)
 
-    log("\n完成。接下来：确认 Release 附件已上传，"
-        "应用内的「检查更新」就能看到 v%s。" % name)
+    if args.skip_upload or not token:
+        log("\n完成（未上传）。产物与清单都在本地，补上 token 后重跑即可上传。")
+    else:
+        log("\n完成。接下来：确认 Release 附件已上传，"
+            "应用内的「检查更新」就能看到 v%s。" % name)
     return 0
 
 

@@ -50,16 +50,56 @@ ssh -T git@github.com      # 期望：Hi gillnotfail! You've successfully authen
 
 ### 2. `GITHUB_TOKEN`（建 Release 与上传附件用）
 
-GitHub → Settings → Developer settings → **Personal access tokens** → 勾 `repo` 权限。
+GitHub → Settings → Developer settings → **Personal access tokens**。
+
+推荐建**细粒度 token**，Repository access 只选 `schedule_plan`，
+权限给 **Contents: Read and write**（其余全不用给）。
+
+**复制时务必整条复制**：
+
+| 类型 | 形态 | 长度 |
+| --- | --- | --- |
+| 细粒度 `github_pat_` | `github_pat_<22 位>_<59 位>`，**中间还有一个下划线** | 93 |
+| 经典 `ghp_` | `ghp_<36 位>` | 40 |
+
+两种放法，任选：
 
 ```bash
-export GITHUB_TOKEN=ghp_xxx     # 只放在当前终端里，不要写进仓库
+# 放法 A：写进家目录的文件（推荐，发版要反复用）
+#   ~/.schedule_plan-release.env 内容就一行：
+#   GITHUB_TOKEN=github_pat_xxx
+```
+```bash
+# 放法 B：只放在当前终端里
+export GITHUB_TOKEN=github_pat_xxx
 ```
 
-脚本读不到这个变量时会**跳过上传**，只生成本地产物 —— 不会报错，所以
-发现"Release 里没有附件"时先检查它。
+家目录那个文件**故意放在仓库之外** —— 仓库里的任何文件都有被 `git add -A`
+顺手带上去的风险，PAT 泄露不可逆。建议 `chmod 600`。
 
-### 3. 签名文件
+脚本的行为：
+
+- **在打包之前**先验一次 token（`GET /user` + `GET /repos/...`）。token 无效或
+  被截断时立刻退出并说明原因，不会白等一轮几分钟的构建、也不会留下改了一半的
+  工作区。截断是最常见的错——症状却是服务端一句 `401 Bad credentials`。
+- 两者都没有时**跳过上传**，只生成本地产物，并在日志里给出补上 token 后重跑的
+  命令（产物已就绪，可加 `--no-build` 免重新构建）。所以发现"Release 建好了但
+  没有附件"时，先检查 token。
+
+### 3. 下载地址要不要配镜像
+
+`updates/latest.json` 里的下载地址默认为
+`https://github.com/<repo>/releases/download/<tag>/<file>`。
+**部分网络会封掉 `github.com` 解析到的那组 IP**（表现为 TCP 直接连不上，
+而 `api.github.com`、`uploads.github.com`、`objects.githubusercontent.com`
+却是通的）。遇到这种情况：
+
+- 发布侧不受影响 —— 建 Release 和上传附件走的是 `api.github.com` /
+  `uploads.github.com`，与 `github.com` 不是同一组地址。
+- 手机侧会下不动包，需要在 设置 → 检查更新 → 下载镜像 里填一个前缀
+  （如 `https://ghproxy.net/https://github.com`），应用会自动把它套在直连地址前面试。
+
+### 4. 签名文件
 
 - `android/key.properties` → 指向 `android/keystore.jks`（两者都在 `.gitignore` 里）。
 - **`keystore.jks` 必须另存备份**。丢了就再也无法给已安装的 App 发升级包，
@@ -259,6 +299,7 @@ python tool/delta_patch.py apply old.apk patch.spdp out.apk
 | --- | --- |
 | `git push` 提示 Permission denied | 公钥没加到 GitHub，或没走 443（见 §2.1） |
 | Release 建好了但没有附件 | 没设 `GITHUB_TOKEN`，脚本静默跳过上传 |
+| `401 Bad credentials` | token 复制时被截断了（细粒度 PAT 共 93 字符）；或已过期；或细粒度 token 没给 Contents: Read and write |
 | 应用内看不到新版本 | `updates/latest.json` 没推到 `main` 分支 |
 | 应用内看到新版但走整包 | 本机 APK 指纹和 `deltas[].baseSha256` 对不上（装过第三方渠道包）；或补丁没省到九折以下 |
 | 安装失败 `INSTALL_FAILED_VERSION_DOWNGRADE` | `pubspec.yaml` 的 `+N` 没递增 |
