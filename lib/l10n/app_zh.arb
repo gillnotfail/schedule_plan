@@ -1,0 +1,1165 @@
+{
+  "@@locale": "zh",
+  "appTitle": "全面课表计划",
+  "ok": "确定",
+  "cancel": "取消",
+  "save": "保存",
+  "delete": "删除",
+  "edit": "编辑",
+  "add": "新增",
+  "back": "返回",
+  "close": "关闭",
+  "confirm": "确认",
+  "retry": "重试",
+  "loading": "加载中...",
+  "noData": "暂无数据",
+  "all": "全部",
+  "searchHint": "搜索",
+  "today": "今天",
+  "mon": "周一",
+  "tue": "周二",
+  "wed": "周三",
+  "thu": "周四",
+  "fri": "周五",
+  "sat": "周六",
+  "sun": "周日",
+  "tabSchedule": "课表",
+  "tabAttendance": "考勤",
+  "tabStatistics": "统计",
+  "tabTodo": "待办",
+  "tabToolbox": "工具箱",
+  "scheduleTitle": "我的课表",
+  "scheduleAggregateView": "时间轴",
+  "scheduleClassView": "班级网格",
+  "selectClass": "选择班级",
+  "emptyScheduleHint": "本周还没有排课，点击右下角 + 新增一节",
+  "addLesson": "新增课表",
+  "editLesson": "编辑课表",
+  "deleteLesson": "删除课表",
+  "deleteLessonConfirmBody": "该课表条目及其关联的考勤记录将被一并删除，且无法撤销。",
+  "lessonSaved": "课表已保存",
+  "lessonDeleted": "课表已删除",
+  "conflictMessage": "该时间段已存在其他课程，存在时间冲突",
+  "slotOccupied": "该班级本节的课表格子已被占用",
+  "noTemplatePeriod": "该班级绑定的作息模板中没有对应的节次",
+  "quickAddLessonHint": "按 班级 → 课程 → 周几/节次 三步把课排进课表",
+  "swapModeHint": "交换模式：拖拽一个格子到另一个格子上即可互换",
+  "swapForbidden": "跨班级或跨模板不支持直接交换",
+  "swapDone": "课表格子已交换",
+  "editLessonTime": "修改时间",
+  "cascadeTitle": "修改范围",
+  "cascadeOnlyThis": "仅修改本节",
+  "cascadeAllFollowing": "同步修改后续所有节次",
+  "periodIndexLabel": "第 {index} 节",
+  "@periodIndexLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "templateTitle": "作息模板",
+  "templateNew": "新建模板",
+  "templateName": "模板名称",
+  "templateNameRequired": "模板名称不能为空",
+  "templateSetDefault": "设为默认",
+  "templateSetDefaultConfirm": "新建班级时将默认使用此模板，已绑定其他模板的班级不受影响。",
+  "templateIsDefault": "默认",
+  "templateBoundClasses": "{count} 个班级",
+  "@templateBoundClasses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "templateDelete": "删除模板",
+  "templateDeleteBlocked": "无法删除该模板",
+  "templateDeleteBlockedBody": "以下班级仍绑定该模板，请先迁移：{names}",
+  "@templateDeleteBlockedBody": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "templateEditAffectClasses": "此操作会影响 {count} 个班级的课表显示时间，不会修改具体上课内容安排。",
+  "@templateEditAffectClasses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copyFromOtherDay": "从其他工作日复制",
+  "copyToTargets": "复制到",
+  "copyDone": "已复制",
+  "addPeriod": "新增节次",
+  "removePeriod": "删除节次",
+  "periodType": "类型",
+  "periodStart": "开始时间",
+  "periodEnd": "结束时间",
+  "periodLabel": "备注",
+  "periodTypeNormal": "普通课节",
+  "periodTypeLunch": "午休",
+  "periodTypeRecess": "课间大休",
+  "periodTypeSelfStudy": "自习",
+  "periodTypeOther": "其他",
+  "periodErrorInvalidFormat": "时间格式必须为 HH:mm",
+  "periodErrorEndBeforeStart": "结束时间必须晚于起始时间",
+  "periodErrorOverlap": "与其他时段重叠",
+  "periodErrorNotAscending": "起始时间需随节次序号递增",
+  "templateSaved": "模板已保存",
+  "attendanceTitle": "考勤",
+  "calendarMonth": "月视图",
+  "calendarWeek": "周视图",
+  "courseChipToday": "今日有课",
+  "courseChipOther": "其他课程",
+  "studentList": "学生名单",
+  "sortByName": "按姓名拼音",
+  "sortByNo": "按学号",
+  "sortByStatus": "按考勤状态",
+  "statusPresent": "出勤",
+  "statusLate": "迟到",
+  "statusEarlyLeave": "早退",
+  "statusAbsent": "缺勤",
+  "statusLeave": "请假",
+  "statusUnmarked": "未标记",
+  "rollCall": "随机点名",
+  "rollCallTitle": "点名中...",
+  "copySummary": "复制出勤摘要",
+  "copiedToClipboard": "出勤摘要已复制到剪贴板",
+  "highRisk": "高风险",
+  "riskScoreLabel": "风险分 {score}",
+  "@riskScoreLabel": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "tagTitle": "表现标签",
+  "starRating": "星级",
+  "remark": "文字备注",
+  "noStudentsHint": "该班级还没有学生",
+  "attendanceSaved": "考勤已保存",
+  "tagActiveSpeaking": "积极发言",
+  "tagHomeworkOnTime": "按时完成作业",
+  "tagFocusedListening": "专注听讲",
+  "tagHelpingOthers": "乐于助人",
+  "tagGoodQuestion": "善于提问",
+  "tagNeatHandwriting": "书写工整",
+  "tagTeamLeader": "小组带头",
+  "statisticsTitle": "统计与导出",
+  "granularityDay": "按日",
+  "granularityWeek": "按周",
+  "granularityMonth": "按月",
+  "attendanceRateChart": "出勤率折线图",
+  "courseRateChart": "课程出勤率",
+  "abnormalList": "异常出勤明细",
+  "riskRanking": "高风险学生排名",
+  "emotionCard": "情绪价值卡片",
+  "exportExcel": "导出 Excel",
+  "exportSuccess": "Excel 已生成",
+  "filterByStatus": "按状态筛选",
+  "attendanceRateLabel": "出勤率",
+  "emotionExcellent": "这个班级的孩子们真给力！",
+  "emotionGood": "出勤稳稳的，继续保持！",
+  "emotionNormal": "每一点进步都值得被看见。",
+  "emotionEncourage": "新的一周，新的闪光点。",
+  "todoTitle": "待办",
+  "todoSmart": "智能待办",
+  "todoGeneral": "通用清单",
+  "todoAdd": "新增待办",
+  "todoTitleRequired": "待办标题不能为空",
+  "todoDescription": "描述（可选）",
+  "todoPriority": "优先级",
+  "priorityHigh": "高",
+  "priorityMedium": "中",
+  "priorityLow": "低",
+  "todoDueDate": "截止日期（可选）",
+  "todoAutoCompleted": "系统自动完成",
+  "todoDeleteConfirmBody": "该待办将被永久删除，无法恢复。",
+  "emptyTodo": "暂时没有待办事项",
+  "todoCompletedSection": "已完成（{count}）",
+  "@todoCompletedSection": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "toolboxTitle": "教师工具箱",
+  "focusTimer": "专注模式",
+  "focusStart": "开始",
+  "focusPause": "暂停",
+  "focusResume": "继续",
+  "focusReset": "重置",
+  "focusBreak": "休息",
+  "focusDone": "专注完成",
+  "noteTitle": "快速笔记",
+  "noteEditor": "笔记内容",
+  "noteEmpty": "开始输入...",
+  "aiExpand": "扩写",
+  "aiPolish": "润色",
+  "aiSummarize": "总结",
+  "aiApply": "应用结果",
+  "aiDiscard": "放弃",
+  "aiDiffTitle": "AI 结果对比",
+  "aiOriginal": "原文",
+  "aiResult": "结果",
+  "aiNoProvider": "尚未配置 LLM 提供商",
+  "aiSelectTextFirst": "请先选中一段文字",
+  "scheduleCalendar": "日程安排",
+  "eventAdd": "新增日程",
+  "eventTitle": "标题",
+  "eventLocation": "地点（可选）",
+  "eventReminder": "提醒",
+  "eventReminderBefore": "提前分钟数",
+  "generalTodoTitle": "私人待办清单",
+  "llmProviders": "LLM 提供商",
+  "llmProviderName": "名称",
+  "llmBaseUrl": "接口地址",
+  "llmApiKey": "API Key",
+  "llmModelName": "模型名称",
+  "llmSetDefault": "设为默认",
+  "manageTitle": "管理",
+  "manageClasses": "班级管理",
+  "manageCourses": "课程管理",
+  "manageStudents": "学生管理",
+  "className": "班级名称",
+  "gradeName": "年级",
+  "headTeacher": "班主任",
+  "studentCountLabel": "{count} 名学生",
+  "@studentCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "classColor": "标记颜色",
+  "templateBinding": "作息模板",
+  "studentName": "姓名",
+  "studentNo": "学号",
+  "importExcel": "Excel 批量导入",
+  "importPreview": "导入预览",
+  "importResult": "成功 {success} 行，失败 {fail} 行，跳过 {skip} 行",
+  "@importResult": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "fail": {
+        "type": "int"
+      },
+      "skip": {
+        "type": "int"
+      }
+    }
+  },
+  "importReasonMissingName": "姓名为空",
+  "importReasonClassNotFound": "未匹配到班级",
+  "importReasonDuplicate": "已存在",
+  "importDone": "导入完成",
+  "dragToReorderHint": "长按拖拽调整顺序",
+  "batchUpdateTemplate": "批量修改作息模板",
+  "batchUpdateTemplateConfirm": "以下班级将被更新：{names}",
+  "@batchUpdateTemplateConfirm": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "classDeleteConfirmBody": "删除班级会同时删除其课程、课表、学生与全部考勤记录，且无法恢复。",
+  "settingsTitle": "设置",
+  "language": "语言",
+  "languageZh": "简体中文",
+  "languageEn": "English",
+  "theme": "主题",
+  "themeMint": "清新薄荷",
+  "themeMinimalGray": "极简灰白",
+  "themeNightCare": "深夜护眼",
+  "riskThreshold": "高风险缺勤次数阈值",
+  "attendanceWarnThreshold": "出勤率警示阈值（%）",
+  "retentionDays": "考勤保留天数",
+  "retentionImportLogDays": "导入日志保留天数",
+  "cascadeSwitch": "时间列级联更新",
+  "defaultAttendanceStatus": "未记录日期的默认状态",
+  "notificationPermission": "通知权限",
+  "notificationCheck": "检查权限状态",
+  "notificationOpenSettings": "前往系统设置开启",
+  "notificationGranted": "通知权限已开启",
+  "notificationDenied": "通知权限未开启",
+  "lessonReminder": "课前提醒",
+  "reminderMinutesBefore": "提前提醒分钟数",
+  "reminderRegenerate": "立即重算提醒",
+  "reminderRegenerated": "已按当前作息模板重新生成 {count} 条提醒",
+  "@reminderRegenerated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cleanupNow": "清理过期数据",
+  "cleanupResult": "已清理考勤 {attendance} 条、导入日志 {logs} 条",
+  "@cleanupResult": {
+    "placeholders": {
+      "attendance": {
+        "type": "int"
+      },
+      "logs": {
+        "type": "int"
+      }
+    }
+  },
+  "cleanupAborted": "备份失败，已取消本次清理",
+  "dangerZone": "危险操作",
+  "clearAllData": "清空全部数据",
+  "clearAllDataConfirm": "所有班级、课程、课表、学生、考勤与待办将被永久清除，无法恢复。",
+  "aboutTitle": "关于",
+  "versionLabel": "版本 {version}",
+  "@versionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "autoTodoTitle": "检查 {className} 本周缺勤学生情况",
+  "@autoTodoTitle": {
+    "placeholders": {
+      "className": {
+        "type": "String"
+      }
+    }
+  },
+  "colRow": "行号",
+  "colName": "姓名",
+  "colNo": "学号",
+  "colClass": "班级",
+  "colStatus": "状态",
+  "classFormTitle": "班级",
+  "courseFormTitle": "课程",
+  "studentFormTitle": "学生",
+  "eventFormTitle": "日程",
+  "addClass": "新增班级",
+  "addCourse": "新增课程",
+  "addStudent": "新增学生",
+  "addEvent": "新增日程",
+  "addNote": "新增笔记",
+  "deleteNote": "删除笔记",
+  "deleteEvent": "删除日程",
+  "deleteStudent": "删除学生",
+  "deleteCourse": "删除课程",
+  "deleteClass": "删除班级",
+  "pickColor": "选择颜色",
+  "importChooseFile": "选择 Excel 文件",
+  "noteSaved": "笔记已保存",
+  "classSaved": "班级已保存",
+  "courseSaved": "课程已保存",
+  "studentSaved": "学生已保存",
+  "eventSaved": "日程已保存",
+  "dismiss": "忽略",
+  "timePickerTitle": "选择时间",
+  "hour": "时",
+  "minute": "分",
+  "requiredField": "该项为必填",
+  "operationFailed": "操作失败：{message}",
+  "@operationFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "unexpectedError": "发生未知错误，请重试",
+  "tabSettings": "设置",
+  "scheduleModeTraditional": "传统课表",
+  "scheduleModeStaggered": "错峰课表",
+  "scheduleModeSwitch": "切换课表视图",
+  "scheduleSettings": "课表设置",
+  "gridPeriodHeader": "节次",
+  "gridTimeHeader": "时间",
+  "todayLabel": "今天",
+  "quickGenerateTitle": "一键生成作息",
+  "quickGenerateDesc": "按开始时间、每节时长、课间间隔与节数批量生成",
+  "generateStartTime": "开始时间",
+  "generateLessonMinutes": "每节课时长（分钟）",
+  "generateBreakMinutes": "课间间隔（分钟）",
+  "generatePeriodCount": "一天节数",
+  "generateWeekdays": "应用到",
+  "generatePreview": "生成预览",
+  "generateDone": "已生成 {count} 节",
+  "@generateDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "generatePreviewRow": "第 {index} 节　{start}-{end}",
+  "@generatePreviewRow": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "generateInvalidRange": "时间超出一天范围，请减少节数或缩短时长",
+  "generateEmptyWeekdays": "请至少选择一个星期",
+  "editPeriodTime": "修改本节时间",
+  "editPeriodTimeDesc": "仅修改该节次，可选择是否顺延后续节次",
+  "cascadeFollowing": "后续节次自动顺延",
+  "periodTimeUpdated": "本节时间已更新",
+  "cascadeApplied": "已顺延 {count} 节",
+  "@cascadeApplied": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "defaultTemplateEdit": "默认作息修改",
+  "defaultTemplateHint": "新建班级默认使用该作息",
+  "clearSchedule": "一键清空课表",
+  "clearScheduleConfirm": "将清除当前作息模板下所有班级的课表内容，作息时间保留，且不可撤销。",
+  "clearScheduleDone": "课表已清空",
+  "importPhotoSchedule": "拍照导入课表",
+  "importPhotoScheduleHint": "拍照或从相册选一张课表，本机识别后自动排进课表",
+  "comingSoon": "敬请期待",
+  "toolboxAllTools": "全部工具",
+  "toolStatistics": "统计",
+  "toolTodo": "智能待办",
+  "toolFocus": "专注模式",
+  "toolNote": "快速笔记",
+  "toolCalendar": "日程安排",
+  "toolPrivateTodo": "私人清单",
+  "toolboxInsight": "本周教学成果",
+  "insightDoneLessons": "已上课时",
+  "insightLeftLessons": "剩余课时",
+  "insightAttention": "需关注",
+  "insightNoAttention": "暂无异常，继续保持",
+  "insightAttendanceRate": "本周出勤率",
+  "insightCheer": "本周已完成 {done} 节课，辛苦了",
+  "@insightCheer": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "insightStudentRisk": "{name} 本周缺勤 {count} 次",
+  "@insightStudentRisk": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pageIndicator": "第 {current} / {total} 页",
+  "@pageIndicator": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "weekRange": "{start} ~ {end}",
+  "@weekRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "groupScheduleData": "课表与名单",
+  "groupPermission": "权限",
+  "groupDisplay": "显示与语言",
+  "groupAssistant": "智能能力",
+  "groupData": "数据维护",
+  "groupAbout": "关于",
+  "groupTeaching": "教学参数",
+  "studentRoster": "学生名单",
+  "studentRosterDesc": "添加、修改、删除学生，或从 Excel 批量导入",
+  "classManagement": "班级管理",
+  "classManagementDesc": "导入名单后自动生成班级与人数",
+  "courseManagement": "课程管理",
+  "courseManagementDesc": "新增课程、维护教室与上课班级（课表页点空格子即可排进这一格）",
+  "statisticsSettings": "统计设置",
+  "statisticsSettingsDesc": "高风险判定与出勤预警线",
+  "studentGender": "性别",
+  "genderMale": "男",
+  "genderFemale": "女",
+  "genderUnset": "未填",
+  "studentNoOptional": "学号（选填）",
+  "studentNameRequired": "姓名（必填）",
+  "studentClassRequired": "班级（必填）",
+  "studentFormDesc": "姓名与班级为必填，性别与学号可选",
+  "courseNameLabel": "课程名称",
+  "courseRoomLabel": "上课教室",
+  "courseClassLabel": "上课班级",
+  "courseCountLabel": "人数",
+  "courseRemarkLabel": "备注",
+  "courseMultiClassHint": "可选择多个班级（合班 / 大课）",
+  "courseClassRequired": "请至少选择一个班级",
+  "courseAutoCountHint": "根据所选班级自动统计",
+  "courseClearAll": "清空全部课程",
+  "courseClearAllConfirm": "将删除全部课程及其课表条目，且不可撤销。",
+  "courseCleared": "课程已清空",
+  "importStudents": "Excel 批量导入学生名单",
+  "importFormatTitle": "文件格式说明",
+  "importFormatLine1": "仅支持 .xlsx 文件",
+  "importFormatLine2": "必须包含「姓名」「班级」两列",
+  "importFormatLine3": "「学号」「性别」为可选列",
+  "importFormatLine4": "未匹配到的班级会自动创建",
+  "importFormatExample": "示例",
+  "importAutoCreated": "自动创建班级 {count} 个",
+  "@importAutoCreated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importRowsTotal": "共解析 {count} 行",
+  "@importRowsTotal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importNeedNameOrClass": "「姓名」「班级」两列都必须填写",
+  "importOverall": "导入总览",
+  "importClassColumn": "班级",
+  "aboutVersion": "版本",
+  "aboutChangelog": "更新说明",
+  "aboutChangelogBody": "1.0.0 首个正式版本：课表 / 考勤 / 统计 / 待办 / 工具箱全面上线，支持六套主题与中英文。",
+  "aboutDeveloper": "开发者",
+  "aboutDeveloperName": "教学助手团队",
+  "aboutTechStack": "技术栈",
+  "aboutAppName": "全面课表计划",
+  "sortAscending": "升序",
+  "sortDescending": "降序",
+  "attendanceWeekDefault": "按周查看",
+  "attendanceMonthView": "按月查看",
+  "attendanceNoLesson": "当天没有课",
+  "attendanceCountSummary": "共 {total} 人 · 出勤 {present} 人",
+  "@attendanceCountSummary": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "present": {
+        "type": "int"
+      }
+    }
+  },
+  "markAll": "全部标记",
+  "statsRiskThresholdDesc": "一周内缺勤达到该次数即标记为高风险",
+  "statsWarnThresholdDesc": "低于该出勤率时在图表中高亮预警",
+  "statsColumnName": "姓名",
+  "statsColumnNo": "学号",
+  "statsColumnStatus": "考勤",
+  "toolStatisticsDesc": "出勤率趋势与排名",
+  "toolTodoDesc": "考勤联动自动生成",
+  "toolFocusDesc": "番茄钟专注计时",
+  "toolNoteDesc": "随手记录与 AI 拓写",
+  "toolCalendarDesc": "日程与课前提醒",
+  "toolPrivateTodoDesc": "私人待办清单",
+  "importReasonMissingClass": "缺少班级",
+  "noStudentNo": "未填学号",
+  "unitTimes": "次",
+  "unitDays": "天",
+  "unitMinutes": "分钟",
+  "unitPercent": "%",
+  "settingsSubtitle": "课表、名单、权限与显示",
+  "themeSunrise": "晨曦暖橙",
+  "themeOceanBlue": "静谧深蓝",
+  "themeSakura": "樱花粉",
+  "scheduleCleared": "课表已清空",
+  "periodTimeSaved": "节次时间已更新",
+  "switchTemplate": "切换作息",
+  "scheduleGenerated": "已生成 {count} 节课的作息",
+  "@scheduleGenerated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "studentNameShort": "姓名",
+  "studentNoShort": "学号",
+  "attendanceColumn": "考勤",
+  "calendarMonthTitle": "{year}年{month}月",
+  "@calendarMonthTitle": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "month": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarWeekTitle": "{start} ~ {end}",
+  "@calendarWeekTitle": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "importFileUnreadable": "这份表格读不出来。请确认是未加密的 .xlsx 文件，或用 Excel/WPS 打开后另存为 .xlsx 再试。",
+  "scheduleNoClassHint": "还没有班级，当前显示默认作息",
+  "cellNoCourseTitle": "这一格还没有课程",
+  "cellNoCourseBody": "先在课程管理里建好课程，回来点这一格就能左右滑动挑选并排进课表。",
+  "cellNeedsClassBody": "还没有班级，先建一个班级并导入学生名单，才能往格子里排课。",
+  "goAddCourse": "去添加课程",
+  "goCreateClass": "去建班级",
+  "pickCourseTitle": "选一门课放进这一格",
+  "pickCourseHint": "上下滑动浏览，点一下选中，再放进这一格",
+  "placeHere": "放进这一格",
+  "noCourseYet": "还没有课程",
+  "lessonDetailTitle": "课程信息",
+  "goRollCall": "去点名",
+  "changeLessonCourse": "换个课程",
+  "removeFromSchedule": "移出课表",
+  "removedFromSchedule": "已移出课表",
+  "placedToSchedule": "已排进课表",
+  "cellStudentCount": "{count} 人",
+  "@cellStudentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "classHeadTeacherFromClass": "班主任（取自所属班级）",
+  "classDeleteConfirmWithStudents": "该班级下还有 {count} 名学生，删除后学生、课程、课表与全部考勤记录都会一并删除，且无法恢复。",
+  "@classDeleteConfirmWithStudents": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "classCreatedNextStep": "班级已创建，去添加这个班的学生名单",
+  "goAddStudents": "去加名单",
+  "attendanceLocatedTo": "已定位到 {date}",
+  "@attendanceLocatedTo": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dialAmLabel": "上午",
+  "dialPmLabel": "下午",
+  "dialTwoRingHint": "内圈点小时，外圈点分钟",
+  "periodDurationMinutes": "本节时长 {count} 分钟",
+  "@periodDurationMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "periodAutoEndHint": "结束时间按本节时长自动计算",
+  "periodCustomEnd": "自定义结束时间",
+  "periodAutoEndBadge": "自动",
+  "classInfoTitle": "班级信息",
+  "classStatStudents": "学生总数",
+  "classStatMale": "男生",
+  "classStatFemale": "女生",
+  "classStatUnset": "未填性别",
+  "classDetailStudents": "本班学生",
+  "classDetailStudentsDesc": "点学生即可修改，右侧图标可删除",
+  "classDetailNoStudents": "这个班还没有学生，点右下角添加",
+  "classDetailCourses": "这个班的课程",
+  "classDetailCoursesDesc": "维护课程名称、教室与上课班级",
+  "classDetailTapHint": "点击进入班级详情",
+  "deleteStudentConfirmBody": "删除后该学生的考勤记录也会一并删除，且无法恢复。",
+  "rosterSummary": "共 {students} 名学生 · {classes} 个班级",
+  "@rosterSummary": {
+    "placeholders": {
+      "students": {
+        "type": "int"
+      },
+      "classes": {
+        "type": "int"
+      }
+    }
+  },
+  "rosterEmptyGuide": "还没有学生，先从 Excel 导入名单",
+  "goImportRoster": "去导入名单",
+  "coursePickClassTitle": "选择上课班级",
+  "coursePickClassHint": "可多选（合班 / 大课），人数自动汇总",
+  "pickClass": "选择班级",
+  "teacherUnset": "未设置",
+  "periodRestoreAuto": "恢复自动",
+  "classDetailTitle": "班级详情",
+  "importAutoHint": "已自动导入，无需再次确认",
+  "importGoRoster": "去学生名单",
+  "importDetailToggle": "查看导入明细（共 {count} 行）",
+  "@importDetailToggle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importDetailHide": "收起导入明细",
+  "courseColorLabel": "课程颜色",
+  "courseColorAuto": "跟随班级色",
+  "courseColorHint": "选一个颜色，课表格子会用这个颜色标记这门课",
+  "generateReplacesHint": "以本次选择为准，未选中的星期会被清空",
+  "importEmptyFile": "表格里没读到学生行，请确认「姓名」「班级」两列有内容",
+  "moreActions": "更多操作",
+  "statusShortPresent": "出",
+  "statusShortLate": "迟",
+  "statusShortEarlyLeave": "早",
+  "statusShortAbsent": "缺",
+  "statusShortLeave": "假",
+  "statusShortUnmarked": "—",
+  "attendanceRingNoRecord": "已排课 · 未点名",
+  "attendanceRingRate": "出勤 {present}/{expected}",
+  "@attendanceRingRate": {
+    "placeholders": {
+      "present": {
+        "type": "int"
+      },
+      "expected": {
+        "type": "int"
+      }
+    }
+  },
+  "statusSuspended": "休学",
+  "statusExempt": "免修",
+  "statusShortSuspended": "休",
+  "statusShortExempt": "免",
+  "attendanceLongTermUntil": "{status} · 至 {date}",
+  "@attendanceLongTermUntil": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceLongTermSet": "{name} 已标记为{status}，至 {date}",
+  "@attendanceLongTermSet": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceLongTermCleared": "{name} 已恢复正常点名",
+  "@attendanceLongTermCleared": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceLongTermClearTitle": "取消{status}？",
+  "@attendanceLongTermClearTitle": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceLongTermClearBody": "{name} 将恢复正常点名，之后每节课都要单独标记。",
+  "@attendanceLongTermClearBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceLongTermLocked": "{name} · {status}（至 {date}），无需逐节点名",
+  "@attendanceLongTermLocked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "rosterGroupCount": "{count} 人",
+  "@rosterGroupCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareSchedule": "分享课表",
+  "shareSavedToGallery": "已保存到相册",
+  "shareGalleryPermissionDenied": "需要「照片和视频」权限才能保存到相册",
+  "shareOpenSettings": "去设置",
+  "shareCaptureFailed": "截图失败，请重试",
+  "shareQrPlaceholder": "二维码位",
+  "copyAction": "复制",
+  "summaryNoAbnormal": "全员出勤，无异常",
+  "courseFilterLabel": "按课程筛选",
+  "eventRecurrence": "重复周期",
+  "eventRecurrenceOnce": "单次",
+  "eventRecurrenceWeekly": "每周",
+  "eventRecurrenceBiweekly": "隔周",
+  "eventRecurrenceMonthly": "每月",
+  "insightBenefitedStudents": "受益学生",
+  "toolboxSwipeHint": "左右滑动 · 共 2 页",
+  "ocrTitle": "拍照识别课表",
+  "ocrEntryTitle": "拍照生成课表",
+  "ocrEntryDesc": "拍一张课表照片，本机识别后自动排进课表",
+  "ocrPickPhoto": "选择课表照片",
+  "ocrPickPhotoHint": "把整张课表拍平、拍正，字要清楚；表头有「周一…周五」和「第 N 节」最容易识别",
+  "ocrFromCamera": "拍照",
+  "ocrFromGallery": "从相册选",
+  "ocrRecognizing": "正在识别…",
+  "ocrRecognizingHint": "全部在本机完成，照片不会上传到任何服务器",
+  "ocrCropTitle": "框选课表区域",
+  "ocrCropHint": "只框住表格本身，去掉标题和空白，识别更准",
+  "ocrCropReset": "重新框选",
+  "ocrCropConfirm": "识别这块区域",
+  "ocrResultTitle": "识别结果",
+  "ocrResultSummary": "{lessons} 节课 · {courses} 门课 · 覆盖 {days} 天",
+  "ocrConfidenceHigh": "识别效果不错，确认无误后导入",
+  "ocrConfidenceMedium": "识别结果一般，请逐条核对后再导入",
+  "ocrConfidenceLow": "这张照片不太清楚，建议重拍或手动修正",
+  "ocrImport": "导入课表",
+  "ocrImportDone": "已导入 {lessons} 节课，新增 {courses} 门课程",
+  "ocrRecapture": "重拍一张",
+  "ocrEditRow": "点击可修改课程名",
+  "ocrRowEditTitle": "修改课程名",
+  "ocrNoPhoto": "没有选择照片",
+  "ocrNoPhotoPermission": "需要「照片」权限才能读取课表图片",
+  "ocrEngineUnavailable": "本机没有可用的文字识别引擎，请改用 Excel 导入",
+  "ocrEngineUnavailableTitle": "无法调用识别引擎",
+  "ocrEngineUnavailableBody": "文字识别完全跑在手机本机（Google ML Kit 离线模型），不需要联网、也不会上传照片。当前设备取不到这个能力，通常是系统版本过低或缺少 Google 服务。你可以先用「Excel 导入名单」那条路，或者手动在课表里排课。",
+  "ocrWarnNoWeekday": "没认到「周几」表头，请确认照片拍全了整张表",
+  "ocrWarnPartialWeekday": "只认到部分星期列，可能有几天没识别出来",
+  "ocrWarnNoPeriod": "没认到「第几节」表头，建议重拍或手动修正",
+  "ocrWarnNoLesson": "没有识别出任何课程，换个角度或拍清楚一点再试",
+  "ocrManualAdd": "手动补一节",
+  "ocrAllWeekdays": "全部",
+  "ocrNoGoogleServices": "未安装 Google 服务，识别功能不可用",
+  "ocrSettingsHint": "拍张课表照片，本机识别后自动排进这一格",
+  "ocrDeviceTitle": "机型适配",
+  "ocrDeviceAndroid": "安卓（小米 / OPPO / vivo 等国产手机）：可直接使用。识别用系统自带的离线文字识别，有 Google 服务走 ML Kit，没有则自动回落到系统自带识别，全程不联网。",
+  "ocrDeviceHarmony": "华为（鸿蒙 HarmonyOS）：本功能暂未适配，鸿蒙缺少上述两个识别接口。后续会按鸿蒙的 AI 能力单独接一版，当前请先用 Excel 导入或手动排课。",
+  "ocrDeviceIos": "苹果 iOS：能力已预留在 Apple Vision 上，等 iOS 版本开发时一并启用。",
+  "timelineEventLegend": "日程",
+  "timelineEventTime": "{start} - {end}",
+  "@timelineEventTime": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "timelineEventTapHint": "点一下看时间",
+  "holidayKindHoliday": "休",
+  "holidayKindMakeup": "班",
+  "holidayLegend": "红底=放假 · 橙底=调休上班",
+  "holidayNameNewYear": "元旦",
+  "holidayNameSpringFestival": "春节",
+  "holidayNameQingming": "清明节",
+  "holidayNameLabourDay": "劳动节",
+  "holidayNameDragonBoat": "端午节",
+  "holidayNameMidAutumn": "中秋节",
+  "holidayNameNationalDay": "国庆节",
+  "holidayNameNationalDayMidAutumn": "国庆节、中秋节",
+  "holidayMakeupTitle": "今天调休上班",
+  "holidayMakeupAsk": "补{name}的班。学校通知上星期几的课？",
+  "holidayMakeupResolved": "按{weekday}的课表上课",
+  "holidayMakeupNotSet": "还没确认上周几的课，课时结算先按当天算",
+  "holidayMakeupSet": "设置",
+  "holidayShiftTitle": "这天上周几的课？",
+  "holidayShiftBody": "以学校通知为准。选完之后，这一天的课时会按它来结算。",
+  "holidayShiftNone": "不调整（按当天）",
+  "holidayShiftSaved": "已按{weekday}的课表结算",
+  "holidayShiftCleared": "已恢复为不调整",
+  "holidayOutsideCoverage": "{year} 年的放假安排尚未收录，先按周末休息处理",
+  "holidayFreeCount": "本周放假 {count} 天",
+  "holidayMakeupCount": "本周调休上班 {count} 天",
+  "toolboxOverviewTitle": "数据概览",
+  "toolboxTodayTitle": "今日回顾",
+  "insightWeekLessons": "本周上课",
+  "insightTotalLessons": "总课节数",
+  "insightFocusCount": "专注次数",
+  "insightTodayLessons": "今天课节",
+  "insightTodayNoLesson": "今天没有课",
+  "insightUnitDays": "{count} 天",
+  "insightUnitLessons": "{count} 节课",
+  "insightUnitPeriods": "{count} 节",
+  "insightUnitTimes": "{count} 次",
+  "insightUnitCourses": "{count} 门课程",
+  "insightFocusMinutes": "累计专注 {minutes} 分钟",
+  "insightFocusNoRecord": "本周还没专注过",
+  "insightSectionLessons": "课时分布",
+  "insightSectionAttendance": "出勤情况",
+  "insightSectionFocus": "专注投入",
+  "insightSectionEvents": "额外事务",
+  "insightSectionLessonsDesc": "每天、每门课各多少节",
+  "insightSectionAttendanceDesc": "出勤率与最需要关注的班",
+  "insightSectionEventsDesc": "日程里安排的活动",
+  "insightDoneOfTotal": "已上 {done} / 共 {total} 节",
+  "insightPerDayTitle": "每天课节",
+  "insightPerCourseTitle": "按课程",
+  "insightBestClass": "出勤最好",
+  "insightWorstClass": "最需要关注",
+  "insightClassRate": "{rate}% · {total} 人次",
+  "insightNoClassData": "本周还没有点名记录",
+  "insightSingleClass": "本周只点了一个班的名，暂无可比对象",
+  "insightEventsEmpty": "本周没有额外事务",
+  "insightEventWithLocation": "{title} · {location}",
+  "insightNoLessonThisWeek": "本周还没有排课",
+  "@holidayMakeupAsk": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@holidayMakeupResolved": {
+    "placeholders": {
+      "weekday": {
+        "type": "String"
+      }
+    }
+  },
+  "@holidayShiftSaved": {
+    "placeholders": {
+      "weekday": {
+        "type": "String"
+      }
+    }
+  },
+  "@holidayOutsideCoverage": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "@holidayFreeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@holidayMakeupCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightUnitDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightUnitLessons": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightUnitPeriods": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightUnitTimes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightUnitCourses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightFocusMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightDoneOfTotal": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightClassRate": {
+    "placeholders": {
+      "rate": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightEventWithLocation": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "insightUnitMinutes": "{count} 分钟",
+  "insightUnitStudents": "{count} 位学生",
+  "insightFocusTotal": "累计专注",
+  "insightFocusAverage": "平均一次",
+  "insightTodayEventsCount": "今日事务 {count} 项",
+  "@insightUnitMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightUnitStudents": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightTodayEventsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "previousMonth": "上一月",
+  "nextMonth": "下一月",
+  "yearMonth": "{year} 年 {month} 月",
+  "eventDayTitle": "当天日程",
+  "@yearMonth": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "month": {
+        "type": "int"
+      }
+    }
+  },
+  "holidayAwareSwitch": "节假日与调休",
+  "holidayAwareDesc": "放假不计课时、调休上班日照常结算，并在调休当天提醒上周几的课",
+  "insightUnitItems": "{count} 项",
+  "@insightUnitItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "holidayRemoteSwitch": "自动获取节假日安排",
+  "holidayRemoteDesc": "每年自动取回新一年的放假安排；关掉也能用内置数据",
+  "holidayDataTitle": "节假日数据",
+  "holidayDataUnknown": "暂无数据",
+  "holidayDataSummary": "已覆盖 {years} 年",
+  "holidayDataSummaryChecked": "已覆盖 {years} 年 · 上次检查 {date}",
+  "holidaySyncNow": "立即更新",
+  "holidaySyncUpdated": "已更新 {years} 年的放假安排",
+  "holidaySyncNotPublished": "{years} 年的安排还没公布，发布后会自动补齐",
+  "holidaySyncFailed": "获取失败，请检查网络后重试",
+  "holidaySyncUpToDate": "已经是最新的了",
+  "holidaySyncDisabled": "已关闭自动获取，请先打开上面的开关",
+  "@holidayDataSummary": {
+    "placeholders": {
+      "years": {
+        "type": "String"
+      }
+    }
+  },
+  "@holidayDataSummaryChecked": {
+    "placeholders": {
+      "years": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@holidaySyncUpdated": {
+    "placeholders": {
+      "years": {
+        "type": "String"
+      }
+    }
+  },
+  "@holidaySyncNotPublished": {
+    "placeholders": {
+      "years": {
+        "type": "String"
+      }
+    }
+  }
+}

@@ -1,0 +1,76 @@
+name: schedule_plan
+description: "全面课表计划 - 面向一线教师/辅导员的个人效率工具（课表 / 考勤 / 统计 / 待办 / 工具箱）"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  intl: ^0.20.2
+
+  # 本地持久化（readme 第五章 依赖清单）
+  sqflite: ^2.4.2+1
+  # 桌面（Windows/Linux/macOS）跑 sqflite 需要 FFI 工厂 + 原生 sqlite3：
+  # 必须在 runtime 依赖里，否则 `flutter run windows` 报
+  # "database factory not initialized"（APK 用的是系统 SQLite，不受影响）。
+  sqflite_common_ffi: ^2.4.0+3
+  sqlite3_flutter_libs: ^0.6.0+eol
+  path: ^1.9.1
+  path_provider: ^2.1.6
+
+  # 本地通知（模块七 7.1 / 7.2 / 7.3）
+  flutter_local_notifications: ^22.3.1
+  timezone: ^0.11.1
+  app_settings: ^9.0.0
+
+  # Excel 导入导出（模块三 3.6 / 模块六 6.3）
+  excel: ^4.0.6
+  # xlsx 修复：部分 WPS/老版 Excel 会把内置数字格式 id 写进 <numFmts>，
+  # excel 4.x 对此直接抛异常，需要在解析前解包改写 xl/styles.xml
+  archive: ^3.6.1
+  xml: ^6.6.1
+
+  # LLM 调用（模块五 5.2）
+  http: ^1.6.0
+
+  # 分享面板 / 文件选择（模块三 3.6 / 模块六 6.3）
+  share_plus: ^13.3.0
+  file_picker: ^13.1.0
+  # 课表分享：把截图存进系统相册（Android 10+ 免存储权限，9- 走运行时权限）
+  gal: ^2.3.2
+
+  # 拍照识别课表（第 11 轮）：拍照 / 选图。
+  # **注意：只引入"取图"这一件事**——文字识别走手机本机的离线能力
+  # （Android = Google ML Kit，iOS = Apple Vision），不接任何 AI / LLM 服务商。
+  # 识别引擎在 `data/services/schedule_ocr_service.dart` 里做成可插拔后端，
+  # 接入时只需补一个 OcrRecognizer 实现，解析规则不受影响。
+  image_picker: ^1.2.0
+
+  # 图表（模块三 3.1 / 3.2）
+  fl_chart: ^1.2.0
+
+  # 状态管理
+  provider: ^6.1.5+1
+
+  # API Key 本地混淆存储（模块五 5.2 / 表 3.14）
+  crypto: ^3.0.7
+  cross_file: ^0.3.5+5
+  package_info_plus: ^10.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true

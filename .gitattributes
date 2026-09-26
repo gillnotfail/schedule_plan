@@ -1,0 +1,28 @@
+# 统一文本文件行尾为 LF。
+# Windows 上 Git 默认可能把检出内容转成 CRLF，导致同一份代码在不同机器上
+# 产生整文件级 diff，也会让 Dart 格式化产生噪音。这里显式钉死。
+* text=auto eol=lf
+
+# 明确标记为二进制，禁止任何行尾/编码转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.jar binary
+*.jks binary
+*.keystore binary
+*.apk binary
+*.aab binary
+*.so binary
+*.dll binary
+*.exe binary
+
+# 生成产物不参与语言统计，也不要在 diff 里显示
+lib/l10n/generated/** linguist-generated=true
+pubspec.lock linguist-generated=false

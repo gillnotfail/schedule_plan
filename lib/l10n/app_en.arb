@@ -1,0 +1,1165 @@
+{
+  "@@locale": "en",
+  "appTitle": "Schedule Planner",
+  "ok": "OK",
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "add": "Add",
+  "back": "Back",
+  "close": "Close",
+  "confirm": "Confirm",
+  "retry": "Retry",
+  "loading": "Loading...",
+  "noData": "No data yet",
+  "all": "All",
+  "searchHint": "Search",
+  "today": "Today",
+  "mon": "Mon",
+  "tue": "Tue",
+  "wed": "Wed",
+  "thu": "Thu",
+  "fri": "Fri",
+  "sat": "Sat",
+  "sun": "Sun",
+  "tabSchedule": "Schedule",
+  "tabAttendance": "Attendance",
+  "tabStatistics": "Stats",
+  "tabTodo": "To-do",
+  "tabToolbox": "Toolbox",
+  "scheduleTitle": "My Schedule",
+  "scheduleAggregateView": "Timeline",
+  "scheduleClassView": "Class grid",
+  "selectClass": "Select class",
+  "emptyScheduleHint": "No lessons this week. Tap + to add one.",
+  "addLesson": "Add lesson",
+  "editLesson": "Edit lesson",
+  "deleteLesson": "Delete lesson",
+  "deleteLessonConfirmBody": "This lesson and all attendance records tied to it will be removed. This cannot be undone.",
+  "lessonSaved": "Lesson saved",
+  "lessonDeleted": "Lesson deleted",
+  "conflictMessage": "Time conflict with another lesson",
+  "slotOccupied": "This slot is already taken",
+  "noTemplatePeriod": "The bound schedule template has no matching period",
+  "quickAddLessonHint": "Pick class, then course, then weekday and period to schedule it",
+  "swapModeHint": "Swap mode: drag a block onto another to swap",
+  "swapForbidden": "Cannot swap across classes or templates",
+  "swapDone": "Lessons swapped",
+  "editLessonTime": "Adjust time",
+  "cascadeTitle": "Apply to",
+  "cascadeOnlyThis": "Only this period",
+  "cascadeAllFollowing": "This and all following periods",
+  "periodIndexLabel": "Period {index}",
+  "templateTitle": "Schedule templates",
+  "templateNew": "New template",
+  "templateName": "Template name",
+  "templateNameRequired": "Template name cannot be empty",
+  "templateSetDefault": "Set as default",
+  "templateSetDefaultConfirm": "New classes will use this template by default. Classes already bound to other templates are not affected.",
+  "templateIsDefault": "Default",
+  "templateBoundClasses": "{count} classes",
+  "templateDelete": "Delete template",
+  "templateDeleteBlocked": "Cannot delete this template",
+  "templateDeleteBlockedBody": "These classes are still bound to it, please migrate them first: {names}",
+  "templateEditAffectClasses": "This change affects the displayed time of {count} classes. Lesson content will not be modified.",
+  "copyFromOtherDay": "Copy from another day",
+  "copyToTargets": "Copy to",
+  "copyDone": "Copied",
+  "addPeriod": "Add period",
+  "removePeriod": "Remove period",
+  "periodType": "Type",
+  "periodStart": "Start",
+  "periodEnd": "End",
+  "periodLabel": "Label",
+  "periodTypeNormal": "Class",
+  "periodTypeLunch": "Lunch break",
+  "periodTypeRecess": "Recess",
+  "periodTypeSelfStudy": "Self study",
+  "periodTypeOther": "Other",
+  "periodErrorInvalidFormat": "Time must use HH:mm",
+  "periodErrorEndBeforeStart": "End time must be later than start time",
+  "periodErrorOverlap": "Overlaps another period",
+  "periodErrorNotAscending": "Start time must increase with period index",
+  "templateSaved": "Template saved",
+  "attendanceTitle": "Attendance",
+  "calendarMonth": "Month",
+  "calendarWeek": "Week",
+  "courseChipToday": "Today's classes",
+  "courseChipOther": "Other classes",
+  "studentList": "Students",
+  "sortByName": "By name (pinyin)",
+  "sortByNo": "By student No.",
+  "sortByStatus": "By status",
+  "statusPresent": "Present",
+  "statusLate": "Late",
+  "statusEarlyLeave": "Left early",
+  "statusAbsent": "Absent",
+  "statusLeave": "On leave",
+  "statusUnmarked": "Unmarked",
+  "rollCall": "Random picker",
+  "rollCallTitle": "Rolling...",
+  "copySummary": "Copy summary",
+  "copiedToClipboard": "Summary copied to clipboard",
+  "highRisk": "High risk",
+  "riskScoreLabel": "Risk score {score}",
+  "tagTitle": "Performance tags",
+  "starRating": "Stars",
+  "remark": "Remark",
+  "noStudentsHint": "No students in this class yet",
+  "attendanceSaved": "Attendance saved",
+  "tagActiveSpeaking": "Active in class",
+  "tagHomeworkOnTime": "Homework on time",
+  "tagFocusedListening": "Focused listening",
+  "tagHelpingOthers": "Helps others",
+  "tagGoodQuestion": "Good questions",
+  "tagNeatHandwriting": "Neat handwriting",
+  "tagTeamLeader": "Team leader",
+  "statisticsTitle": "Statistics",
+  "granularityDay": "By day",
+  "granularityWeek": "By week",
+  "granularityMonth": "By month",
+  "attendanceRateChart": "Attendance rate",
+  "courseRateChart": "Rate by course",
+  "abnormalList": "Abnormal records",
+  "riskRanking": "High-risk ranking",
+  "emotionCard": "Encouragement",
+  "exportExcel": "Export Excel",
+  "exportSuccess": "Workbook generated",
+  "filterByStatus": "Filter by status",
+  "attendanceRateLabel": "Attendance rate",
+  "emotionExcellent": "This class is doing amazingly well!",
+  "emotionGood": "Solid attendance, keep it up!",
+  "emotionNormal": "Every step forward counts.",
+  "emotionEncourage": "New week, new chances to shine.",
+  "todoTitle": "To-do",
+  "todoSmart": "Smart",
+  "todoGeneral": "Personal",
+  "todoAdd": "Add to-do",
+  "todoTitleRequired": "Title cannot be empty",
+  "todoDescription": "Description (optional)",
+  "todoPriority": "Priority",
+  "priorityHigh": "High",
+  "priorityMedium": "Medium",
+  "priorityLow": "Low",
+  "todoDueDate": "Due date (optional)",
+  "todoAutoCompleted": "Completed automatically",
+  "todoDeleteConfirmBody": "This to-do will be deleted permanently.",
+  "emptyTodo": "Nothing to do right now",
+  "todoCompletedSection": "Completed ({count})",
+  "toolboxTitle": "Toolbox",
+  "focusTimer": "Focus timer",
+  "focusStart": "Start",
+  "focusPause": "Pause",
+  "focusResume": "Resume",
+  "focusReset": "Reset",
+  "focusBreak": "Break",
+  "focusDone": "Focus session complete",
+  "noteTitle": "Quick notes",
+  "noteEditor": "Note",
+  "noteEmpty": "Start writing...",
+  "aiExpand": "Expand",
+  "aiPolish": "Polish",
+  "aiSummarize": "Summarize",
+  "aiApply": "Apply result",
+  "aiDiscard": "Discard",
+  "aiDiffTitle": "Review AI result",
+  "aiOriginal": "Original",
+  "aiResult": "Result",
+  "aiNoProvider": "No LLM provider configured",
+  "aiSelectTextFirst": "Select a piece of text first",
+  "scheduleCalendar": "Calendar",
+  "eventAdd": "Add event",
+  "eventTitle": "Title",
+  "eventLocation": "Location (optional)",
+  "eventReminder": "Reminder",
+  "eventReminderBefore": "Minutes before",
+  "generalTodoTitle": "Personal to-do list",
+  "llmProviders": "LLM providers",
+  "llmProviderName": "Name",
+  "llmBaseUrl": "API base URL",
+  "llmApiKey": "API key",
+  "llmModelName": "Model name",
+  "llmSetDefault": "Use by default",
+  "manageTitle": "Management",
+  "manageClasses": "Classes",
+  "manageCourses": "Courses",
+  "manageStudents": "Students",
+  "className": "Class name",
+  "gradeName": "Grade",
+  "headTeacher": "Head teacher",
+  "studentCountLabel": "{count} students",
+  "classColor": "Color",
+  "templateBinding": "Schedule template",
+  "studentName": "Name",
+  "studentNo": "Student No.",
+  "importExcel": "Import from Excel",
+  "importPreview": "Import preview",
+  "importResult": "Success {success}, failed {fail}, skipped {skip}",
+  "importReasonMissingName": "Name is empty",
+  "importReasonClassNotFound": "No matching class",
+  "importReasonDuplicate": "Already exists",
+  "importDone": "Import finished",
+  "dragToReorderHint": "Long-press and drag to reorder",
+  "batchUpdateTemplate": "Batch update template",
+  "batchUpdateTemplateConfirm": "The following classes will be updated: {names}",
+  "classDeleteConfirmBody": "Deleting this class also removes its courses, lessons, students and attendance records.",
+  "settingsTitle": "Settings",
+  "language": "Language",
+  "languageZh": "简体中文",
+  "languageEn": "English",
+  "theme": "Theme",
+  "themeMint": "Fresh mint",
+  "themeMinimalGray": "Minimal gray",
+  "themeNightCare": "Night care",
+  "riskThreshold": "High-risk absence threshold",
+  "attendanceWarnThreshold": "Attendance warning threshold (%)",
+  "retentionDays": "Keep attendance for (days)",
+  "retentionImportLogDays": "Keep import logs for (days)",
+  "cascadeSwitch": "Cascade time updates",
+  "defaultAttendanceStatus": "Default status for unrecorded days",
+  "notificationPermission": "Notification permission",
+  "notificationCheck": "Check permission",
+  "notificationOpenSettings": "Open system settings",
+  "notificationGranted": "Notifications are enabled",
+  "notificationDenied": "Notifications are disabled",
+  "lessonReminder": "Pre-class reminder",
+  "reminderMinutesBefore": "Remind minutes before",
+  "reminderRegenerate": "Rebuild reminders now",
+  "reminderRegenerated": "{count} reminders rebuilt from current templates",
+  "cleanupNow": "Clean up expired data",
+  "cleanupResult": "Cleaned attendance {attendance}, import logs {logs}",
+  "cleanupAborted": "Backup failed, cleanup cancelled",
+  "dangerZone": "Danger zone",
+  "clearAllData": "Clear all data",
+  "clearAllDataConfirm": "All classes, courses, lessons, students, attendance and to-dos will be erased permanently.",
+  "aboutTitle": "About",
+  "versionLabel": "Version {version}",
+  "@templateBoundClasses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@templateDeleteBlockedBody": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "@templateEditAffectClasses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@periodIndexLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "@riskScoreLabel": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "@importResult": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "fail": {
+        "type": "int"
+      },
+      "skip": {
+        "type": "int"
+      }
+    }
+  },
+  "@batchUpdateTemplateConfirm": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "@studentCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@todoCompletedSection": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@reminderRegenerated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@cleanupResult": {
+    "placeholders": {
+      "attendance": {
+        "type": "int"
+      },
+      "logs": {
+        "type": "int"
+      }
+    }
+  },
+  "@versionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "@operationFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "autoTodoTitle": "Check absences for {className} this week",
+  "@autoTodoTitle": {
+    "placeholders": {
+      "className": {
+        "type": "String"
+      }
+    }
+  },
+  "colRow": "Row",
+  "colName": "Name",
+  "colNo": "No.",
+  "colClass": "Class",
+  "colStatus": "Status",
+  "classFormTitle": "Class",
+  "courseFormTitle": "Course",
+  "studentFormTitle": "Student",
+  "eventFormTitle": "Event",
+  "addClass": "Add class",
+  "addCourse": "Add course",
+  "addStudent": "Add student",
+  "addEvent": "Add event",
+  "addNote": "Add note",
+  "deleteNote": "Delete note",
+  "deleteEvent": "Delete event",
+  "deleteStudent": "Delete student",
+  "deleteCourse": "Delete course",
+  "deleteClass": "Delete class",
+  "pickColor": "Pick color",
+  "importChooseFile": "Choose Excel file",
+  "noteSaved": "Note saved",
+  "classSaved": "Class saved",
+  "courseSaved": "Course saved",
+  "studentSaved": "Student saved",
+  "eventSaved": "Event saved",
+  "dismiss": "Dismiss",
+  "timePickerTitle": "Pick time",
+  "hour": "Hour",
+  "minute": "Minute",
+  "requiredField": "This field is required",
+  "operationFailed": "Operation failed: {message}",
+  "unexpectedError": "Unexpected error, please retry",
+  "tabSettings": "Settings",
+  "scheduleModeTraditional": "Class grid",
+  "scheduleModeStaggered": "Teacher timeline",
+  "scheduleModeSwitch": "Switch schedule view",
+  "scheduleSettings": "Schedule settings",
+  "gridPeriodHeader": "Period",
+  "gridTimeHeader": "Time",
+  "todayLabel": "Today",
+  "quickGenerateTitle": "Generate periods",
+  "quickGenerateDesc": "Batch-generate periods from start time, lesson length, break and count",
+  "generateStartTime": "Start time",
+  "generateLessonMinutes": "Lesson length (min)",
+  "generateBreakMinutes": "Break length (min)",
+  "generatePeriodCount": "Periods per day",
+  "generateWeekdays": "Apply to",
+  "generatePreview": "Preview",
+  "generateDone": "Generated {count} periods",
+  "@generateDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "generatePreviewRow": "Period {index}　{start}-{end}",
+  "@generatePreviewRow": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "generateInvalidRange": "Range exceeds one day. Reduce periods or length.",
+  "generateEmptyWeekdays": "Pick at least one weekday",
+  "editPeriodTime": "Edit period time",
+  "editPeriodTimeDesc": "Edit this period, with optional shift of the following ones",
+  "cascadeFollowing": "Shift following periods",
+  "periodTimeUpdated": "Period time updated",
+  "cascadeApplied": "Shifted {count} periods",
+  "@cascadeApplied": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "defaultTemplateEdit": "Edit default periods",
+  "defaultTemplateHint": "Used by default for new classes",
+  "clearSchedule": "Clear schedule",
+  "clearScheduleConfirm": "Clears the lessons of every class on this template. Period times are kept. This cannot be undone.",
+  "clearScheduleDone": "Schedule cleared",
+  "importPhotoSchedule": "Import from photo",
+  "importPhotoScheduleHint": "Take or pick a timetable photo — it is recognized on-device",
+  "comingSoon": "Coming soon",
+  "toolboxAllTools": "All tools",
+  "toolStatistics": "Statistics",
+  "toolTodo": "Smart todos",
+  "toolFocus": "Focus",
+  "toolNote": "Notes",
+  "toolCalendar": "Calendar",
+  "toolPrivateTodo": "Checklist",
+  "toolboxInsight": "This week",
+  "insightDoneLessons": "Lessons done",
+  "insightLeftLessons": "Remaining",
+  "insightAttention": "Needs attention",
+  "insightNoAttention": "All good, keep it up",
+  "insightAttendanceRate": "Attendance rate",
+  "insightCheer": "{done} lessons done this week. Nice work.",
+  "@insightCheer": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "insightStudentRisk": "{name} was absent {count} times this week",
+  "@insightStudentRisk": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pageIndicator": "Page {current} of {total}",
+  "@pageIndicator": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "weekRange": "{start} ~ {end}",
+  "@weekRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "groupScheduleData": "Schedule & roster",
+  "groupPermission": "Permissions",
+  "groupDisplay": "Display & language",
+  "groupAssistant": "Smart features",
+  "groupData": "Data",
+  "groupAbout": "About",
+  "groupTeaching": "Teaching",
+  "studentRoster": "Student roster",
+  "studentRosterDesc": "Add, edit, delete, or bulk import from Excel",
+  "classManagement": "Classes",
+  "classManagementDesc": "Classes and counts are created from imports",
+  "courseManagement": "Courses",
+  "courseManagementDesc": "Add courses, edit rooms and classes (tap an empty slot in the schedule to place one)",
+  "statisticsSettings": "Statistics settings",
+  "statisticsSettingsDesc": "Risk and warning thresholds",
+  "studentGender": "Gender",
+  "genderMale": "Male",
+  "genderFemale": "Female",
+  "genderUnset": "Not set",
+  "studentNoOptional": "Student no. (optional)",
+  "studentNameRequired": "Name (required)",
+  "studentClassRequired": "Class (required)",
+  "studentFormDesc": "Name and class are required; gender and student no. are optional",
+  "courseNameLabel": "Course name",
+  "courseRoomLabel": "Room",
+  "courseClassLabel": "Classes",
+  "courseCountLabel": "Students",
+  "courseRemarkLabel": "Note",
+  "courseMultiClassHint": "Multiple classes allowed (combined class)",
+  "courseClassRequired": "Pick at least one class",
+  "courseAutoCountHint": "Counted from the selected classes",
+  "courseClearAll": "Clear all courses",
+  "courseClearAllConfirm": "This deletes every course and its lessons. It cannot be undone.",
+  "courseCleared": "Courses cleared",
+  "importStudents": "Bulk import students from Excel",
+  "importFormatTitle": "File format",
+  "importFormatLine1": "Only .xlsx files",
+  "importFormatLine2": "\"姓名\" and \"班级\" columns are required",
+  "importFormatLine3": "\"学号\" and \"性别\" are optional",
+  "importFormatLine4": "Unknown classes are created automatically",
+  "importFormatExample": "Example",
+  "importAutoCreated": "Created {count} classes",
+  "@importAutoCreated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importRowsTotal": "Parsed {count} rows",
+  "@importRowsTotal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importNeedNameOrClass": "Both \"姓名\" and \"班级\" must be filled",
+  "importOverall": "Import summary",
+  "importClassColumn": "Class",
+  "aboutVersion": "Version",
+  "aboutChangelog": "What's new",
+  "aboutChangelogBody": "1.0.0 first release: schedule, attendance, statistics, todos and toolbox, with six themes and bilingual UI.",
+  "aboutDeveloper": "Developer",
+  "aboutDeveloperName": "Teaching Assistant Team",
+  "aboutTechStack": "Tech stack",
+  "aboutAppName": "Schedule Plan",
+  "sortAscending": "Ascending",
+  "sortDescending": "Descending",
+  "attendanceWeekDefault": "Week view",
+  "attendanceMonthView": "Month view",
+  "attendanceNoLesson": "No lessons today",
+  "attendanceCountSummary": "{total} total · {present} present",
+  "@attendanceCountSummary": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "present": {
+        "type": "int"
+      }
+    }
+  },
+  "markAll": "Mark all",
+  "statsRiskThresholdDesc": "Flag as high risk when weekly absences reach this number",
+  "statsWarnThresholdDesc": "Highlight in charts when attendance drops below this rate",
+  "statsColumnName": "Name",
+  "statsColumnNo": "Student no.",
+  "statsColumnStatus": "Status",
+  "toolStatisticsDesc": "Attendance trends and ranking",
+  "toolTodoDesc": "Auto-generated from attendance",
+  "toolFocusDesc": "Pomodoro focus timer",
+  "toolNoteDesc": "Quick notes with AI expansion",
+  "toolCalendarDesc": "Events and reminders",
+  "toolPrivateTodoDesc": "Your private checklist",
+  "importReasonMissingClass": "Missing class",
+  "noStudentNo": "No student no.",
+  "unitTimes": " times",
+  "unitDays": " d",
+  "unitMinutes": " min",
+  "unitPercent": "%",
+  "settingsSubtitle": "Schedule, roster, permissions and display",
+  "themeSunrise": "Sunrise",
+  "themeOceanBlue": "Ocean",
+  "themeSakura": "Sakura",
+  "scheduleCleared": "Schedule cleared",
+  "periodTimeSaved": "Period time updated",
+  "switchTemplate": "Switch schedule",
+  "scheduleGenerated": "Generated a schedule of {count} periods",
+  "@scheduleGenerated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "studentNameShort": "Name",
+  "studentNoShort": "No.",
+  "attendanceColumn": "Status",
+  "calendarMonthTitle": "{month}/{year}",
+  "@calendarMonthTitle": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "month": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarWeekTitle": "{start} - {end}",
+  "@calendarWeekTitle": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "importFileUnreadable": "This file cannot be read. Make sure it is an unencrypted .xlsx file, or open it in Excel/WPS and save it as .xlsx, then try again.",
+  "scheduleNoClassHint": "No class yet - showing the default bell schedule",
+  "cellNoCourseTitle": "No course in this slot",
+  "cellNoCourseBody": "Create a course in course management first, then tap this slot again and swipe to place it.",
+  "cellNeedsClassBody": "You have no class yet. Create a class and import its roster before scheduling.",
+  "goAddCourse": "Add course",
+  "goCreateClass": "Create class",
+  "pickCourseTitle": "Pick a course for this slot",
+  "pickCourseHint": "Scroll to browse, tap to pick, then place it here",
+  "placeHere": "Place here",
+  "noCourseYet": "No course yet",
+  "lessonDetailTitle": "Course details",
+  "goRollCall": "Take attendance",
+  "changeLessonCourse": "Change course",
+  "removeFromSchedule": "Remove from schedule",
+  "removedFromSchedule": "Removed from schedule",
+  "placedToSchedule": "Added to schedule",
+  "cellStudentCount": "{count}",
+  "@cellStudentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "classHeadTeacherFromClass": "Head teacher (from the class)",
+  "classDeleteConfirmWithStudents": "This class still has {count} students. Deleting it also removes them, the courses, the schedule and all attendance records. This cannot be undone.",
+  "@classDeleteConfirmWithStudents": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "classCreatedNextStep": "Class created - add the student roster for it",
+  "goAddStudents": "Add students",
+  "attendanceLocatedTo": "Opened {date}",
+  "@attendanceLocatedTo": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dialAmLabel": "AM",
+  "dialPmLabel": "PM",
+  "dialTwoRingHint": "Inner ring sets the hour, outer ring sets the minute",
+  "periodDurationMinutes": "Period length {count} min",
+  "@periodDurationMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "periodAutoEndHint": "End time is auto-calculated from the period length",
+  "periodCustomEnd": "Custom end time",
+  "periodAutoEndBadge": "Auto",
+  "classInfoTitle": "Class info",
+  "classStatStudents": "Students",
+  "classStatMale": "Boys",
+  "classStatFemale": "Girls",
+  "classStatUnset": "Unset",
+  "classDetailStudents": "Students in this class",
+  "classDetailStudentsDesc": "Tap a student to edit; use the icon to delete",
+  "classDetailNoStudents": "No students yet - tap + to add",
+  "classDetailCourses": "Courses of this class",
+  "classDetailCoursesDesc": "Maintain course names, rooms and classes",
+  "classDetailTapHint": "Tap to open class details",
+  "deleteStudentConfirmBody": "Deleting also removes this student's attendance records. This cannot be undone.",
+  "rosterSummary": "{students} students · {classes} classes",
+  "@rosterSummary": {
+    "placeholders": {
+      "students": {
+        "type": "int"
+      },
+      "classes": {
+        "type": "int"
+      }
+    }
+  },
+  "rosterEmptyGuide": "No students yet - import a roster from Excel",
+  "goImportRoster": "Import roster",
+  "coursePickClassTitle": "Select classes",
+  "coursePickClassHint": "Multi-select (combined classes allowed); the headcount is summed automatically",
+  "pickClass": "Select classes",
+  "teacherUnset": "Not set",
+  "periodRestoreAuto": "Reset to auto",
+  "classDetailTitle": "Class details",
+  "importAutoHint": "Imported automatically, no extra confirmation",
+  "importGoRoster": "Open roster",
+  "importDetailToggle": "View import details ({count} rows)",
+  "@importDetailToggle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importDetailHide": "Hide import details",
+  "courseColorLabel": "Course color",
+  "courseColorAuto": "Use class color",
+  "courseColorHint": "Pick a color; schedule cells use it for this course",
+  "generateReplacesHint": "This selection is authoritative; unselected weekdays are cleared",
+  "importEmptyFile": "No student rows found — check that the name and class columns have content",
+  "moreActions": "More actions",
+  "statusShortPresent": "P",
+  "statusShortLate": "L",
+  "statusShortEarlyLeave": "EL",
+  "statusShortAbsent": "A",
+  "statusShortLeave": "Lv",
+  "statusShortUnmarked": "—",
+  "attendanceRingNoRecord": "Scheduled · not marked",
+  "attendanceRingRate": "Present {present}/{expected}",
+  "@attendanceRingRate": {
+    "placeholders": {
+      "present": {
+        "type": "int"
+      },
+      "expected": {
+        "type": "int"
+      }
+    }
+  },
+  "statusSuspended": "Suspended",
+  "statusExempt": "Exempt",
+  "statusShortSuspended": "Sus",
+  "statusShortExempt": "Ex",
+  "attendanceLongTermUntil": "{status} · until {date}",
+  "@attendanceLongTermUntil": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceLongTermSet": "{name} marked {status} until {date}",
+  "@attendanceLongTermSet": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceLongTermCleared": "{name} is back to normal roll call",
+  "@attendanceLongTermCleared": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceLongTermClearTitle": "Cancel {status}?",
+  "@attendanceLongTermClearTitle": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceLongTermClearBody": "{name} returns to normal roll call and must be marked lesson by lesson.",
+  "@attendanceLongTermClearBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceLongTermLocked": "{name} · {status} until {date} — no per-lesson marking needed",
+  "@attendanceLongTermLocked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "rosterGroupCount": "{count} students",
+  "@rosterGroupCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareSchedule": "Share schedule",
+  "shareSavedToGallery": "Saved to gallery",
+  "shareGalleryPermissionDenied": "Allow photos & videos access to save to the gallery",
+  "shareOpenSettings": "Settings",
+  "shareCaptureFailed": "Couldn't capture, try again",
+  "shareQrPlaceholder": "QR code",
+  "copyAction": "Copy",
+  "summaryNoAbnormal": "All present, nothing abnormal",
+  "courseFilterLabel": "Filter by course",
+  "eventRecurrence": "Repeats",
+  "eventRecurrenceOnce": "Once",
+  "eventRecurrenceWeekly": "Weekly",
+  "eventRecurrenceBiweekly": "Biweekly",
+  "eventRecurrenceMonthly": "Monthly",
+  "insightBenefitedStudents": "Students reached",
+  "toolboxSwipeHint": "Swipe · 2 pages",
+  "ocrTitle": "Scan schedule photo",
+  "ocrEntryTitle": "Schedule from photo",
+  "ocrEntryDesc": "Snap a timetable, recognize it on-device, build the schedule",
+  "ocrPickPhoto": "Choose a photo",
+  "ocrPickPhotoHint": "Shoot the whole timetable flat and straight. Headers like \"Mon…Fri\" and \"period N\" help a lot",
+  "ocrFromCamera": "Camera",
+  "ocrFromGallery": "From gallery",
+  "ocrRecognizing": "Recognizing…",
+  "ocrRecognizingHint": "Runs entirely on this device — nothing is uploaded",
+  "ocrCropTitle": "Frame the timetable",
+  "ocrCropHint": "Frame just the table — drop the title and margins for better accuracy",
+  "ocrCropReset": "Reset frame",
+  "ocrCropConfirm": "Recognize this area",
+  "ocrResultTitle": "Recognition result",
+  "ocrResultSummary": "{lessons} lessons · {courses} courses · {days} days",
+  "ocrConfidenceHigh": "Looks good — review and import",
+  "ocrConfidenceMedium": "So-so result — check each row before importing",
+  "ocrConfidenceLow": "The photo is unclear — retake it or fix the rows by hand",
+  "ocrImport": "Import",
+  "ocrImportDone": "Imported {lessons} lessons, {courses} new courses",
+  "ocrRecapture": "Retake",
+  "ocrEditRow": "Tap to edit the course name",
+  "ocrRowEditTitle": "Edit course name",
+  "ocrNoPhoto": "No photo selected",
+  "ocrNoPhotoPermission": "Photo access is needed to read the timetable image",
+  "ocrEngineUnavailable": "No on-device text recognition engine available — use Excel import instead",
+  "ocrEngineUnavailableTitle": "Engine unavailable",
+  "ocrEngineUnavailableBody": "Recognition runs fully on-device (offline ML Kit). No network, no upload. This device can't provide it — usually an old OS or missing Google services. Use Excel import or place lessons by hand for now.",
+  "ocrWarnNoWeekday": "No weekday header found — make sure the whole table is in frame",
+  "ocrWarnPartialWeekday": "Only some weekday columns were found — a few days may be missing",
+  "ocrWarnNoPeriod": "No period header found — retake or fix it by hand",
+  "ocrWarnNoLesson": "No lessons recognized — try another angle or a sharper shot",
+  "ocrManualAdd": "Add a lesson by hand",
+  "ocrAllWeekdays": "All",
+  "ocrNoGoogleServices": "Google services missing — recognition unavailable",
+  "ocrSettingsHint": "Snap the timetable, recognize it on-device, place it here",
+  "ocrDeviceTitle": "Device support",
+  "ocrDeviceAndroid": "Android (Xiaomi / OPPO / vivo and friends): ready to use. Recognition uses the device's offline text engine — ML Kit when Google services are present, with a system fallback otherwise. No network at any point.",
+  "ocrDeviceHarmony": "Huawei (HarmonyOS): not supported yet — HarmonyOS exposes none of the engines above. A dedicated version is planned; use Excel import or place lessons by hand for now.",
+  "ocrDeviceIos": "iOS: the hook is reserved on top of Apple Vision and will be enabled together with the iOS build.",
+  "timelineEventLegend": "Event",
+  "timelineEventTime": "{start} - {end}",
+  "@timelineEventTime": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "timelineEventTapHint": "tap for time",
+  "holidayKindHoliday": "Off",
+  "holidayKindMakeup": "On",
+  "holidayLegend": "Red = holiday · amber = makeup workday",
+  "holidayNameNewYear": "New Year's Day",
+  "holidayNameSpringFestival": "Spring Festival",
+  "holidayNameQingming": "Qingming Festival",
+  "holidayNameLabourDay": "Labour Day",
+  "holidayNameDragonBoat": "Dragon Boat Festival",
+  "holidayNameMidAutumn": "Mid-Autumn Festival",
+  "holidayNameNationalDay": "National Day",
+  "holidayNameNationalDayMidAutumn": "National Day & Mid-Autumn Festival",
+  "holidayMakeupTitle": "Makeup workday today",
+  "holidayMakeupAsk": "Making up for {name}. Which weekday's timetable applies today?",
+  "holidayMakeupResolved": "Following the {weekday} timetable",
+  "holidayMakeupNotSet": "Not confirmed yet — lesson counts will use today's weekday",
+  "holidayMakeupSet": "Set",
+  "holidayShiftTitle": "Which weekday's timetable?",
+  "holidayShiftBody": "Follow your school's notice. Lesson counts for this day will use your choice.",
+  "holidayShiftNone": "No change (use the weekday itself)",
+  "holidayShiftSaved": "Now counting the {weekday} timetable",
+  "holidayShiftCleared": "Back to no adjustment",
+  "holidayOutsideCoverage": "Holiday schedule for {year} isn't bundled yet — weekends only for now",
+  "holidayFreeCount": "{count} days off this week",
+  "holidayMakeupCount": "{count} makeup workdays this week",
+  "toolboxOverviewTitle": "Overview",
+  "toolboxTodayTitle": "Today",
+  "insightWeekLessons": "Teaching days",
+  "insightTotalLessons": "Total lessons",
+  "insightFocusCount": "Focus sessions",
+  "insightTodayLessons": "Today's lessons",
+  "insightTodayNoLesson": "No lessons today",
+  "insightUnitDays": "{count} days",
+  "insightUnitLessons": "{count} lessons",
+  "insightUnitPeriods": "{count} periods",
+  "insightUnitTimes": "{count} times",
+  "insightUnitCourses": "{count} courses",
+  "insightFocusMinutes": "{minutes} minutes in total",
+  "insightFocusNoRecord": "No focus session yet",
+  "insightSectionLessons": "Lesson distribution",
+  "insightSectionAttendance": "Attendance",
+  "insightSectionFocus": "Focus time",
+  "insightSectionEvents": "Extra affairs",
+  "insightSectionLessonsDesc": "Per day and per course",
+  "insightSectionAttendanceDesc": "Rates and the class to watch",
+  "insightSectionEventsDesc": "Events from your calendar",
+  "insightDoneOfTotal": "{done} of {total} done",
+  "insightPerDayTitle": "Lessons per day",
+  "insightPerCourseTitle": "By course",
+  "insightBestClass": "Best attendance",
+  "insightWorstClass": "Needs attention",
+  "insightClassRate": "{rate}% · {total} records",
+  "insightNoClassData": "No roll call recorded this week",
+  "insightSingleClass": "Only one class had roll call this week",
+  "insightEventsEmpty": "No extra affairs this week",
+  "insightEventWithLocation": "{title} · {location}",
+  "insightNoLessonThisWeek": "Nothing scheduled this week",
+  "@holidayMakeupAsk": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@holidayMakeupResolved": {
+    "placeholders": {
+      "weekday": {
+        "type": "String"
+      }
+    }
+  },
+  "@holidayShiftSaved": {
+    "placeholders": {
+      "weekday": {
+        "type": "String"
+      }
+    }
+  },
+  "@holidayOutsideCoverage": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "@holidayFreeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@holidayMakeupCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightUnitDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightUnitLessons": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightUnitPeriods": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightUnitTimes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightUnitCourses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightFocusMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightDoneOfTotal": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightClassRate": {
+    "placeholders": {
+      "rate": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightEventWithLocation": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "insightUnitMinutes": "{count} min",
+  "insightUnitStudents": "{count} students",
+  "insightFocusTotal": "Total focus",
+  "insightFocusAverage": "Avg. per session",
+  "insightTodayEventsCount": "{count} events today",
+  "@insightUnitMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightUnitStudents": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@insightTodayEventsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "previousMonth": "Previous month",
+  "nextMonth": "Next month",
+  "yearMonth": "{month}/{year}",
+  "eventDayTitle": "Events on this day",
+  "@yearMonth": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "month": {
+        "type": "int"
+      }
+    }
+  },
+  "holidayAwareSwitch": "Holidays & makeup days",
+  "holidayAwareDesc": "Skip holidays in lesson counts, count makeup workdays, and remind you which weekday's timetable applies",
+  "insightUnitItems": "{count} items",
+  "@insightUnitItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "holidayRemoteSwitch": "Fetch holiday calendars automatically",
+  "holidayRemoteDesc": "Picks up next year's holidays automatically; built-in data still works",
+  "holidayDataTitle": "Holiday data",
+  "holidayDataUnknown": "No data yet",
+  "holidayDataSummary": "Covers {years}",
+  "holidayDataSummaryChecked": "Covers {years} · last checked {date}",
+  "holidaySyncNow": "Update now",
+  "holidaySyncUpdated": "Updated holidays for {years}",
+  "holidaySyncNotPublished": "{years} isn't published yet — it will be fetched automatically",
+  "holidaySyncFailed": "Couldn't fetch — check your connection and try again",
+  "holidaySyncUpToDate": "Already up to date",
+  "holidaySyncDisabled": "Automatic fetching is off — turn it on above first",
+  "@holidayDataSummary": {
+    "placeholders": {
+      "years": {
+        "type": "String"
+      }
+    }
+  },
+  "@holidayDataSummaryChecked": {
+    "placeholders": {
+      "years": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@holidaySyncUpdated": {
+    "placeholders": {
+      "years": {
+        "type": "String"
+      }
+    }
+  },
+  "@holidaySyncNotPublished": {
+    "placeholders": {
+      "years": {
+        "type": "String"
+      }
+    }
+  }
+}

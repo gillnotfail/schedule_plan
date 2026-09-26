@@ -1,0 +1,82 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# ---------------------------------------------------------------------------
+# 签名密钥与发布配置（含明文口令，**绝对禁止入库**）
+# 一旦泄露，任何人都能签出"看起来像官方"的包来覆盖安装。
+# 同时请自行离线备份 keystore：Android 只认同签名的覆盖安装，
+# 密钥丢了就等于所有用户（包括自己）必须卸载重装，应用内升级链路也会断。
+# ---------------------------------------------------------------------------
+/android/keystore.jks
+/android/key.properties
+/android/*.jks
+/android/*.keystore
+*.jks
+*.keystore
+key.properties
+
+# ---------------------------------------------------------------------------
+# 打包与发布产物
+# `updates/latest.json` 是要入库的（应用内更新的清单源），
+# 但 APK 本体与补丁一律不入库——它们挂 GitHub Releases，
+# 塞进 git 会让仓库体积永久膨胀且无法回收。
+# ---------------------------------------------------------------------------
+*.apk
+*.aab
+*.ap_
+*.apk.sha1
+/dist/
+/symbols/
+app.*.symbols
+app.*.map.json
+
+# ---------------------------------------------------------------------------
+# 本地临时文件（分析 / 测试 / 生成的日志、差分脚本的中间产物）
+# ---------------------------------------------------------------------------
+/.workbuddy/tmp_*
+/.workbuddy/*.log
+*.tmp
+*.bak
