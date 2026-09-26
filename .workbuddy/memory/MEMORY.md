@@ -70,6 +70,10 @@
   `GET /repos/...` 的 `permissions.push`）。`token_looks_truncated()` 专拦「复制了一半」：**细粒度 PAT 共 93 字符、
   中间还有一个下划线**，截断后服务端只回一句 `401 Bad credentials`。`commit_and_tag` **幂等**（标签已存在且
   `rev-parse <tag>^{}` == HEAD 就跳过）。
+- **别让用户把 token 贴进对话**（实测两次都被截到 31 字符，形态 `github_pat_`+20 位、连第二个下划线都没有）；
+  让用户用编辑器直接写 `~/.schedule_plan-release.env`。`token_file_status()` 会区分「文件不存在 / 没有那一行 /
+  等号右边为空 / 有值读不出」——别把四种合成一句「没有可用的 GITHUB_TOKEN」。
+- 按行改 dotenv/ini **必须逐行比键名**：`re.sub(r"GITHUB_TOKEN=.*")` 会把注释行里同名的文字一起吃掉。
 - **本机网络（实测）**：`github.com` 解析出的 IP **TCP 直连不通**（DNS 给 `20.205.243.166`，而 `140.82.112.4:443`
   是通的 → **特定 IP 被封，不是域名**）；`api.github.com`/`uploads.github.com`/`objects.githubusercontent.com`/
   `raw.githubusercontent.com`/jsDelivr **都通**。→ 发布不受影响；清单默认下载地址指向 `github.com`，手机侧若同样封
