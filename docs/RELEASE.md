@@ -23,7 +23,39 @@
 
 ## 二、首次配置（只需做一次）
 
-### 1. SSH 密钥（推送代码用）
+### 1. 仓库必须是**公开**的（否则应用内升级整条链路不通）
+
+这一条排在第一位，因为**仓库设为私有（Private）时，发布流程会全部成功，而手机端
+永远看不到更新** —— 没有任何一步会报错，最难查。
+
+原因：应用里没有、也不该有凭据，它只能匿名取清单和安装包。
+
+| 地址 | 私有仓库 | 公开仓库 |
+| --- | --- | --- |
+| `raw.githubusercontent.com/.../updates/latest.json` | 404 | 200 |
+| `cdn.jsdelivr.net/gh/.../updates/latest.json` | **404**（jsDelivr 完全不服务私有仓库） | 200 |
+| `github.com/<repo>/releases/download/...`（安装包） | 404 | 200 |
+| `api.github.com/repos/<repo>` | 404 | 200 |
+
+判断方法（匿名探测，就是手机的视角）：
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' https://api.github.com/repos/<owner>/<repo>
+# 404 = 私有（带 token 再试会是 200），200 = 公开
+```
+
+**不要**试图把 token 塞进 App 里换取私有仓库 —— APK 可以被反编译，等于把仓库
+读写权限公开送人。要公开就公开仓库，要保密就别用应用内升级。
+
+公开前先确认历史里没有密钥：
+
+```bash
+git log --all --name-only --pretty=format: | sort -u \
+  | grep -Ei '\.(jks|keystore|apk|aab|p12|pem)$|key\.properties$|\.env$'
+# 期望：无输出
+```
+
+### 2. SSH 密钥（推送代码用）
 
 ```bash
 ssh-keygen -t ed25519 -C "gillnotfail@github" -f ~/.ssh/id_ed25519 -N ""
@@ -48,7 +80,7 @@ Host github.com
 ssh -T git@github.com      # 期望：Hi gillnotfail! You've successfully authenticated...
 ```
 
-### 2. `GITHUB_TOKEN`（建 Release 与上传附件用）
+### 3. `GITHUB_TOKEN`（建 Release 与上传附件用）
 
 GitHub → Settings → Developer settings → **Personal access tokens**。
 
@@ -100,7 +132,7 @@ export GITHUB_TOKEN=github_pat_xxx
   等号右边是空的 / 有值但读不出来。这四种情况的处置完全不同，混成一句
   "没有可用的 GITHUB_TOKEN" 会让人对着一个明明存在的文件反复怀疑路径。
 
-### 3. 下载地址要不要配镜像
+### 4. 下载地址要不要配镜像
 
 `updates/latest.json` 里的下载地址默认为
 `https://github.com/<repo>/releases/download/<tag>/<file>`。
@@ -113,7 +145,7 @@ export GITHUB_TOKEN=github_pat_xxx
 - 手机侧会下不动包，需要在 设置 → 检查更新 → 下载镜像 里填一个前缀
   （如 `https://ghproxy.net/https://github.com`），应用会自动把它套在直连地址前面试。
 
-### 4. 签名文件
+### 5. 签名文件
 
 - `android/key.properties` → 指向 `android/keystore.jks`（两者都在 `.gitignore` 里）。
 - **`keystore.jks` 必须另存备份**。丢了就再也无法给已安装的 App 发升级包，
@@ -311,25 +343,29 @@ python tool/delta_patch.py apply old.apk patch.spdp out.apk
 
 | 现象 | 原因 |
 | --- | --- |
-| `git push` 提示 Permission denied | 公钥没加到 GitHub，或没走 443（见 §2.1） |
+| `git push` 提示 Permission denied | 公钥没加到 GitHub，或没走 443（见 §2.2） |
 | Release 建好了但没有附件 | 没设 `GITHUB_TOKEN`，脚本跳过上传（日志里会说明具体是哪种情况） |
 | 日志说"没有可用的 GITHUB_TOKEN"但文件明明在 | 看紧跟的「原因」一行：多半是等号右边是空的（编辑器没保存/粘贴没落盘） |
 | `401 Bad credentials` | 先用日志里的字符数判断：细粒度 PAT 只有 93 字符才是完整的，不够就是复制时被截断了 |
-| 应用内看不到新版本 | `updates/latest.json` 没推到 `main` 分支 |
+| 应用内看不到新版本 | ①**仓库是私有的**（最常见，见 §2.1）；②`updates/latest.json` 没推到 `main` 分支 |
 | 应用内看到新版但走整包 | 本机 APK 指纹和 `deltas[].baseSha256` 对不上（装过第三方渠道包）；或补丁没省到九折以下 |
 | 安装失败 `INSTALL_FAILED_VERSION_DOWNGRADE` | `pubspec.yaml` 的 `+N` 没递增 |
 | 安装被拦下 | 缺「安装未知应用」授权，或 Manifest 少了 `REQUEST_INSTALL_PACKAGES` |
 | 装完没收到结果回执 | 系统安装会重启进程，回执可能送不到 → 回前台时靠比对版本号兜底（`markInstalledExternally()`） |
 | 正式版永远连不上网 | Manifest 少了 `INTERNET` 权限（debug 包由 Flutter 自动补，release 不会） |
 | 补丁自校验失败 | 生成时就会中止发布，不会发出去；查 `delta_patch.py selftest` |
+| 上传成功了，但 `git push` 标签报 `already exists` | Release 建在了打标签之前 → GitHub 自造了一个同名标签。脚本现在会拦住这种参数组合；已踩到的按下面修 |
+| Release 挂在不含本次发布的提交上 | 同上。修：`git push origin +refs/tags/v1.0.0:refs/tags/v1.0.0` 把标签硬挪到发布提交 |
 
 ---
 
 ## 八、发布前检查清单
 
+- [ ] **仓库是公开的**（`curl -s -o /dev/null -w '%{http_code}' https://api.github.com/repos/<owner>/<repo>` → 200）
 - [ ] `CHANGELOG.md` 写好了吗（**用老师能看懂的话**，会原样显示在手机上）
 - [ ] `flutter analyze --no-pub` → `No issues found!`
 - [ ] `flutter test` → `All tests passed!`
 - [ ] `python tool/delta_patch.py selftest` 通过
 - [ ] `keystore.jks` 有备份
 - [ ] `git status` 干净，没有误提交 `*.jks` / `key.properties` / APK
+- [ ] 命令里带了 `--push`（否则脚本会拒绝建 Release，因为标签没进远端）

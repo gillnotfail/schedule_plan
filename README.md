@@ -97,6 +97,10 @@ flutter build apk --release
 
 这个仓库同时充当**分发云**：APK 与分差补丁挂在 **GitHub Releases**，版本清单 `updates/latest.json` 跟着 `main` 分支走。
 
+> **前提：仓库必须是公开的。** 应用里没有也不该有凭据，它只能匿名取清单和安装包。
+> 仓库设为私有（Private）时，**发布流程会全部成功，而手机端永远看不到更新**——
+> 见 [`docs/RELEASE.md` §2.1](docs/RELEASE.md)。
+
 ### 为什么需要分差
 
 APK 里最大的一块是 `lib/libapp.so`（Dart AOT 快照，约 10 MB）。改几行 Dart 代码，这个文件的字节会整体平移——**定长分块去重在这种场景下会直接失效**（一块错位，后面全错位）。

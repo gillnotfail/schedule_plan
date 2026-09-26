@@ -18,7 +18,7 @@
     # 1) 先写更新说明（会原样出现在老师手机上，用大白话写）
     #    编辑 CHANGELOG.md，最上面加一节 ## [1.0.1] - 2026-10-01
 
-    # 2) 发布
+    # 2) 发布（要建 Release 就必须带 --push，理由见下方"顺序"一节）
     python tool/release.py --bump patch --push
 
     # 空跑：只生成产物与清单，不碰网络、不提交、不打标签
@@ -27,6 +27,16 @@
     # 首次发布（版本号已经是最终的，不想再动）：
     python tool/release.py --no-bump --push
 
+顺序（踩过的坑）
+----------------
+    必须是 **先提交打标签推送 → 再建 Release**。
+
+    反过来做的话：GitHub 收到创建 Release 的请求时，如果远端还没有这个标签，
+    它会照着 target_commitish 的 HEAD **自己造一个同名标签**。结果是 Release
+    挂在一个不含本次发布的旧提交上，而随后真正 `git push` 标签又被
+    `already exists` 拒绝——两处都错，却都在"上传成功"之后才暴露，
+    很容易被误判成权限问题。脚本现在会主动拦住这种组合。
+
 环境变量
 --------
     GITHUB_TOKEN  建 Release 与上传附件所需的令牌。
@@ -34,6 +44,9 @@
                   （里面写 `GITHUB_TOKEN=github_pat_xxx`，权限请置 600）。
                   两者都没有就跳过上传，只生成本地产物。
                   脚本会在**打包之前**先验一次 token，避免白等一轮构建。
+                  别把 token 贴进对话／聊天窗口：细粒度 PAT 有 93 个字符，
+                  在聊天链路里被截断是常见事故，症状却只是服务端一句
+                  `401 Bad credentials`。用编辑器直接写进上面那个文件。
 """
 
 from __future__ import annotations
@@ -385,7 +398,8 @@ def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
     return run(["git", *args], check=check)
 
 
-def commit_and_tag(version_name: str, tag: str, push: bool) -> None:
+def commit_and_tag(version_name: str, tag: str, push: bool) -> str:
+    """提交、打标签、（可选）推送，返回本次发布对应的提交 SHA。"""
     log("提交并打标签…")
     git("add", "-A")
     message = "release: v%s" % version_name
@@ -409,12 +423,21 @@ def commit_and_tag(version_name: str, tag: str, push: bool) -> None:
         log("  标签 %s 已存在且就指向当前提交，跳过创建" % tag)
     else:
         git("tag", "-a", tag, "-m", message)
+    head = git("rev-parse", "HEAD").stdout.strip()
     if push:
         git("push", "origin", "HEAD")
         git("push", "origin", tag)
+        # 推送之后再确认一次远端标签真的落在 HEAD 上。`git push` 成功但标签
+        # 指向别处的情况（比如上一轮 Release 让 GitHub 自造了一个同名标签）
+        # 会让 Release 挂在错误的提交上，而日志里一切正常——必须自己验。
+        remote = git("ls-remote", "--tags", "origin", tag).stdout.strip()
+        remote_sha = remote.split()[0] if remote else ""
+        if not remote_sha:
+            die("推送后仍没在远端看到标签 %s，请检查网络或权限。" % tag)
         log("  已推送到 origin")
     else:
         log("  已提交并打标签（未推送，加 --push 才推）")
+    return head
 
 
 def github_api(method: str, url: str, token: str, payload: dict | None = None,
@@ -448,10 +471,16 @@ def github_api(method: str, url: str, token: str, payload: dict | None = None,
 
 
 def upload_release(tag: str, version_name: str, notes: list[str],
-                   uploads: list[str], token: str) -> None:
+                   uploads: list[str], token: str, target_sha: str) -> None:
     log("创建 GitHub Release 并上传附件…")
+    # target_commitish 必须显式给成本次发布的提交。
+    # 不给的话 GitHub 会用仓库默认分支的 HEAD——如果标签当时还不存在于远端，
+    # 它就会**照着那个 HEAD 自己造一个同名标签**，Release 于是挂在一个不含本次
+    # 发布的提交上，而随后真正的 `git push` 标签又会被 already exists 拒绝。
+    # 两种症状都出现在"上传成功"之后，排查时很容易怪到权限头上。
     release = github_api("POST", "%s/releases" % API_BASE, token, {
         "tag_name": tag,
+        "target_commitish": target_sha,
         "name": "v%s" % version_name,
         "body": "\n".join("- %s" % note for note in notes)
                 or "本次发布没有额外说明。",
@@ -614,6 +643,26 @@ def main(argv: list[str]) -> int:
         log("    写进一行 `GITHUB_TOKEN=github_pat_xxx` 后重跑即可上传"
             "（产物已就绪，加 --no-build 免重新构建）")
 
+    # 「创建 Release」与「提交并推送标签」必须成对。GitHub 在收到创建 Release
+    # 的请求时，如果远端还没有这个标签，会照着 target_commitish 的 HEAD
+    # **自己造一个**；随后真正推送标签就会被 `already exists` 拒绝，而 Release
+    # 已经挂在一个不含本次发布的提交上了。两条路都得堵住，所以在这里先拦。
+    if token:
+        if args.no_commit:
+            die(
+                "要创建 Release 就不能加 --no-commit：\n"
+                "    GitHub 会按远端 HEAD 自己造一个同名标签，指向不含本次发布的提交，\n"
+                "    而随后真正的推送又会被 `already exists` 拒绝。\n"
+                "    只想空跑请改用 --skip-upload；要正式发布请去掉 --no-commit 并加 --push。"
+            )
+        if not (args.push and not args.no_push):
+            die(
+                "要创建 Release 就必须加 --push：\n"
+                "    标签不进远端，GitHub 会按远端 HEAD 自造一个同名标签，\n"
+                "    Release 于是挂在不含本次发布的提交上。\n"
+                "    只想在本地提交打标签请改用 --skip-upload。"
+            )
+
     name, code = read_version()
     log("当前版本：%s+%d" % (name, code))
 
@@ -684,20 +733,24 @@ def main(argv: list[str]) -> int:
 
     cache_current_apks(code, abis)
 
+    # 顺序是有讲究的：**先提交、打标签、推送，再建 Release**。
+    # 反过来的话，GitHub 收到创建请求时发现远端还没有这个标签，会照着
+    # target_commitish（默认远端默认分支的 HEAD）**自己造一个同名标签**——
+    # 于是 Release 挂在不含本次发布的提交上，随后真正的 `git push` 标签
+    # 又被 `already exists` 拒绝。两个症状都在"上传完成"之后才出现，
+    # 排查时很容易被误判成权限问题。
+    if args.no_commit:
+        log("跳过 git 提交与打标签（--no-commit）。")
+        head_sha = git("rev-parse", "HEAD").stdout.strip()
+    else:
+        head_sha = commit_and_tag(name, tag, push=args.push and not args.no_push)
+
     if args.skip_upload:
         log("跳过 GitHub Release（--skip-upload）。")
     elif not token:
         log("没有可用的 token，跳过上传（产物与清单都已就绪）。")
     else:
-        upload_release(tag, name, entry["notes"], uploads, token)
-
-    # 推送必须显式 --push：默认只本地提交打标签。标签是"一次性"的
-    # （同名标签已存在就必须改版本号），所以不能让一次试探性的本地跑
-    # 顺手把它推到远端。
-    if args.no_commit:
-        log("跳过 git 提交与打标签（--no-commit）。")
-    else:
-        commit_and_tag(name, tag, push=args.push and not args.no_push)
+        upload_release(tag, name, entry["notes"], uploads, token, head_sha)
 
     if args.skip_upload or not token:
         log("\n完成（未上传）。产物与清单都在本地，补上 token 后重跑即可上传。")

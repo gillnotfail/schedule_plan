@@ -55,6 +55,14 @@
   （有 `l10n.yaml` 时命令行参数被忽略，属预期）再 analyze。当前 zh/en 各 **679** 键。
 
 ## 发布与更新链路
+- **仓库必须公开**：应用里没有也不该有凭据，只能匿名取清单与安装包。私有仓库下**发布全绿、手机端永远看不到
+  更新**（raw 与 jsDelivr 都 404，jsDelivr 根本不服务私有仓库）。判断：匿名 `GET api.github.com/repos/<o>/<r>`
+  → 404 即私有。**别把 token 塞进 App 换私有**（APK 可反编译）。转公开前先审历史有无 `*.jks`/`key.properties`/APK。
+- **`release.py` 顺序不能反**：**先提交打标签推送 → 再建 Release**。反过来的话 GitHub 会按 `target_commitish`
+  （默认远端默认分支 HEAD）**自造同名标签** → Release 挂在旧提交上、随后 `git push` 标签被 `already exists`
+  拒绝；两个症状都出现在上传成功之后。故 `upload_release` 必须显式传本次提交 SHA，推送后再 `ls-remote` 复核。
+  **要建 Release 就必须去掉 `--no-commit` 且带 `--push`**（脚本会拦）。已发错的修法：
+  `git push origin +refs/tags/vX:refs/tags/vX`。
 - 仓库 `gillnotfail/schedule_plan`。`README.md` 面向 GitHub，规格 `docs/SPEC.md`，更新说明 `CHANGELOG.md`
   （**必须写用户能看懂的话**：`tool/release.py` 原样抽最新一节进 `updates/latest.json` 给应用内展示）。
   `updates/latest.json` **入库**；APK 与补丁挂 Releases **不入库**。`.gitignore` 覆盖 `*.jks`/`*.keystore`/
