@@ -2032,4 +2032,176 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get holidaySyncDisabled => '已关闭自动获取，请先打开上面的开关';
+
+  @override
+  String get updateTitle => '检查更新';
+
+  @override
+  String get updateCurrentVersionLabel => '当前版本';
+
+  @override
+  String updateVersionWithBuild(String version, int code) {
+    return '$version（build $code）';
+  }
+
+  @override
+  String get updateVersionUnknown => '无法读取版本号';
+
+  @override
+  String get updateInstallBlockedTitle => '需要「安装未知应用」权限';
+
+  @override
+  String get updateInstallBlockedDesc => '系统要求先允许本应用安装应用，否则点安装会被直接拒绝';
+
+  @override
+  String get updateGrantInstall => '去授权';
+
+  @override
+  String get updateRecheck => '我已授权';
+
+  @override
+  String get updateUnsupported => '当前平台不支持应用内更新';
+
+  @override
+  String get updateChecking => '正在检查更新…';
+
+  @override
+  String updateDownloadingPercent(int percent) {
+    return '正在下载… $percent%';
+  }
+
+  @override
+  String get updateFellBackToFull => '分差升级没成功，已自动改用完整包';
+
+  @override
+  String get updateAssembling => '正在用本机旧包合成新版本…';
+
+  @override
+  String get updateAssemblingHint => '不需要重新下载整包，这一步在本机完成';
+
+  @override
+  String get updateInstallingHint => '请在系统弹窗里确认安装';
+
+  @override
+  String get updateInstalledHint => '安装完成，重启应用后生效';
+
+  @override
+  String get updateUpToDate => '已是最新版本';
+
+  @override
+  String get updateCheckAgain => '再检查一次';
+
+  @override
+  String updateAvailableTitle(String version) {
+    return '有新版 $version';
+  }
+
+  @override
+  String get updateDeltaBadge => '分差升级';
+
+  @override
+  String get updateFullBadge => '完整包';
+
+  @override
+  String updateSizeWithDelta(String download, String full) {
+    return '只需下载 $download（完整包 $full）';
+  }
+
+  @override
+  String updateSizeFull(String full) {
+    return '需要下载 $full';
+  }
+
+  @override
+  String updateSavedHint(String saved, int percent) {
+    return '比整包少下 $saved，省下约 $percent%';
+  }
+
+  @override
+  String get updateChangesTitle => '更新内容';
+
+  @override
+  String get updateNoChanges => '这一版没有额外说明';
+
+  @override
+  String get updateDownloadDelta => '分差升级';
+
+  @override
+  String get updateDownloadFull => '下载并安装';
+
+  @override
+  String get updateSkipVersion => '跳过这个版本';
+
+  @override
+  String updateSkipConfirmBody(String version) {
+    return '跳过 $version 之后不会再提醒这一版；出了更新的版本会重新提示';
+  }
+
+  @override
+  String get updateSkippedHint => '已跳过，出了更新的版本会再提醒';
+
+  @override
+  String get updateReadyTitle => '新版本已就绪';
+
+  @override
+  String get updateReadyDeltaHint => '已在本机合成完成，点下面的按钮交给系统安装';
+
+  @override
+  String get updateReadyFullHint => '完整包已下载并校验通过，点下面的按钮安装';
+
+  @override
+  String get updateInstallNow => '立即安装';
+
+  @override
+  String get updateRetry => '重试';
+
+  @override
+  String get updateFailureNetwork => '没连上服务器，检查网络后重试';
+
+  @override
+  String get updateFailureManifest => '版本信息暂时取不到';
+
+  @override
+  String get updateFailureAssetMissing => '这个版本没有适配你手机架构的安装包';
+
+  @override
+  String get updateFailureHash => '下载内容校验没通过，已放弃安装';
+
+  @override
+  String get updateFailureDelta => '分差合成结果校验没通过';
+
+  @override
+  String get updateFailureNoSpace => '存储空间不足';
+
+  @override
+  String get updateFailureInstallBlocked => '还没允许本应用安装应用';
+
+  @override
+  String get updateFailureInstallRejected => '系统拒绝了这次安装';
+
+  @override
+  String get updateFailureUnknown => '出了点问题';
+
+  @override
+  String get updateMirrorTitle => '下载加速地址';
+
+  @override
+  String get updateMirrorDesc =>
+      'GitHub 的下载地址在部分网络下很慢。可以填代理前缀（每行一个），直连失败后会依次尝试';
+
+  @override
+  String get updateMirrorHint => 'https://你的代理/';
+
+  @override
+  String get updateMirrorSaved => '已保存，请重新检查更新';
+
+  @override
+  String updateSettingsSubtitle(String version) {
+    return '当前版本 $version';
+  }
+
+  @override
+  String updateSettingsSubtitleAvailable(String version) {
+    return '有新版本 $version';
+  }
 }

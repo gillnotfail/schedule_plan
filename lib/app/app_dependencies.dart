@@ -22,6 +22,7 @@ import 'package:schedule_plan/data/services/holiday_sync_service.dart';
 import 'package:schedule_plan/data/services/llm_service.dart';
 import 'package:schedule_plan/data/services/notification_service.dart';
 import 'package:schedule_plan/data/services/reminder_scheduler.dart';
+import 'package:schedule_plan/data/services/update_service.dart';
 import 'package:schedule_plan/data/settings_state.dart';
 
 /// 应用级依赖容器：仓储、服务与全局控制器。
@@ -59,6 +60,9 @@ class AppDependencies {
   /// 节假日数据的联网保鲜（内置表兜底 + 每年自动取回新年度安排）。
   late final HolidaySyncService holidaySync;
 
+  /// 应用内自更新（检查 / 下载 / 分差合成 / 交给系统安装）。
+  late final UpdateService updates;
+
   static Future<AppDependencies> init() async {
     final deps = AppDependencies._();
     deps.settings = SettingsRepository();
@@ -93,6 +97,7 @@ class AppDependencies {
     );
     deps.llm = LlmService();
     deps.holidaySync = HolidaySyncService();
+    deps.updates = UpdateService();
 
     await deps.settingsState.load();
     await deps.themeController.load();
@@ -123,6 +128,13 @@ class AppDependencies {
     } catch (error, stack) {
       AppLogger.e('启动清理失败', error: error, stack: stack);
     }
+
+    // 启动时顺带看一眼有没有新版。同样**故意不 await**：
+    // 更新检查要走网络，绝不能让它拖慢启动。而且它自带节流——
+    // 距上次检查不到一天就直接返回，连请求都不会发。
+    // 找到新版也不会弹窗打断，只在设置页的入口上挂一个红点。
+    unawaited(deps.updates.autoCheckIfDue());
+
     return deps;
   }
 }
@@ -165,6 +177,8 @@ class AppDependenciesScope extends StatelessWidget {
         ChangeNotifierProvider<AppNavigationState>.value(value: dependencies.navigation),
         // 节假日数据更新完成后靠它通知常驻页面重画（课表页 / 日历页）
         ChangeNotifierProvider<HolidaySyncService>.value(value: dependencies.holidaySync),
+        // 更新检查结果与下载进度靠它推到界面上
+        ChangeNotifierProvider<UpdateService>.value(value: dependencies.updates),
       ],
       child: child,
     );

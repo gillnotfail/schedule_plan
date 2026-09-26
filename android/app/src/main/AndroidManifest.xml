@@ -2,11 +2,18 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- 联网权限。
-         用途：① 节假日数据保鲜（每年自动取回新的放假安排）；② 模块五的 LLM 调用。
+         用途：① 节假日数据保鲜（每年自动取回新的放假安排）；② 模块五的 LLM 调用；
+         ③ 应用内检查更新与下载新的 APK。
          **必须在 main 里显式声明**：debug / profile 的清单由 Flutter 自动补上这一条
          （hot reload 要用），release 包不会——少了它，正式版装出来就是个
          "永远连不上网"的哑巴，而 debug 跑得好好的，最容易漏到发版才发现。 -->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- 应用内自更新：Android 8.0 起，发起安装的应用必须声明这条权限，
+         并且还需要用户在系统设置里为它打开「安装未知应用」。
+         缺了它 createSession 会直接抛 SecurityException——用户看到的就是
+         "点了更新但一直失败"。 -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <!-- 模块七 7.2：本地通知（Android 13+ 运行时权限） -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -59,6 +66,14 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- 应用内自更新的安装结果回执。
+             `exported="false"` 是安全的：这个广播由系统安装器通过我们自己创建的
+             PendingIntent 发回，而 PendingIntent 以创建者的身份执行，
+             因此非导出组件照样收得到。 -->
+        <receiver
+            android:name=".InstallResultReceiver"
+            android:exported="false" />
 
         <!-- flutter_local_notifications：定时提醒 / 重启后恢复 -->
         <receiver

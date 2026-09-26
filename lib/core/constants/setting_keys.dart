@@ -104,6 +104,27 @@ abstract final class SettingKeys {
   /// 上次检查是否全部成功（1/0）——决定下次重试是走 6 小时还是 3 天。
   static const String holidayLastSyncOk = 'holiday_last_sync_ok';
 
+  /// 是否在启动时自动检查新版（默认开启）。
+  ///
+  /// 关掉只是不再自动查，设置页里手动点「检查更新」照样能用。
+  static const String updateAutoCheckEnabled = 'update_auto_check_enabled';
+
+  /// 上次检查更新的时间（毫秒时间戳）。用来做"一天最多自动查一次"的节流。
+  static const String updateLastCheckAt = 'update_last_check_at';
+
+  /// 用户主动选择「跳过这一版」时记下的 versionCode。
+  ///
+  /// 记下来是为了不再反复打扰；只要出了更新的版本，跳过就自动失效
+  /// （判断条件是 `版本 > 被跳过的版本`，而不是"不等于"）。
+  static const String updateSkippedVersionCode = 'update_skipped_version_code';
+
+  /// 下载镜像前缀，每行一个。
+  ///
+  /// GitHub Releases 的附件在国内经常慢甚至不通，这里允许加一层加速前缀
+  /// （形如 `https://<代理>/`），直连失败后再逐个尝试。
+  /// 默认留空 = 只用直连，不替用户做选择。
+  static const String updateMirrorPrefixes = 'update_mirror_prefixes';
+
   /// 各键的默认值，读取时若库中不存在则返回此处的值。
   static const Map<String, String> defaults = <String, String>{
     language: 'zh',
@@ -132,5 +153,9 @@ abstract final class SettingKeys {
     holidayRemoteEnabled: '1',
     holidayLastSyncAt: '0',
     holidayLastSyncOk: '0',
+    updateAutoCheckEnabled: '1',
+    updateLastCheckAt: '0',
+    updateSkippedVersionCode: '0',
+    updateMirrorPrefixes: '',
   };
 }

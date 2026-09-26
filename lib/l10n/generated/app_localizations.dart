@@ -3865,6 +3865,312 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Automatic fetching is off — turn it on above first'**
   String get holidaySyncDisabled;
+
+  /// No description provided for @updateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Software update'**
+  String get updateTitle;
+
+  /// No description provided for @updateCurrentVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed version'**
+  String get updateCurrentVersionLabel;
+
+  /// No description provided for @updateVersionWithBuild.
+  ///
+  /// In en, this message translates to:
+  /// **'{version} (build {code})'**
+  String updateVersionWithBuild(String version, int code);
+
+  /// No description provided for @updateVersionUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Version unavailable'**
+  String get updateVersionUnknown;
+
+  /// No description provided for @updateInstallBlockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'\"Install unknown apps\" permission needed'**
+  String get updateInstallBlockedTitle;
+
+  /// No description provided for @updateInstallBlockedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Android must allow this app to install apps, otherwise the install is rejected'**
+  String get updateInstallBlockedDesc;
+
+  /// No description provided for @updateGrantInstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get updateGrantInstall;
+
+  /// No description provided for @updateRecheck.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve granted it'**
+  String get updateRecheck;
+
+  /// No description provided for @updateUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'In-app updates aren\'t available on this platform'**
+  String get updateUnsupported;
+
+  /// No description provided for @updateChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking for updates…'**
+  String get updateChecking;
+
+  /// No description provided for @updateDownloadingPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading… {percent}%'**
+  String updateDownloadingPercent(int percent);
+
+  /// No description provided for @updateFellBackToFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Delta update didn\'t work — switched to the full package'**
+  String get updateFellBackToFull;
+
+  /// No description provided for @updateAssembling.
+  ///
+  /// In en, this message translates to:
+  /// **'Building the new version from the installed package…'**
+  String get updateAssembling;
+
+  /// No description provided for @updateAssemblingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'No extra download needed — this runs on your device'**
+  String get updateAssemblingHint;
+
+  /// No description provided for @updateInstallingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm the install in the system dialog'**
+  String get updateInstallingHint;
+
+  /// No description provided for @updateInstalledHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed — restart the app to use it'**
+  String get updateInstalledHint;
+
+  /// No description provided for @updateUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re up to date'**
+  String get updateUpToDate;
+
+  /// No description provided for @updateCheckAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get updateCheckAgain;
+
+  /// No description provided for @updateAvailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} is available'**
+  String updateAvailableTitle(String version);
+
+  /// No description provided for @updateDeltaBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Delta'**
+  String get updateDeltaBadge;
+
+  /// No description provided for @updateFullBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Full package'**
+  String get updateFullBadge;
+
+  /// No description provided for @updateSizeWithDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'Download {download} (full package is {full})'**
+  String updateSizeWithDelta(String download, String full);
+
+  /// No description provided for @updateSizeFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Download {full}'**
+  String updateSizeFull(String full);
+
+  /// No description provided for @updateSavedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'{saved} less than the full package — about {percent}% saved'**
+  String updateSavedHint(String saved, int percent);
+
+  /// No description provided for @updateChangesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new'**
+  String get updateChangesTitle;
+
+  /// No description provided for @updateNoChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'No release notes for this version'**
+  String get updateNoChanges;
+
+  /// No description provided for @updateDownloadDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'Update with delta'**
+  String get updateDownloadDelta;
+
+  /// No description provided for @updateDownloadFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Download & install'**
+  String get updateDownloadFull;
+
+  /// No description provided for @updateSkipVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip this version'**
+  String get updateSkipVersion;
+
+  /// No description provided for @updateSkipConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You won\'t be reminded about {version} again — a newer release will prompt you'**
+  String updateSkipConfirmBody(String version);
+
+  /// No description provided for @updateSkippedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped — you\'ll be notified about newer releases'**
+  String get updateSkippedHint;
+
+  /// No description provided for @updateReadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New version is ready'**
+  String get updateReadyTitle;
+
+  /// No description provided for @updateReadyDeltaHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Built on this device — hand it to the system installer'**
+  String get updateReadyDeltaHint;
+
+  /// No description provided for @updateReadyFullHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded and verified — tap to install'**
+  String get updateReadyFullHint;
+
+  /// No description provided for @updateInstallNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Install now'**
+  String get updateInstallNow;
+
+  /// No description provided for @updateRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get updateRetry;
+
+  /// No description provided for @updateFailureNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach the server — check your connection'**
+  String get updateFailureNetwork;
+
+  /// No description provided for @updateFailureManifest.
+  ///
+  /// In en, this message translates to:
+  /// **'Version information is unavailable right now'**
+  String get updateFailureManifest;
+
+  /// No description provided for @updateFailureAssetMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'This release has no package for your device\'s architecture'**
+  String get updateFailureAssetMissing;
+
+  /// No description provided for @updateFailureHash.
+  ///
+  /// In en, this message translates to:
+  /// **'The download failed verification and was discarded'**
+  String get updateFailureHash;
+
+  /// No description provided for @updateFailureDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'The rebuilt package failed verification'**
+  String get updateFailureDelta;
+
+  /// No description provided for @updateFailureNoSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough storage'**
+  String get updateFailureNoSpace;
+
+  /// No description provided for @updateFailureInstallBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This app isn\'t allowed to install apps yet'**
+  String get updateFailureInstallBlocked;
+
+  /// No description provided for @updateFailureInstallRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'The system rejected the install'**
+  String get updateFailureInstallRejected;
+
+  /// No description provided for @updateFailureUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get updateFailureUnknown;
+
+  /// No description provided for @updateMirrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Download mirror'**
+  String get updateMirrorTitle;
+
+  /// No description provided for @updateMirrorDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'GitHub downloads can be slow on some networks. Add proxy prefixes (one per line); they\'re tried after the direct URL'**
+  String get updateMirrorDesc;
+
+  /// No description provided for @updateMirrorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'https://your-proxy/'**
+  String get updateMirrorHint;
+
+  /// No description provided for @updateMirrorSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved — check for updates again'**
+  String get updateMirrorSaved;
+
+  /// No description provided for @updateSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed {version}'**
+  String updateSettingsSubtitle(String version);
+
+  /// No description provided for @updateSettingsSubtitleAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} available'**
+  String updateSettingsSubtitleAvailable(String version);
 }
 
 class _AppLocalizationsDelegate

@@ -2090,4 +2090,189 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get holidaySyncDisabled =>
       'Automatic fetching is off — turn it on above first';
+
+  @override
+  String get updateTitle => 'Software update';
+
+  @override
+  String get updateCurrentVersionLabel => 'Installed version';
+
+  @override
+  String updateVersionWithBuild(String version, int code) {
+    return '$version (build $code)';
+  }
+
+  @override
+  String get updateVersionUnknown => 'Version unavailable';
+
+  @override
+  String get updateInstallBlockedTitle =>
+      '\"Install unknown apps\" permission needed';
+
+  @override
+  String get updateInstallBlockedDesc =>
+      'Android must allow this app to install apps, otherwise the install is rejected';
+
+  @override
+  String get updateGrantInstall => 'Open settings';
+
+  @override
+  String get updateRecheck => 'I\'ve granted it';
+
+  @override
+  String get updateUnsupported =>
+      'In-app updates aren\'t available on this platform';
+
+  @override
+  String get updateChecking => 'Checking for updates…';
+
+  @override
+  String updateDownloadingPercent(int percent) {
+    return 'Downloading… $percent%';
+  }
+
+  @override
+  String get updateFellBackToFull =>
+      'Delta update didn\'t work — switched to the full package';
+
+  @override
+  String get updateAssembling =>
+      'Building the new version from the installed package…';
+
+  @override
+  String get updateAssemblingHint =>
+      'No extra download needed — this runs on your device';
+
+  @override
+  String get updateInstallingHint => 'Confirm the install in the system dialog';
+
+  @override
+  String get updateInstalledHint => 'Installed — restart the app to use it';
+
+  @override
+  String get updateUpToDate => 'You\'re up to date';
+
+  @override
+  String get updateCheckAgain => 'Check again';
+
+  @override
+  String updateAvailableTitle(String version) {
+    return 'Version $version is available';
+  }
+
+  @override
+  String get updateDeltaBadge => 'Delta';
+
+  @override
+  String get updateFullBadge => 'Full package';
+
+  @override
+  String updateSizeWithDelta(String download, String full) {
+    return 'Download $download (full package is $full)';
+  }
+
+  @override
+  String updateSizeFull(String full) {
+    return 'Download $full';
+  }
+
+  @override
+  String updateSavedHint(String saved, int percent) {
+    return '$saved less than the full package — about $percent% saved';
+  }
+
+  @override
+  String get updateChangesTitle => 'What\'s new';
+
+  @override
+  String get updateNoChanges => 'No release notes for this version';
+
+  @override
+  String get updateDownloadDelta => 'Update with delta';
+
+  @override
+  String get updateDownloadFull => 'Download & install';
+
+  @override
+  String get updateSkipVersion => 'Skip this version';
+
+  @override
+  String updateSkipConfirmBody(String version) {
+    return 'You won\'t be reminded about $version again — a newer release will prompt you';
+  }
+
+  @override
+  String get updateSkippedHint =>
+      'Skipped — you\'ll be notified about newer releases';
+
+  @override
+  String get updateReadyTitle => 'New version is ready';
+
+  @override
+  String get updateReadyDeltaHint =>
+      'Built on this device — hand it to the system installer';
+
+  @override
+  String get updateReadyFullHint => 'Downloaded and verified — tap to install';
+
+  @override
+  String get updateInstallNow => 'Install now';
+
+  @override
+  String get updateRetry => 'Retry';
+
+  @override
+  String get updateFailureNetwork =>
+      'Couldn\'t reach the server — check your connection';
+
+  @override
+  String get updateFailureManifest =>
+      'Version information is unavailable right now';
+
+  @override
+  String get updateFailureAssetMissing =>
+      'This release has no package for your device\'s architecture';
+
+  @override
+  String get updateFailureHash =>
+      'The download failed verification and was discarded';
+
+  @override
+  String get updateFailureDelta => 'The rebuilt package failed verification';
+
+  @override
+  String get updateFailureNoSpace => 'Not enough storage';
+
+  @override
+  String get updateFailureInstallBlocked =>
+      'This app isn\'t allowed to install apps yet';
+
+  @override
+  String get updateFailureInstallRejected => 'The system rejected the install';
+
+  @override
+  String get updateFailureUnknown => 'Something went wrong';
+
+  @override
+  String get updateMirrorTitle => 'Download mirror';
+
+  @override
+  String get updateMirrorDesc =>
+      'GitHub downloads can be slow on some networks. Add proxy prefixes (one per line); they\'re tried after the direct URL';
+
+  @override
+  String get updateMirrorHint => 'https://your-proxy/';
+
+  @override
+  String get updateMirrorSaved => 'Saved — check for updates again';
+
+  @override
+  String updateSettingsSubtitle(String version) {
+    return 'Installed $version';
+  }
+
+  @override
+  String updateSettingsSubtitleAvailable(String version) {
+    return 'Version $version available';
+  }
 }

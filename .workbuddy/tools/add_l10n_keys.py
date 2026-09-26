@@ -346,6 +346,148 @@ NEW_KEYS = {
         "zh": "已关闭自动获取，请先打开上面的开关",
         "en": "Automatic fetching is off — turn it on above first",
     },
+    # ---- 第 15 轮：应用内更新与分差升级 ----
+    # 背景：APK 挂在 GitHub Releases 上，整包二十多兆，改几行代码也要下全量。
+    # 这一组文案负责把"这次到底下多少、省了多少、走到哪一步了"讲清楚——
+    # 分差升级的价值全在"少下载"，说不出来用户就感知不到。
+    "updateTitle": {"zh": "检查更新", "en": "Software update"},
+    "updateCurrentVersionLabel": {"zh": "当前版本", "en": "Installed version"},
+    "updateVersionWithBuild": {
+        "zh": "{version}（build {code}）",
+        "en": "{version} (build {code})",
+    },
+    "updateVersionUnknown": {"zh": "无法读取版本号", "en": "Version unavailable"},
+    "updateInstallBlockedTitle": {
+        "zh": "需要「安装未知应用」权限",
+        "en": "\"Install unknown apps\" permission needed",
+    },
+    "updateInstallBlockedDesc": {
+        "zh": "系统要求先允许本应用安装应用，否则点安装会被直接拒绝",
+        "en": "Android must allow this app to install apps, otherwise the install is rejected",
+    },
+    "updateGrantInstall": {"zh": "去授权", "en": "Open settings"},
+    "updateRecheck": {"zh": "我已授权", "en": "I've granted it"},
+    "updateUnsupported": {
+        "zh": "当前平台不支持应用内更新",
+        "en": "In-app updates aren't available on this platform",
+    },
+    "updateChecking": {"zh": "正在检查更新…", "en": "Checking for updates…"},
+    "updateDownloadingPercent": {
+        "zh": "正在下载… {percent}%",
+        "en": "Downloading… {percent}%",
+    },
+    "updateFellBackToFull": {
+        "zh": "分差升级没成功，已自动改用完整包",
+        "en": "Delta update didn't work — switched to the full package",
+    },
+    "updateAssembling": {
+        "zh": "正在用本机旧包合成新版本…",
+        "en": "Building the new version from the installed package…",
+    },
+    "updateAssemblingHint": {
+        "zh": "不需要重新下载整包，这一步在本机完成",
+        "en": "No extra download needed — this runs on your device",
+    },
+    "updateInstallingHint": {
+        "zh": "请在系统弹窗里确认安装",
+        "en": "Confirm the install in the system dialog",
+    },
+    "updateInstalledHint": {
+        "zh": "安装完成，重启应用后生效",
+        "en": "Installed — restart the app to use it",
+    },
+    "updateUpToDate": {"zh": "已是最新版本", "en": "You're up to date"},
+    "updateCheckAgain": {"zh": "再检查一次", "en": "Check again"},
+    "updateAvailableTitle": {
+        "zh": "有新版 {version}",
+        "en": "Version {version} is available",
+    },
+    "updateDeltaBadge": {"zh": "分差升级", "en": "Delta"},
+    "updateFullBadge": {"zh": "完整包", "en": "Full package"},
+    "updateSizeWithDelta": {
+        "zh": "只需下载 {download}（完整包 {full}）",
+        "en": "Download {download} (full package is {full})",
+    },
+    "updateSizeFull": {"zh": "需要下载 {full}", "en": "Download {full}"},
+    "updateSavedHint": {
+        "zh": "比整包少下 {saved}，省下约 {percent}%",
+        "en": "{saved} less than the full package — about {percent}% saved",
+    },
+    "updateChangesTitle": {"zh": "更新内容", "en": "What's new"},
+    "updateNoChanges": {
+        "zh": "这一版没有额外说明",
+        "en": "No release notes for this version",
+    },
+    "updateDownloadDelta": {"zh": "分差升级", "en": "Update with delta"},
+    "updateDownloadFull": {"zh": "下载并安装", "en": "Download & install"},
+    "updateSkipVersion": {"zh": "跳过这个版本", "en": "Skip this version"},
+    "updateSkipConfirmBody": {
+        "zh": "跳过 {version} 之后不会再提醒这一版；出了更新的版本会重新提示",
+        "en": "You won't be reminded about {version} again — a newer release will prompt you",
+    },
+    "updateSkippedHint": {
+        "zh": "已跳过，出了更新的版本会再提醒",
+        "en": "Skipped — you'll be notified about newer releases",
+    },
+    "updateReadyTitle": {"zh": "新版本已就绪", "en": "New version is ready"},
+    "updateReadyDeltaHint": {
+        "zh": "已在本机合成完成，点下面的按钮交给系统安装",
+        "en": "Built on this device — hand it to the system installer",
+    },
+    "updateReadyFullHint": {
+        "zh": "完整包已下载并校验通过，点下面的按钮安装",
+        "en": "Downloaded and verified — tap to install",
+    },
+    "updateInstallNow": {"zh": "立即安装", "en": "Install now"},
+    "updateRetry": {"zh": "重试", "en": "Retry"},
+    "updateFailureNetwork": {
+        "zh": "没连上服务器，检查网络后重试",
+        "en": "Couldn't reach the server — check your connection",
+    },
+    "updateFailureManifest": {
+        "zh": "版本信息暂时取不到",
+        "en": "Version information is unavailable right now",
+    },
+    "updateFailureAssetMissing": {
+        "zh": "这个版本没有适配你手机架构的安装包",
+        "en": "This release has no package for your device's architecture",
+    },
+    "updateFailureHash": {
+        "zh": "下载内容校验没通过，已放弃安装",
+        "en": "The download failed verification and was discarded",
+    },
+    "updateFailureDelta": {
+        "zh": "分差合成结果校验没通过",
+        "en": "The rebuilt package failed verification",
+    },
+    "updateFailureNoSpace": {"zh": "存储空间不足", "en": "Not enough storage"},
+    "updateFailureInstallBlocked": {
+        "zh": "还没允许本应用安装应用",
+        "en": "This app isn't allowed to install apps yet",
+    },
+    "updateFailureInstallRejected": {
+        "zh": "系统拒绝了这次安装",
+        "en": "The system rejected the install",
+    },
+    "updateFailureUnknown": {"zh": "出了点问题", "en": "Something went wrong"},
+    "updateMirrorTitle": {"zh": "下载加速地址", "en": "Download mirror"},
+    "updateMirrorDesc": {
+        "zh": "GitHub 的下载地址在部分网络下很慢。可以填代理前缀（每行一个），直连失败后会依次尝试",
+        "en": "GitHub downloads can be slow on some networks. Add proxy prefixes (one per line); they're tried after the direct URL",
+    },
+    "updateMirrorHint": {"zh": "https://你的代理/", "en": "https://your-proxy/"},
+    "updateMirrorSaved": {
+        "zh": "已保存，请重新检查更新",
+        "en": "Saved — check for updates again",
+    },
+    "updateSettingsSubtitle": {
+        "zh": "当前版本 {version}",
+        "en": "Installed {version}",
+    },
+    "updateSettingsSubtitleAvailable": {
+        "zh": "有新版本 {version}",
+        "en": "Version {version} available",
+    },
 }
 
 # 需要改口径的旧键（用户规格变了，文案必须跟着走，否则和界面行为对不上）
@@ -463,6 +605,33 @@ PLACEHOLDERS = {
     },
     "holidaySyncUpdated": {"placeholders": {"years": {"type": "String"}}},
     "holidaySyncNotPublished": {"placeholders": {"years": {"type": "String"}}},
+    # ---- 第 15 轮：应用内更新 ----
+    "updateVersionWithBuild": {
+        "placeholders": {
+            "version": {"type": "String"},
+            "code": {"type": "int"},
+        },
+    },
+    "updateDownloadingPercent": {"placeholders": {"percent": {"type": "int"}}},
+    "updateAvailableTitle": {"placeholders": {"version": {"type": "String"}}},
+    "updateSizeWithDelta": {
+        "placeholders": {
+            "download": {"type": "String"},
+            "full": {"type": "String"},
+        },
+    },
+    "updateSizeFull": {"placeholders": {"full": {"type": "String"}}},
+    "updateSavedHint": {
+        "placeholders": {
+            "saved": {"type": "String"},
+            "percent": {"type": "int"},
+        },
+    },
+    "updateSkipConfirmBody": {"placeholders": {"version": {"type": "String"}}},
+    "updateSettingsSubtitle": {"placeholders": {"version": {"type": "String"}}},
+    "updateSettingsSubtitleAvailable": {
+        "placeholders": {"version": {"type": "String"}},
+    },
 }
 
 

@@ -24,6 +24,7 @@ import 'package:schedule_plan/data/services/cleanup_service.dart';
 import 'package:schedule_plan/data/services/holiday_sync_service.dart';
 import 'package:schedule_plan/data/services/notification_service.dart';
 import 'package:schedule_plan/data/services/reminder_scheduler.dart';
+import 'package:schedule_plan/data/services/update_service.dart';
 import 'package:schedule_plan/data/settings_state.dart';
 import 'package:schedule_plan/features/management/class_list_page.dart';
 import 'package:schedule_plan/features/management/course_list_page.dart';
@@ -32,6 +33,7 @@ import 'package:schedule_plan/features/management/student_import_page.dart';
 import 'package:schedule_plan/features/attendance/attendance_status_strip.dart';
 import 'package:schedule_plan/features/management/student_list_page.dart';
 import 'package:schedule_plan/features/settings/statistics_settings_page.dart';
+import 'package:schedule_plan/features/settings/update_page.dart';
 import 'package:schedule_plan/features/toolbox/llm_provider_page.dart';
 
 /// 设置页（模块七 + 用户规格）。
@@ -261,6 +263,38 @@ class _SettingsPageState extends State<SettingsPage> {
       }
       showAppSnackBar(context, l10n.operationFailed('$error'));
     }
+  }
+
+  /// 「检查更新」入口。
+  ///
+  /// 有新版时把**入口本身**变成提示（换副文案 + 挂一个小圆点），
+  /// 而不是在启动时弹窗打断——老师打开 App 通常是为了看课表，
+  /// 不该被一个更新弹窗挡在门口。自动检查的结论就靠这里露出水面。
+  Widget _buildUpdateTile(BuildContext context) {
+    final l10n = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
+    final state = context.watch<UpdateService>().state;
+    final latest = state.plan?.latest;
+    final hasUpdate = state.phase == UpdatePhase.available && latest != null;
+
+    return SettingsTile(
+      icon: Icons.system_update_alt_rounded,
+      title: l10n.updateTitle,
+      subtitle: hasUpdate
+          ? l10n.updateSettingsSubtitleAvailable(latest.versionName)
+          : l10n.updateSettingsSubtitle(_version.isEmpty ? '—' : 'v$_version'),
+      onTap: () => pushAppPage(context, const UpdatePage()),
+      trailing: hasUpdate
+          ? Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: scheme.primary,
+                shape: BoxShape.circle,
+              ),
+            )
+          : null,
+    );
   }
 
   void _showChangelog() {
@@ -593,6 +627,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                 ),
               ),
+              _buildUpdateTile(context),
               SettingsTile(
                 icon: Icons.new_releases_outlined,
                 title: l10n.aboutChangelog,

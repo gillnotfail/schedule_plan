@@ -1,0 +1,10 @@
+{
+  "baseSize": 182000,
+  "targetSize": 181700,
+  "baseSha256": "34c85fffc26c64a50eb98eb9e3fb47add803f2281fe0e5246da522374d161df4",
+  "targetSha256": "18cc5396f29b04b589326c897a6bc8291a295b75a0bef96973a393e574a738e4",
+  "patchSize": 70528,
+  "commandCount": 5,
+  "literalBytes": 78148,
+  "reusedBytes": 103552
+}

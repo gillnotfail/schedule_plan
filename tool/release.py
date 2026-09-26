@@ -1,0 +1,584 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""一键发布：自增版本号 → 打包 → 生成分差补丁 → 写更新清单 → 提交打标签 → 建 GitHub Release。
+
+为什么要有这个脚本
+------------------
+应用内升级链路的每一个环节都依赖"发布时把哪些数字写对了"：
+  · `pubspec.yaml` 的 `+N` 是 Android 的 versionCode，**每次必须递增**，
+    否则设备会拒绝覆盖安装（INSTALL_FAILED_VERSION_DOWNGRADE / 同版本不升级）；
+  · `updates/latest.json` 里的 `size` 与 `sha256` 必须和被上传的那份 APK
+    逐字节一致，否则设备端校验会失败并回落整包；
+  · 分差补丁必须拿**上一个已发布版本**的 APK 当基准，且它自己的指纹、
+    基准包指纹、目标包指纹三个都要写对。
+这些靠手工维护必然出错，而且错在发布之后才被发现。所以全部交给脚本。
+
+典型用法
+--------
+    # 1) 先写更新说明（会原样出现在老师手机上，用大白话写）
+    #    编辑 CHANGELOG.md，最上面加一节 ## [1.0.1] - 2026-10-01
+
+    # 2) 发布
+    python tool/release.py --bump patch --push
+
+    # 空跑：只生成产物与清单，不碰网络、不提交、不打标签
+    python tool/release.py --bump patch --skip-upload --no-commit
+
+    # 首次发布（版本号已经是最终的，不想再动）：
+    python tool/release.py --no-bump --skip-upload
+
+环境变量
+--------
+    GITHUB_TOKEN  建 Release 与上传附件所需的令牌（需要 repo 权限）。
+                  没给就自动跳过上传，只生成本地产物。
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.request
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import delta_patch  # noqa: E402
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PUBSPEC = os.path.join(ROOT, "pubspec.yaml")
+CHANGELOG = os.path.join(ROOT, "CHANGELOG.md")
+MANIFEST = os.path.join(ROOT, "updates", "latest.json")
+
+REPOSITORY = "gillnotfail/schedule_plan"
+ASSETS_BASE = "https://github.com/%s/releases/download" % REPOSITORY
+API_BASE = "https://api.github.com/repos/%s" % REPOSITORY
+
+APK_DIR = os.path.join(ROOT, "build", "app", "outputs", "flutter-apk")
+
+# 需要发布的 ABI。x86_64 只对模拟器有意义，通用包体积是单包的三倍，
+# 都不适合手机端下载——默认不发，需要时用 --include-emulator 打开。
+PHONE_ABIS = ("arm64-v8a", "armeabi-v7a")
+EMULATOR_ABIS = ("x86_64",)
+
+# 上一次发布时留下的 APK 会缓存在这里，供下次生成补丁时当基准。
+# 它是本地缓存、不入库：APK 进 git 会让仓库体积永久膨胀且无法回收。
+RELEASE_CACHE = os.path.join(ROOT, "dist", "releases")
+
+# 清单里保留多少个历史版本。应用内只需展示"比当前新"的那些，
+# 留太多既没意义又会让清单越来越大。
+MANIFEST_HISTORY = 20
+
+# 分差补丁最多比整包小到这个比例才值得发。省得少就不值当多担一条合成链路。
+DELTA_WORTHWHILE_RATIO = 0.9
+
+
+# ---------------------------------------------------------------------------
+# 基础工具
+# ---------------------------------------------------------------------------
+
+
+def log(message: str) -> None:
+    print(message, flush=True)
+
+
+def die(message: str) -> None:
+    print("错误：%s" % message, file=sys.stderr)
+    sys.exit(1)
+
+
+def sha256_of(path: str) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for block in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def read_file_bytes(path: str) -> bytes:
+    """读整份文件。显式开闭句柄——APK 有二十多兆，靠引用计数回收太随意，
+    在 Windows 上未关闭的句柄会让后续覆盖/删除失败。"""
+    with open(path, "rb") as handle:
+        return handle.read()
+
+
+def run(command: list[str], *, cwd: str = ROOT, env: dict | None = None,
+        check: bool = True) -> subprocess.CompletedProcess:
+    log("  $ %s" % " ".join(command))
+    process = subprocess.run(
+        command,
+        cwd=cwd,
+        env=env,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    if check and process.returncode != 0:
+        die(
+            "命令失败（退出码 %d）：%s\n--- stdout ---\n%s\n--- stderr ---\n%s"
+            % (process.returncode, " ".join(command),
+               process.stdout[-4000:], process.stderr[-4000:])
+        )
+    return process
+
+
+# ---------------------------------------------------------------------------
+# 版本号
+# ---------------------------------------------------------------------------
+
+
+def read_version() -> tuple[str, int]:
+    with open(PUBSPEC, encoding="utf-8") as handle:
+        content = handle.read()
+    match = re.search(r"^version:\s*([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)\s*$",
+                      content, re.MULTILINE)
+    if not match:
+        die("pubspec.yaml 里的 version 不是 `x.y.z+N` 形式，无法解析")
+    return match.group(1), int(match.group(2))
+
+
+def write_version(name: str, code: int) -> None:
+    with open(PUBSPEC, encoding="utf-8") as handle:
+        content = handle.read()
+    content = re.sub(
+        r"^version:\s*[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+\s*$",
+        "version: %s+%d" % (name, code),
+        content,
+        count=1,
+        flags=re.MULTILINE,
+    )
+    with open(PUBSPEC, "w", encoding="utf-8", newline="\n") as handle:
+        handle.write(content)
+
+
+def bump(name: str, kind: str) -> str:
+    major, minor, patch = (int(part) for part in name.split("."))
+    if kind == "major":
+        return "%d.0.0" % (major + 1)
+    if kind == "minor":
+        return "%d.%d.0" % (major, minor + 1)
+    return "%d.%d.%d" % (major, minor, patch + 1)
+
+
+# ---------------------------------------------------------------------------
+# 更新说明
+# ---------------------------------------------------------------------------
+
+
+def notes_from_changelog(version_name: str) -> list[str]:
+    """从 CHANGELOG.md 里抽出某个版本那一节的条目。
+
+    写进清单后会原样显示在老师手机上，所以这里只做搬运，不做任何加工。
+    """
+    if not os.path.exists(CHANGELOG):
+        die("找不到 CHANGELOG.md，请先写更新说明")
+    with open(CHANGELOG, encoding="utf-8") as handle:
+        lines = handle.read().splitlines()
+
+    header = re.compile(r"^##\s*\[?%s\]?" % re.escape(version_name))
+    collected: list[str] = []
+    inside = False
+    for line in lines:
+        if line.startswith("## "):
+            if inside:
+                break
+            inside = bool(header.match(line))
+            continue
+        if not inside:
+            continue
+        stripped = line.strip()
+        # 只收二级标题下的 `-` 条目；### 小标题本身略过（它只是分类）
+        if stripped.startswith("- "):
+            collected.append(stripped[2:].strip())
+    return collected
+
+
+# ---------------------------------------------------------------------------
+# 构建
+# ---------------------------------------------------------------------------
+
+
+def build_apks() -> None:
+    log("构建 release 包（分 ABI）…")
+    env = dict(os.environ)
+    # 本机挂了 HTTP 代理，flutter 连 localhost 的观测端口会被代理拦掉。
+    env.setdefault("NO_PROXY", "localhost,127.0.0.1,::1")
+    run(["flutter", "build", "apk", "--release"], env=env)
+
+
+def apk_path(abi: str) -> str:
+    return os.path.join(APK_DIR, "app-%s-release.apk" % abi)
+
+
+def previous_apk(abi: str, previous_version_code: int | None,
+                 override_dir: str | None) -> str | None:
+    """找上一个已发布版本的 APK，用作分差基准。找不到就只发整包。"""
+    if override_dir:
+        candidate = os.path.join(override_dir, "app-%s-release.apk" % abi)
+        return candidate if os.path.exists(candidate) else None
+    if previous_version_code is None:
+        return None
+    candidate = os.path.join(
+        RELEASE_CACHE, str(previous_version_code), "app-%s-release.apk" % abi
+    )
+    return candidate if os.path.exists(candidate) else None
+
+
+def cache_current_apks(version_code: int, abis: tuple[str, ...]) -> None:
+    target_dir = os.path.join(RELEASE_CACHE, str(version_code))
+    os.makedirs(target_dir, exist_ok=True)
+    for abi in abis:
+        source = apk_path(abi)
+        if os.path.exists(source):
+            shutil.copy2(source, os.path.join(
+                target_dir, "app-%s-release.apk" % abi))
+    log("  已缓存本次产物到 dist/releases/%d（下次生成补丁要用）" % version_code)
+
+
+# ---------------------------------------------------------------------------
+# 清单
+# ---------------------------------------------------------------------------
+
+
+def load_manifest() -> dict:
+    if not os.path.exists(MANIFEST):
+        return {"schemaVersion": 1, "assetsBase": ASSETS_BASE, "releases": []}
+    with open(MANIFEST, encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def save_manifest(manifest: dict) -> None:
+    os.makedirs(os.path.dirname(MANIFEST), exist_ok=True)
+    manifest["generatedAt"] = time.strftime("%Y-%m-%dT%H:%M:%S+08:00")
+    manifest["assetsBase"] = ASSETS_BASE
+    manifest["releases"] = manifest["releases"][:MANIFEST_HISTORY]
+    with open(MANIFEST, "w", encoding="utf-8", newline="\n") as handle:
+        json.dump(manifest, handle, ensure_ascii=False, indent=2)
+        handle.write("\n")
+
+
+def build_release_entry(
+    *,
+    version_name: str,
+    version_code: int,
+    tag: str,
+    notes: list[str],
+    abis: tuple[str, ...],
+    previous_version_code: int | None,
+    previous_dir: str | None,
+    patch_dir: str,
+) -> tuple[dict, list[str]]:
+    """为一个版本生成清单条目，并把要上传的文件路径一并返回。"""
+    assets = []
+    deltas = []
+    uploads = []
+
+    for abi in abis:
+        path = apk_path(abi)
+        if not os.path.exists(path):
+            die("缺少构建产物：%s\n请确认 android/app/build.gradle.kts 的 splits 配置"
+                % path)
+        size = os.path.getsize(path)
+        digest = sha256_of(path)
+        assets.append({
+            "abi": abi,
+            "file": os.path.basename(path),
+            "size": size,
+            "sha256": digest,
+        })
+        uploads.append(path)
+        log("  %-14s %8.2f MB  %s" % (abi, size / 1048576, digest[:16]))
+
+        # ---- 分差补丁 ----
+        base = previous_apk(abi, previous_version_code, previous_dir)
+        if base is None:
+            log("  %-14s 没有上一版基准包，跳过分差" % abi)
+            continue
+        if previous_version_code is None:
+            continue
+
+        log("  生成分差补丁：%s → %s" % (
+            os.path.basename(os.path.dirname(base)), abi))
+        base_bytes = read_file_bytes(base)
+        target_bytes = read_file_bytes(path)
+        packed, stats = delta_patch.build_patch(base_bytes, target_bytes)
+
+        # 生成后立刻自校验一次：宁可这里多花几秒，也不要把一份合不出来的
+        # 补丁发出去——用户侧拿到只会合成失败再回落整包，白下载一趟。
+        if delta_patch.apply_patch(base_bytes, packed) != target_bytes:
+            die("分差补丁自校验失败（%s），已中止发布" % abi)
+
+        if stats["downloadRatio"] >= DELTA_WORTHWHILE_RATIO:
+            log("  补丁只省下 %.1f%%，不值得发，跳过"
+                % ((1 - stats["downloadRatio"]) * 100))
+            continue
+
+        patch_name = "patch-%d-%d-%s.spdp" % (
+            previous_version_code, version_code, abi)
+        patch_path = os.path.join(patch_dir, patch_name)
+        with open(patch_path, "wb") as handle:
+            handle.write(packed)
+
+        deltas.append({
+            "fromVersionCode": previous_version_code,
+            "abi": abi,
+            "file": patch_name,
+            "size": len(packed),
+            "targetSize": size,
+            "sha256": sha256_of(patch_path),
+            "baseSha256": sha256_of(base),
+        })
+        uploads.append(patch_path)
+        log("  补丁 %-14s %8.2f KB  复用 %.1f%%  下载量仅为整包的 %.2f%%"
+            % (abi, len(packed) / 1024, stats["reuseRatio"] * 100,
+               stats["downloadRatio"] * 100))
+
+    entry = {
+        "versionCode": version_code,
+        "versionName": version_name,
+        "tag": tag,
+        "publishedAt": time.strftime("%Y-%m-%dT%H:%M:%S+08:00"),
+        "notes": notes,
+        "assets": assets,
+        "deltas": deltas,
+    }
+    return entry, uploads
+
+
+def previous_release(manifest: dict, current_code: int) -> dict | None:
+    """找分差基准版本：versionCode **严格小于** current_code 里最大的那个。
+
+    不能只取"清单里第一个不是自己的"——清单是按 versionCode 降序排的，
+    补发一个旧版本时列表头可能就是比当前更新的版本，拿它当基准会生成一份
+    方向反了的补丁（用户端拿旧包根本合不出来）。
+    """
+    candidates = [
+        release for release in manifest.get("releases", [])
+        if isinstance(release.get("versionCode"), int)
+        and release["versionCode"] < current_code
+    ]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda release: release["versionCode"])
+
+
+# ---------------------------------------------------------------------------
+# Git 与 GitHub
+# ---------------------------------------------------------------------------
+
+
+def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
+    return run(["git", *args], check=check)
+
+
+def commit_and_tag(version_name: str, tag: str, push: bool) -> None:
+    log("提交并打标签…")
+    git("add", "-A")
+    message = "release: v%s" % version_name
+    # 允许"没有可提交内容"（比如只重跑了一次清单生成）
+    status = git("status", "--porcelain")
+    if status.stdout.strip():
+        git("commit", "-m", message)
+    else:
+        log("  没有需要提交的改动")
+    existing = git("tag", "--list", tag).stdout.strip()
+    if existing:
+        die("标签 %s 已存在。版本号需要递增，或手动删掉旧标签。" % tag)
+    git("tag", "-a", tag, "-m", message)
+    if push:
+        git("push", "origin", "HEAD")
+        git("push", "origin", tag)
+        log("  已推送到 origin")
+    else:
+        log("  已提交并打标签（未推送，加 --push 才推）")
+
+
+def github_api(method: str, url: str, token: str, payload: dict | None = None,
+               *, raw_body: bytes | None = None,
+               content_type: str = "application/json") -> dict:
+    headers = {
+        "Authorization": "Bearer %s" % token,
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "schedule_plan-release",
+        "Content-Type": content_type,
+    }
+    data = raw_body
+    if payload is not None:
+        data = json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(url, data=data, headers=headers,
+                                     method=method)
+    try:
+        with urllib.request.urlopen(request, timeout=120) as response:
+            body = response.read().decode("utf-8")
+            return json.loads(body) if body.strip() else {}
+    except urllib.error.HTTPError as error:
+        detail = error.read().decode("utf-8", "replace")
+        die("GitHub API %s %s 失败：%s %s" % (method, url, error.code, detail))
+    except urllib.error.URLError as error:
+        die("连不上 GitHub：%s（必要时给 git/命令行配代理）" % error)
+
+
+def upload_release(tag: str, version_name: str, notes: list[str],
+                   uploads: list[str], token: str) -> None:
+    log("创建 GitHub Release 并上传附件…")
+    release = github_api("POST", "%s/releases" % API_BASE, token, {
+        "tag_name": tag,
+        "name": "v%s" % version_name,
+        "body": "\n".join("- %s" % note for note in notes)
+                or "本次发布没有额外说明。",
+        "draft": False,
+        "prerelease": False,
+    })
+    upload_url = release["upload_url"].split("{")[0]
+    for path in uploads:
+        name = os.path.basename(path)
+        log("  上传 %s（%.2f MB）" % (name, os.path.getsize(path) / 1048576))
+        github_api(
+            "POST",
+            "%s?name=%s" % (upload_url, name),
+            token,
+            raw_body=read_file_bytes(path),
+            content_type="application/octet-stream",
+        )
+    log("  Release 地址：%s" % release["html_url"])
+
+
+# ---------------------------------------------------------------------------
+# 主流程
+# ---------------------------------------------------------------------------
+
+
+def main(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(
+        prog="release.py",
+        description="一键发布：打包 → 分差补丁 → 更新清单 → 标签 → GitHub Release",
+    )
+    parser.add_argument("--bump", choices=["patch", "minor", "major"],
+                        help="自增版本号。不给就沿用 pubspec 里现有的版本。")
+    parser.add_argument("--no-bump", action="store_true",
+                        help="明确表示不改版本号（首次发布用）")
+    parser.add_argument("--notes", help="直接用这段文字当更新说明，分号分隔；"
+                                        "不给就从 CHANGELOG.md 里抽")
+    parser.add_argument("--no-build", action="store_true",
+                        help="跳过 flutter build（复用已有产物）")
+    parser.add_argument("--skip-upload", action="store_true",
+                        help="不建 GitHub Release，只生成本地产物与清单")
+    parser.add_argument("--push", action="store_true",
+                        help="提交并打标签后推送到 origin（默认只在本地提交打标签）")
+    parser.add_argument("--no-push", action="store_true",
+                        help="显式不推送（等价于不加 --push，保留给习惯写法）")
+    parser.add_argument("--no-commit", action="store_true",
+                        help="只生成产物与清单，不提交也不打标签（空跑用）")
+    parser.add_argument("--previous-apk-dir",
+                        help="手动指定上一版 APK 所在目录（默认读 dist/releases/<版本号>/）")
+    parser.add_argument("--patch-dir", default=os.path.join(ROOT, "dist", "patches"),
+                        help="补丁输出目录")
+    parser.add_argument("--include-emulator", action="store_true",
+                        help="同时发布 x86_64（仅模拟器需要）")
+    args = parser.parse_args(argv)
+
+    if args.bump and args.no_bump:
+        die("--bump 与 --no-bump 不能同时给")
+
+    name, code = read_version()
+    log("当前版本：%s+%d" % (name, code))
+
+    manifest = load_manifest()
+    known_codes = {r.get("versionCode") for r in manifest.get("releases", [])}
+    already_released = code in known_codes
+
+    if args.bump:
+        name = bump(name, args.bump)
+        code += 1
+        write_version(name, code)
+        log("新版本：  %s+%d" % (name, code))
+    elif already_released:
+        log("提示：版本 %d 已在清单里，将覆盖它的条目（不新增历史）")
+    else:
+        code_from_pubspec = code
+        log("不改版本号，直接发布 %s+%d" % (name, code_from_pubspec))
+
+    tag = "v%s" % name
+
+    if not args.no_build:
+        build_apks()
+    else:
+        log("跳过构建（--no-build）")
+
+    abis = PHONE_ABIS + (EMULATOR_ABIS if args.include_emulator else ())
+    os.makedirs(args.patch_dir, exist_ok=True)
+
+    log("计算指纹与分差…")
+    previous = previous_release(manifest, current_code=code)
+    previous_code = previous.get("versionCode") if previous else None
+    if previous_code is not None:
+        log("  上一版：%s（versionCode %d）"
+            % (previous.get("versionName"), previous_code))
+
+    entry, uploads = build_release_entry(
+        version_name=name,
+        version_code=code,
+        tag=tag,
+        notes=(args.notes.split(";") if args.notes
+               else notes_from_changelog(name)),
+        abis=abis,
+        previous_version_code=previous_code,
+        previous_dir=args.previous_apk_dir,
+        patch_dir=args.patch_dir,
+    )
+
+    if not entry["notes"]:
+        die(
+            "没有拿到更新说明。请在 CHANGELOG.md 里加一节\n"
+            "    ## [%s] - %s\n"
+            "然后按 `- 一句话` 的格式写上本次改了什么；\n"
+            "也可以用 --notes \"说明一;说明二\" 直接指定。" % (
+                name, time.strftime("%Y-%m-%d"))
+        )
+
+    # 覆盖同版本条目，其余按 versionCode 从新到旧排列
+    releases = [r for r in manifest.get("releases", [])
+                if r.get("versionCode") != code]
+    releases.insert(0, entry)
+    releases.sort(key=lambda r: r.get("versionCode", 0), reverse=True)
+    manifest["releases"] = releases
+    manifest["schemaVersion"] = 1
+    save_manifest(manifest)
+
+    log("更新清单已写入 updates/latest.json：")
+    log("  版本 %s+%d，整包 %d 个，分差 %d 个"
+        % (name, code, len(entry["assets"]), len(entry["deltas"])))
+
+    cache_current_apks(code, abis)
+
+    token = os.environ.get("GITHUB_TOKEN")
+    if args.skip_upload:
+        log("跳过 GitHub Release（--skip-upload）。要上传时请设置 GITHUB_TOKEN 后重跑。")
+    elif not token:
+        log("未设置 GITHUB_TOKEN，跳过上传。")
+        log("设置后重跑本脚本即可上传（产物都已就绪，可用 --no-build 免重新构建）：")
+        log("    GITHUB_TOKEN=xxx python tool/release.py --no-bump --no-build")
+    else:
+        upload_release(tag, name, entry["notes"], uploads, token)
+
+    # 推送必须显式 --push：默认只本地提交打标签。标签是"一次性"的
+    # （同名标签已存在就必须改版本号），所以不能让一次试探性的本地跑
+    # 顺手把它推到远端。
+    if args.no_commit:
+        log("跳过 git 提交与打标签（--no-commit）。")
+    else:
+        commit_and_tag(name, tag, push=args.push and not args.no_push)
+
+    log("\n完成。接下来：确认 Release 附件已上传，"
+        "应用内的「检查更新」就能看到 v%s。" % name)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
