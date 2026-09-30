@@ -74,6 +74,10 @@
   （**必须写用户能看懂的话**：`release.py` 原样抽最新一节进 `updates/latest.json` 给应用内展示）。
   `updates/latest.json` **入库**；APK 与补丁挂 Releases **不入库**。
 - `pubspec.yaml` 的 `version: x.y.z+N`，**`N` 是 versionCode，每次发版必须递增**，否则拒绝覆盖安装。
+- **发布最后一步是清 jsDelivr 缓存**（`release.py` 已自动做，别绕过）：`@main` 对分支缓存**最长 12h**，
+  国内 raw 不通时客户端只能读它 → **手机端最多晚半天才看到更新**。手工补清 =
+  `curl https://purge.jsdelivr.net/gh/<owner>/<repo>@main/updates/latest.json`（公开端点，无需凭据）；
+  判断"是不是缓存在作怪"：同一个 commit 用 `@<sha>` 取是实时的，`@main` 旧 + `@<sha>` 新 = 缓存。
 - **`GITHUB_TOKEN` 只放 `~/.schedule_plan-release.env`**（家目录，**绝不进仓库**——仓库里任何文件都可能被
   `git add -A` 带上去，PAT 泄露不可逆）；`verify_token()` 在**打包之前**先验。**别让用户把 token 贴进对话**（实测两次
   都被截到 31 字符）。`--bump` 自增版本号并写回 pubspec；**CHANGELOG 没有对应版本节时直接拒绝发布**（设计如此）。

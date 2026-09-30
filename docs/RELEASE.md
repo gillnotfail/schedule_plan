@@ -179,7 +179,14 @@ python tool/release.py --bump patch --push
 5. 写 `updates/latest.json`；
 6. 把本次 APK 缓存到 `dist/releases/<versionCode>/`（下次当基准用）；
 7. `git commit` + `git tag vX.Y.Z`，再 `git push`（只有加 `--push` 才推）；
-8. 建 GitHub Release 并上传 APK 与补丁附件。
+8. 建 GitHub Release 并上传 APK 与补丁附件；
+9. **清掉 jsDelivr 上清单文件的 CDN 缓存**（见下面「清单的 12 小时缓存」）。
+
+> **第 9 步不能省**：jsDelivr 对 `@main` 这种分支引用最长缓存 12 小时，
+> 而国内 `raw.githubusercontent.com` 经常直接不通 —— 客户端是 raw 优先、
+> jsDelivr 兜底，raw 走不通时老师手机上就只剩旧清单，「检查更新」看不到新版本。
+> `release.py` 用 jsDelivr 的公开端点（`https://purge.jsdelivr.net/<路径>`，
+> 不需要凭据）主动清一次；失败只告警、不中止发布（缓存自己会过期）。
 
 ### 参数
 
@@ -257,6 +264,23 @@ python tool/release.py --bump patch --push
 
 因此**清单推送到 `main` 分支是发布生效的最后一步**。只建了 Release 而没推
 `latest.json`，应用内是看不到新版本的。
+
+### 清单的 12 小时缓存（第 2 个地址特有）
+
+jsDelivr 对**分支引用**（`@main`）的缓存最长 **12 小时**；同一个 commit 换成
+`@<sha>` 取则是**实时**的。于是会出现这种怪事：GitHub 上的 `latest.json` 明明是新的，
+手机端却看不到新版本 —— 因为国内 raw 经常不通，客户端只能落到第 2 个地址。
+
+- 正常发布不用管：`release.py` 推送之后会自动 purge（流程第 9 步）；
+- 手工补清（公开端点，不需要凭据）：
+
+  ```bash
+  curl -s "https://purge.jsdelivr.net/gh/gillnotfail/schedule_plan@main/updates/latest.json"
+  # {"status":"finished", "paths": {...}} → 已清；随后 @main 立刻返回最新内容
+  ```
+
+- 判断"是不是缓存在作怪"：同一个文件用两种引用各取一次，对比 `generatedAt`
+  与首个版本号 —— `@main` 旧、`@<sha>` 新就一定是缓存。
 
 ---
 
@@ -347,7 +371,7 @@ python tool/delta_patch.py apply old.apk patch.spdp out.apk
 | Release 建好了但没有附件 | 没设 `GITHUB_TOKEN`，脚本跳过上传（日志里会说明具体是哪种情况） |
 | 日志说"没有可用的 GITHUB_TOKEN"但文件明明在 | 看紧跟的「原因」一行：多半是等号右边是空的（编辑器没保存/粘贴没落盘） |
 | `401 Bad credentials` | 先用日志里的字符数判断：细粒度 PAT 只有 93 字符才是完整的，不够就是复制时被截断了 |
-| 应用内看不到新版本 | ①**仓库是私有的**（最常见，见 §2.1）；②`updates/latest.json` 没推到 `main` 分支 |
+| 应用内看不到新版本 | ①**仓库是私有的**（最常见，见 §2.1）；②`updates/latest.json` 没推到 `main` 分支；③**jsDelivr 上的清单缓存还没过期**（raw 不通时客户端只能读它，最长 12 小时）——手工 purge 一次即可，见 §4「清单的 12 小时缓存」 |
 | 应用内看到新版但走整包 | 本机 APK 指纹和 `deltas[].baseSha256` 对不上（装过第三方渠道包）；或补丁没省到九折以下 |
 | 安装失败 `INSTALL_FAILED_VERSION_DOWNGRADE` | `pubspec.yaml` 的 `+N` 没递增 |
 | 安装被拦下 | 缺「安装未知应用」授权，或 Manifest 少了 `REQUEST_INSTALL_PACKAGES` |

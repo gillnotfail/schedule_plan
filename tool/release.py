@@ -75,6 +75,12 @@ REPOSITORY = "gillnotfail/schedule_plan"
 ASSETS_BASE = "https://github.com/%s/releases/download" % REPOSITORY
 API_BASE = "https://api.github.com/repos/%s" % REPOSITORY
 
+# 清单在 jsDelivr 上的路径。这是客户端地址列表里的**第二顺位**
+# （见 `UpdateService.manifestUrls`：raw 优先、jsDelivr 兜底）。
+MANIFEST_CDN_PATH = "gh/%s@main/updates/latest.json" % REPOSITORY
+# jsDelivr 的公开清缓存端点，不需要凭据。
+MANIFEST_PURGE_URL = "https://purge.jsdelivr.net/%s" % MANIFEST_CDN_PATH
+
 # 发布凭据的落地位置。故意放在**家目录**而不是仓库里：仓库里的任何文件都有
 # 被 `git add -A` 顺手带上去的风险，PAT 泄露是不可逆的。发版要反复执行，
 # 每次把 PAT 明文写进命令行会落进 shell 历史，所以留一个 dotenv 风格的文件。
@@ -419,6 +425,40 @@ def previous_release(manifest: dict, current_code: int) -> dict | None:
 
 def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
     return run(["git", *args], check=check)
+
+
+def purge_cdn_cache() -> None:
+    """清掉 jsDelivr 上清单文件的边缘缓存。
+
+    **这条不能省。** jsDelivr 对分支引用（`@main`）的缓存最长 12 小时，而
+    `raw.githubusercontent.com` 在国内经常直接不通 —— 客户端的地址列表是
+    raw 优先、jsDelivr 兜底（见 `UpdateService.manifestUrls`），raw 走不通时
+    就只剩这份旧清单：老师手机上「检查更新」要么看不到新版本，要么晚半天才看到。
+
+    实测（2026-09-30，发 v1.0.2 时）：`@main` 仍返回 v1.0.0 的清单（generatedAt
+    停在 09-27），purge 之后立刻变成 v1.0.2。同一个 commit 用 `@<sha>` 取是实时的，
+    但我们没法在客户端拼 sha，所以只能在发布侧主动清。
+
+    失败**不中止发布**——缓存自己会过期，顶多晚 12 小时看到更新。
+    """
+    request = urllib.request.Request(
+        MANIFEST_PURGE_URL,
+        headers={"User-Agent": "schedule_plan-release"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            payload = json.loads(response.read().decode("utf-8") or "{}")
+    except Exception as error:  # 网络问题一律只告警
+        log("  ! 清理 jsDelivr 缓存失败（不影响发布，最长 12 小时后自动过期）：%s"
+            % error)
+        return
+    entry = (payload.get("paths") or {}).get("/" + MANIFEST_CDN_PATH) or {}
+    if str(payload.get("status")) == "finished" and not entry.get("throttled"):
+        log("  jsDelivr 清单缓存已清理")
+    else:
+        # 有响应但状态不是 finished（偶发限流）：同样不阻断
+        log("  ! jsDelivr 返回异常：%s"
+            % json.dumps(payload, ensure_ascii=False)[:160])
 
 
 def commit_and_tag(version_name: str, tag: str, push: bool) -> str:
@@ -774,6 +814,12 @@ def main(argv: list[str]) -> int:
         log("没有可用的 token，跳过上传（产物与清单都已就绪）。")
     else:
         upload_release(tag, name, entry["notes"], uploads, token, head_sha)
+
+    # 清单刚推上 GitHub，顺手清掉 CDN 缓存：否则手机端最长要等 12 小时才看得到
+    # 新版本（国内 raw 不通时 jsDelivr 是唯一来路）。
+    if not args.no_commit and args.push and not args.no_push:
+        log("清理 jsDelivr 上的清单缓存…")
+        purge_cdn_cache()
 
     if args.skip_upload or not token:
         log("\n完成（未上传）。产物与清单都在本地，补上 token 后重跑即可上传。")
