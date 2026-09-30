@@ -10,7 +10,7 @@ import 'package:schedule_plan/core/widgets/app_snackbar.dart';
 import 'package:schedule_plan/core/widgets/confirm_dialog.dart';
 import 'package:schedule_plan/data/models/china_holiday.dart';
 import 'package:schedule_plan/data/models/schedule_event.dart';
-import 'package:schedule_plan/data/repositories/note_repository.dart';
+import 'package:schedule_plan/data/repositories/schedule_event_repository.dart';
 import 'package:schedule_plan/data/services/holiday_service.dart';
 import 'package:schedule_plan/data/services/holiday_sync_service.dart';
 import 'package:schedule_plan/data/services/reminder_scheduler.dart';

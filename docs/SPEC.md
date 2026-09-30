@@ -12,7 +12,6 @@
 - **技术栈**:
   - Flutter(跨平台 UI 框架),Dart 语言
   - 本地持久化:SQLite(通过 sqflite 或等价包),不使用云端数据库,不要求账号登录
-  - AI 拓写功能(教师工具箱-快速笔记)：通过 HTTP 调用外部 LLM API,需支持配置多个提供商(如 OpenAI 兼容接口、Anthropic 接口等),API Key 由用户自行在设置中填写并加密存储在本地
   - 推送通知:使用 flutter_local_notifications 或等价包实现本地定时通知,不依赖云推送
 - **运行平台**:优先 Android,暂不要求 iOS/Web/桌面适配
 - **交付形态**:单一 Flutter 工程,可直接 `flutter build apk` 打包
@@ -199,16 +198,16 @@
 
 - 标准番茄钟计时(默认25分钟专注+5分钟休息,可调整),配合水波纹进度动画(圆形进度条内部有水波纹随进度上涨的视觉效果)
 
-#### 5.2 快速笔记(支持 AI 拓写)
+#### 5.2 快速笔记(已下线)
 
-- 简单文本编辑器,支持选中一段文字后调用已配置的 LLM API 进行"扩写/润色/总结"操作,结果以 Diff 对比形式展示,用户确认后才替换原文
-- 设置页支持配置多个 LLM 提供商(填写 API Base URL、API Key、模型名称),可切换默认使用哪一个
+- v1.0.5 起整块移除:此前提供"选中文字调用 LLM 扩写/润色/总结"的笔记编辑器与 LLM 提供商配置;
+  用户反馈用得不多,编辑器、设置入口与 `note` / `llm_provider_config` 两张表(见 v8 迁移)一并删除
 
 #### 5.3 日程安排
 
 - 独立的日历视图 + 事件管理,字段包含标题、时间、地点(可选)、提醒开关
 
-#** 5.4 待办列表**
+#### 5.4 待办列表
 
 - 独立于模块四"智能待办"的通用清单,不与课表/考勤联动,供教师记录私人事务
 
@@ -401,14 +400,9 @@ WHERE l.teacher_id = :teacherId AND l.weekday = :weekday
 | related_class_id | INTEGER | NULL, FK → class(id) ON DELETE SET NULL | 自动生成待办关联的班级 |
 | sort_order | INTEGER | NOT NULL DEFAULT 0 | |
 
-### 3.10 note(快速笔记)
+### 3.10 note(已删除)
 
-| 字段 | 类型 | 约束 | 说明 |
-|---|---|---|---|
-| id | INTEGER | PRIMARY KEY AUTOINCREMENT | |
-| content | TEXT | NOT NULL | |
-| created_at | INTEGER | NOT NULL | |
-| updated_at | INTEGER | NOT NULL | |
+v8 起移除,原因见 5.2。
 
 ### 3.11 schedule_event(日程安排事件)
 
@@ -442,16 +436,9 @@ WHERE l.teacher_id = :teacherId AND l.weekday = :weekday
 | fail_count | INTEGER | NOT NULL | |
 | detail_json | TEXT | NULL | 每行导入结果的详细 JSON,便于回溯排查 |
 
-### 3.14 llm_provider_config(LLM 提供商配置)
+### 3.14 llm_provider_config(已删除)
 
-| 字段 | 类型 | 约束 | 说明 |
-|---|---|---|---|
-| id | INTEGER | PRIMARY KEY AUTOINCREMENT | |
-| name | TEXT | NOT NULL | |
-| base_url | TEXT | NOT NULL | |
-| api_key_encrypted | TEXT | NOT NULL | 本地加密存储,不明文落盘 |
-| model_name | TEXT | NOT NULL | |
-| is_default | INTEGER | NOT NULL DEFAULT 0 | |
+v8 起移除,原因见 5.2。
 
 ### 3.15 app_settings(应用设置,单行 KV 或单例表均可)
 
@@ -483,7 +470,7 @@ WHERE l.teacher_id = :teacherId AND l.weekday = :weekday
 
 ## 五、技术约束与开发规范
 
-- **依赖清单**:sqflite(本地数据库)、flutter_local_notifications(本地通知)、excel 或等价包(Excel 导入导出)、http 或 dio(调用 LLM API)、intl(国际化)
+- **依赖清单**:sqflite(本地数据库)、flutter_local_notifications(本地通知)、excel 或等价包(Excel 导入导出)、intl(国际化)
 - **代码风格**:遵循 Dart 官方 lint 规则(effective_dart),提交前跑 `flutter analyze` 保证零警告
 - **错误处理**:严禁空 catch 块吞异常,任何 catch 块必须至少记录日志;涉及数据库写操作的方法必须包裹在事务中,失败时完整回滚并向上层抛出可读的错误信息
 - **性能优化**:长列表(学生名单、考勤历史)使用 ListView.builder 懒加载,禁止一次性构建全部 Widget;时间轴视图对超长时间跨度做渲染优化(见模块一 1.4 节)

@@ -3,6 +3,53 @@
   "assetsBase": "https://github.com/gillnotfail/schedule_plan/releases/download",
   "releases": [
     {
+      "versionCode": 6,
+      "versionName": "1.0.5",
+      "tag": "v1.0.5",
+      "publishedAt": "2026-10-01T01:27:05+08:00",
+      "notes": [
+        "**工具箱去掉了「快速笔记」和「私人清单」两张卡片**：这两个功能用得不多，里面的东西也一并取消了 —— 记过的笔记文字、填过的 AI 服务地址与密钥都会删掉，没法找回",
+        "**设置里的「智能能力」整组也去掉了**：那里以前是用来填 AI 服务地址和密钥的，只服务于笔记里的「扩写 / 润色 / 总结」，笔记没了它也就没用了",
+        "工具箱现在剩四张卡片：**统计、待办、专注模式、日程安排**，两行两列正好排满",
+        "**手动记的待办一个都没少**：以前放在「私人清单」里的内容，现在在「待办」页面的第二个标签页里（第一个标签页是跟着课表自动生成的待办）",
+        "「待办」卡片以前叫「智能待办」，容易让人以为里面只有自动生成的，现在改叫「待办」"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24069152,
+          "sha256": "74994bf7c6f2645212f750a70996fcb3121e6e5223e0f5d7fd359c0d17fe2d78"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22068072,
+          "sha256": "ca53e260e9f7a49e08e16656a9bb4a513648b006ceca1b5a1f9d8bccb4202306"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 5,
+          "abi": "arm64-v8a",
+          "file": "patch-5-6-arm64-v8a.spdp",
+          "size": 3996298,
+          "targetSize": 24069152,
+          "sha256": "f786130446713ab55bc5d5156da789ee16b8ccc934b5c3f02d93a161d7366323",
+          "baseSha256": "6be38cc773c5b6da516b591d4439d5fec958421e42345cf40b34b72150160da2"
+        },
+        {
+          "fromVersionCode": 5,
+          "abi": "armeabi-v7a",
+          "file": "patch-5-6-armeabi-v7a.spdp",
+          "size": 4425407,
+          "targetSize": 22068072,
+          "sha256": "7618fcb1babbaa5923f0b8eeca6e3030f5ea95146315a24ce3b36939fa443730",
+          "baseSha256": "234730d0a69424a844bc42b3f7d1957057d85bd4e0bad84c55ea1b60962a4404"
+        }
+      ]
+    },
+    {
       "versionCode": 5,
       "versionName": "1.0.4",
       "tag": "v1.0.4",
@@ -239,5 +286,5 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-10-01T00:56:31+08:00"
+  "generatedAt": "2026-10-01T01:27:05+08:00"
 }

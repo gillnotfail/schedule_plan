@@ -14,11 +14,9 @@ const List<String> _expectedTables = <String>[
   'student_course_status',
   'student_tag_record',
   'todo',
-  'note',
   'schedule_event',
   'focus_session',
   'import_log',
-  'llm_provider_config',
   'app_settings',
   // v7：节假日 / 调休安排的本地缓存（联网取回的年度数据，覆盖内置表缺的年份）
   'holiday_day',
@@ -35,12 +33,12 @@ String? _tableNameOf(String statement) {
 
 void main() {
   group('DatabaseSchema', () {
-    test('共 18 张表（含 course_class 关联表、v5 长期状态表与 v7 节假日缓存），与 readme 第三章一致', () {
+    test('共 16 张表（v8 已删掉 note / llm_provider_config 两张功能下线的表）', () {
       final names = DatabaseSchema.createTables
           .map(_tableNameOf)
           .whereType<String>()
           .toList();
-      expect(names.length, 18);
+      expect(names.length, 16);
       expect(names, _expectedTables);
     });
 

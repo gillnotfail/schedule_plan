@@ -3,55 +3,11 @@ import 'package:sqflite/sqflite.dart' hide DatabaseException;
 import 'package:schedule_plan/core/error/app_exceptions.dart';
 import 'package:schedule_plan/core/logging/app_logger.dart';
 import 'package:schedule_plan/data/db/app_database.dart';
-import 'package:schedule_plan/data/models/note.dart';
 import 'package:schedule_plan/data/models/schedule_event.dart';
 
-/// 快速笔记数据访问层（readme 3.10 表）。
-class NoteRepository {
-  NoteRepository({Database? database}) : _db = database;
-
-  Database? _db;
-
-  Future<Database> get _database async => _db ??= await AppDatabase.instance();
-
-  Future<List<Note>> listNotes() async {
-    final db = await _database;
-    final rows = await db.query('note', orderBy: 'updated_at DESC');
-    return rows.map(Note.fromMap).toList();
-  }
-
-  Future<int> createNote(String content) async {
-    final db = await _database;
-    final now = DateTime.now().millisecondsSinceEpoch;
-    try {
-      return db.insert(
-        'note',
-        Note(content: content, createdAt: now, updatedAt: now).toMap(),
-      );
-    } catch (error, stack) {
-      AppLogger.e('新建笔记失败', error: error, stack: stack);
-      throw DatabaseException('新建笔记失败：$error', cause: error);
-    }
-  }
-
-  Future<void> updateNote(Note note) async {
-    final db = await _database;
-    if (note.id == null) {
-      throw const ValidationException('笔记 id 缺失');
-    }
-    await db.update(
-      'note',
-      note.copyWith(updatedAt: DateTime.now().millisecondsSinceEpoch).toMap(),
-      where: 'id = ?',
-      whereArgs: <Object?>[note.id],
-    );
-  }
-
-  Future<void> deleteNote(int id) async {
-    final db = await _database;
-    await db.delete('note', where: 'id = ?', whereArgs: <Object?>[id]);
-  }
-}
+// 第 19 轮从 note_repository.dart 拆出来的：那个文件里同时装着 NoteRepository 与
+// ScheduleEventRepository（还有专注记录），笔记功能整块下线后只能拆开，否则日程
+// 安排会跟着一起消失。
 
 /// 日程事件 + 专注记录数据访问层（readme 3.11 / 3.12 表）。
 class ScheduleEventRepository {

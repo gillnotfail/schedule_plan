@@ -26,7 +26,6 @@ class MaintenanceRepository {
       'course',
       'class',
       'todo',
-      'note',
       'schedule_event',
       'focus_session',
       'import_log',

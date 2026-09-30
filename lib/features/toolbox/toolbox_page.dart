@@ -18,8 +18,6 @@ import 'package:schedule_plan/data/services/teaching_insight_service.dart';
 import 'package:schedule_plan/features/statistics/statistics_page.dart';
 import 'package:schedule_plan/features/toolbox/calendar_page.dart';
 import 'package:schedule_plan/features/toolbox/focus_timer_page.dart';
-import 'package:schedule_plan/features/toolbox/general_todo_page.dart';
-import 'package:schedule_plan/features/toolbox/note_list_page.dart';
 import 'package:schedule_plan/features/todo/todo_page.dart';
 import 'package:schedule_plan/l10n/generated/app_localizations.dart';
 
@@ -105,11 +103,11 @@ class _ToolboxPageState extends State<ToolboxPage> {
     });
   }
 
-  /// 六个工具卡片。
+  /// 四个工具卡片（2 列 × 2 行，正好排满）。
   ///
-  /// 色相取自 [ToolCardTone.all]，**按这个顺序**配：
-  /// 逐行"一冷一暖"（蓝紫 / 玫橙 / 绿青），扫过去是一条连续的色相带，
-  /// 而不是六个随手挑的颜色。
+  /// 色相**逐个写死常量**，不再按下标去取色板列表：那份列表是按六张卡
+  /// "逐行一冷一暖"排的色相带，删掉两张之后下标会跳号，语义就废了。
+  /// 现在上排是冷色（蓝紫），下排是玫 / 绿，两行各自成片。
   List<_ToolEntry> _entries(BuildContext context) {
     final l10n = context.l10n;
     return <_ToolEntry>[
@@ -117,43 +115,29 @@ class _ToolboxPageState extends State<ToolboxPage> {
         icon: Icons.insights_outlined,
         label: l10n.toolStatistics,
         description: l10n.toolStatisticsDesc,
-        tone: ToolCardTone.all[0],
+        tone: ToolCardTone.blue,
         target: const StatisticsPage(),
       ),
       _ToolEntry(
         icon: Icons.checklist_rtl_outlined,
         label: l10n.toolTodo,
         description: l10n.toolTodoDesc,
-        tone: ToolCardTone.all[1],
+        tone: ToolCardTone.violet,
         target: const TodoPage(),
       ),
       _ToolEntry(
         icon: Icons.timer_outlined,
         label: l10n.toolFocus,
         description: l10n.toolFocusDesc,
-        tone: ToolCardTone.all[2],
+        tone: ToolCardTone.rose,
         target: const FocusTimerPage(),
-      ),
-      _ToolEntry(
-        icon: Icons.edit_note_outlined,
-        label: l10n.toolNote,
-        description: l10n.toolNoteDesc,
-        tone: ToolCardTone.all[3],
-        target: const NoteListPage(),
       ),
       _ToolEntry(
         icon: Icons.event_available_outlined,
         label: l10n.toolCalendar,
         description: l10n.toolCalendarDesc,
-        tone: ToolCardTone.all[4],
+        tone: ToolCardTone.green,
         target: const CalendarPage(),
-      ),
-      _ToolEntry(
-        icon: Icons.done_all_outlined,
-        label: l10n.toolPrivateTodo,
-        description: l10n.toolPrivateTodoDesc,
-        tone: ToolCardTone.all[5],
-        target: const GeneralTodoPage(),
       ),
     ];
   }

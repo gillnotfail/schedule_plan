@@ -9,7 +9,7 @@ import 'package:schedule_plan/data/models/lesson.dart';
 import 'package:schedule_plan/data/models/schedule_event.dart';
 import 'package:schedule_plan/data/repositories/attendance_repository.dart';
 import 'package:schedule_plan/data/repositories/lesson_repository.dart';
-import 'package:schedule_plan/data/repositories/note_repository.dart';
+import 'package:schedule_plan/data/repositories/schedule_event_repository.dart';
 import 'package:schedule_plan/data/services/holiday_service.dart';
 
 /// 某个班级在某段时间里的出勤率。

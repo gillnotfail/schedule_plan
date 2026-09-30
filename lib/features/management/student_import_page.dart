@@ -15,7 +15,7 @@ import 'package:schedule_plan/core/widgets/settings_tile.dart';
 import 'package:schedule_plan/data/models/import_log.dart';
 import 'package:schedule_plan/data/models/student.dart';
 import 'package:schedule_plan/data/repositories/class_repository.dart';
-import 'package:schedule_plan/data/repositories/llm_repository.dart';
+import 'package:schedule_plan/data/repositories/import_log_repository.dart';
 import 'package:schedule_plan/data/repositories/student_repository.dart';
 import 'package:schedule_plan/data/services/excel_service.dart';
 import 'package:schedule_plan/data/services/share_service.dart';

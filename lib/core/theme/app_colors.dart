@@ -169,7 +169,10 @@ class ToolCardTone {
     deep: Color(0xFF21607A),
   );
 
-  /// 网格里的出场顺序：**逐行"一冷一暖"**，六张卡连起来看是一条色相带。
+  /// 色板全集（六个色相），单测按它守"明度一致 / 白字对比度 / 色相不重复"。
+  ///
+  /// **这不是"工具箱有几张卡"的顺序表**——卡片张数变过（第 19 轮从六张删到四张，
+  /// `toolbox_page._entries` 改成逐个写死常量），色板本身不动。
   static const List<ToolCardTone> all = <ToolCardTone>[
     blue,
     violet,

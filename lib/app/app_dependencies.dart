@@ -10,16 +10,15 @@ import 'package:schedule_plan/core/theme/theme_controller.dart';
 import 'package:schedule_plan/data/repositories/attendance_repository.dart';
 import 'package:schedule_plan/data/repositories/class_repository.dart';
 import 'package:schedule_plan/data/repositories/course_repository.dart';
+import 'package:schedule_plan/data/repositories/import_log_repository.dart';
 import 'package:schedule_plan/data/repositories/lesson_repository.dart';
-import 'package:schedule_plan/data/repositories/llm_repository.dart';
-import 'package:schedule_plan/data/repositories/note_repository.dart';
+import 'package:schedule_plan/data/repositories/schedule_event_repository.dart';
 import 'package:schedule_plan/data/repositories/settings_repository.dart';
 import 'package:schedule_plan/data/repositories/student_repository.dart';
 import 'package:schedule_plan/data/repositories/template_repository.dart';
 import 'package:schedule_plan/data/repositories/todo_repository.dart';
 import 'package:schedule_plan/data/services/cleanup_service.dart';
 import 'package:schedule_plan/data/services/holiday_sync_service.dart';
-import 'package:schedule_plan/data/services/llm_service.dart';
 import 'package:schedule_plan/data/services/notification_service.dart';
 import 'package:schedule_plan/data/services/reminder_scheduler.dart';
 import 'package:schedule_plan/data/services/update_service.dart';
@@ -47,15 +46,12 @@ class AppDependencies {
   late final StudentRepository students;
   late final AttendanceRepository attendance;
   late final TodoRepository todos;
-  late final NoteRepository notes;
   late final ScheduleEventRepository events;
-  late final LlmProviderRepository llmProviders;
   late final ImportLogRepository importLogs;
 
   late final NotificationService notifications;
   late final ReminderScheduler reminders;
   late final CleanupService cleanup;
-  late final LlmService llm;
 
   /// 节假日数据的联网保鲜（内置表兜底 + 每年自动取回新年度安排）。
   late final HolidaySyncService holidaySync;
@@ -79,9 +75,7 @@ class AppDependencies {
     deps.students = StudentRepository();
     deps.attendance = AttendanceRepository();
     deps.todos = TodoRepository();
-    deps.notes = NoteRepository();
     deps.events = ScheduleEventRepository();
-    deps.llmProviders = LlmProviderRepository();
     deps.importLogs = ImportLogRepository();
 
     deps.notifications = NotificationService.instance;
@@ -95,7 +89,6 @@ class AppDependencies {
       importLogRepository: deps.importLogs,
       settingsRepository: deps.settings,
     );
-    deps.llm = LlmService();
     deps.holidaySync = HolidaySyncService();
     deps.updates = UpdateService();
 
@@ -163,13 +156,10 @@ class AppDependenciesScope extends StatelessWidget {
         Provider<StudentRepository>.value(value: dependencies.students),
         Provider<AttendanceRepository>.value(value: dependencies.attendance),
         Provider<TodoRepository>.value(value: dependencies.todos),
-        Provider<NoteRepository>.value(value: dependencies.notes),
         Provider<ScheduleEventRepository>.value(value: dependencies.events),
-        Provider<LlmProviderRepository>.value(value: dependencies.llmProviders),
         Provider<ImportLogRepository>.value(value: dependencies.importLogs),
         Provider<ReminderScheduler>.value(value: dependencies.reminders),
         Provider<CleanupService>.value(value: dependencies.cleanup),
-        Provider<LlmService>.value(value: dependencies.llm),
         Provider<NotificationService>.value(value: dependencies.notifications),
         ChangeNotifierProvider<SettingsState>.value(value: dependencies.settingsState),
         ChangeNotifierProvider<ThemeController>.value(value: dependencies.themeController),

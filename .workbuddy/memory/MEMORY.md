@@ -45,10 +45,15 @@
   **冲突检测按真实时间区间重叠，禁止比 period_index**（多模板聚合会误判）。
 - 时间存 `"HH:mm"`、日期存 `"YYYY-MM-DD"`，不存时间戳。考勤唯一键 `(student_id, lesson_id, date)`。
 - 外键显式 ON DELETE；迁移包事务 + 校验 `class.template_id` 无悬空。
-- DB `version=7`，**18 张表**（`test/unit/schema_test.dart` 断言数量/顺序，加表必须同步改）：v3 `course.color`、
-  v4 `attendance_record`、v5 `student_course_status`、v6 `schedule_event.recurrence`（默认 `'once'`）、v7 `holiday_day`。
-  全是**纯加表加列**、可重复执行、不重建表。**不动 `migrate()` 里 `rebuildingCourse` 那段**（只服务 v1→v2，
+- DB `version=8`，**16 张表**（`test/unit/schema_test.dart` 断言数量/顺序，加表/删表必须同步改）：v3 `course.color`、
+  v4 `attendance_record`、v5 `student_course_status`、v6 `schedule_event.recurrence`（默认 `'once'`）、v7 `holiday_day`、
+  v8 **删表**（`note` / `llm_provider_config`，两个功能整块下线）。加表一律是**纯加表加列**、可重复执行、不重建表；
+  v8 是本项目第一次「减表」，用 `DROP TABLE IF EXISTS`。**不动 `migrate()` 里 `rebuildingCourse` 那段**（只服务 v1→v2，
   须临时关外键，否则 DROP course 级联清空 lesson）。
+- **删一个功能模块前，按 import 路径全库 grep（下划线形式，如 `note_repository`），别只搜驼峰类名** ——
+  本项目有**一文件多类**的仓库（`note_repository.dart` 同时还装着 `ScheduleEventRepository`、
+  `llm_repository.dart` 同时还装着 `ImportLogRepository`）。只搜类名会漏掉 import 语句，删完 analyze 才炸一片
+  undefined。拆出来的新文件：`schedule_event_repository.dart` / `import_log_repository.dart`。
 - 桌面 sqflite 必须先初始化 FFI：`AppDatabase._ensureDatabaseFactory()` 按平台调 `sqfliteFfiInit()` + `databaseFactoryFfi`，
   否则 not initialized。`sqflite_common_ffi` + `sqlite3_flutter_libs` 必须在 `dependencies`。ff 包 import 要
   `hide DatabaseException`，且别与 `sqflite` 同时 import（analyzer 判 unnecessary）。

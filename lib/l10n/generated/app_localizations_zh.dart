@@ -486,45 +486,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get focusDone => '专注完成';
 
   @override
-  String get noteTitle => '快速笔记';
-
-  @override
-  String get noteEditor => '笔记内容';
-
-  @override
-  String get noteEmpty => '开始输入...';
-
-  @override
-  String get aiExpand => '扩写';
-
-  @override
-  String get aiPolish => '润色';
-
-  @override
-  String get aiSummarize => '总结';
-
-  @override
-  String get aiApply => '应用结果';
-
-  @override
-  String get aiDiscard => '放弃';
-
-  @override
-  String get aiDiffTitle => 'AI 结果对比';
-
-  @override
-  String get aiOriginal => '原文';
-
-  @override
-  String get aiResult => '结果';
-
-  @override
-  String get aiNoProvider => '尚未配置 LLM 提供商';
-
-  @override
-  String get aiSelectTextFirst => '请先选中一段文字';
-
-  @override
   String get scheduleCalendar => '日程安排';
 
   @override
@@ -541,27 +502,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get eventReminderBefore => '提前分钟数';
-
-  @override
-  String get generalTodoTitle => '私人待办清单';
-
-  @override
-  String get llmProviders => 'LLM 提供商';
-
-  @override
-  String get llmProviderName => '名称';
-
-  @override
-  String get llmBaseUrl => '接口地址';
-
-  @override
-  String get llmApiKey => 'API Key';
-
-  @override
-  String get llmModelName => '模型名称';
-
-  @override
-  String get llmSetDefault => '设为默认';
 
   @override
   String get manageTitle => '管理';
@@ -806,9 +746,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importChooseFile => '选择 Excel 文件';
 
   @override
-  String get noteSaved => '笔记已保存';
-
-  @override
   String get classSaved => '班级已保存';
 
   @override
@@ -955,19 +892,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get toolStatistics => '统计';
 
   @override
-  String get toolTodo => '智能待办';
+  String get toolTodo => '待办';
 
   @override
   String get toolFocus => '专注模式';
 
   @override
-  String get toolNote => '快速笔记';
-
-  @override
   String get toolCalendar => '日程安排';
-
-  @override
-  String get toolPrivateTodo => '私人清单';
 
   @override
   String get toolboxInsight => '本周教学成果';
@@ -1015,9 +946,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get groupDisplay => '显示与语言';
-
-  @override
-  String get groupAssistant => '智能能力';
 
   @override
   String get groupData => '数据维护';
@@ -1213,19 +1141,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get toolStatisticsDesc => '出勤率趋势与排名';
 
   @override
-  String get toolTodoDesc => '考勤联动自动生成';
+  String get toolTodoDesc => '智能待办与通用清单';
 
   @override
   String get toolFocusDesc => '番茄钟专注计时';
 
   @override
-  String get toolNoteDesc => '随手记录与 AI 拓写';
-
-  @override
   String get toolCalendarDesc => '日程与课前提醒';
-
-  @override
-  String get toolPrivateTodoDesc => '私人待办清单';
 
   @override
   String get importReasonMissingClass => '缺少班级';

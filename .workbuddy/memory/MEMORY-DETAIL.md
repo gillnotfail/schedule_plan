@@ -220,8 +220,15 @@
   `attendanceRateByCourse` 都带 `courseId` 可选参。
 - **考勤「复制」只复制异常**（非出勤），复制前弹 `_SummaryDialog` 展示内容再复制；日历圆环用 `_applyRingDelta` 同步
   增量更新（**别退回整月重算**，那是「ring 延迟」的根因）。
-- 工具箱是 `DefaultTabController` 两页（工具/成果）；卡片按压缩放用 `SquishyTap`（原点 = 手指点 + elastic 过冲回弹），
-  成果页包 `HeartBurst`（点哪儿爆心）。
+- 工具箱是 `PageView` 两页（工具 / 成果）+ 底部 `_PageHint` 圆点；卡片按压缩放用 `SquishyTap`（原点 = 手指点 +
+  elastic 过冲回弹），成果页包 `HeartBurst`（点哪儿爆心）。**工具页第 19 轮从六张卡删到四张**
+  （统计 / 待办 / 专注模式 / 日程安排，2×2 正好排满）；这四张的色相**逐个写死**
+  `ToolCardTone.blue / violet / rose / green`，**别再按下标取 `ToolCardTone.all`**（那是六色色板全集，按下标会跳号）。
+- **第 19 轮删掉的三块功能（用户：用得不多）**：① 快速笔记（`note_list_page` / `note_editor_page` / `NoteRepository`
+  / `note` 表）；② LLM 提供商（`llm_provider_page` / `LlmProviderRepository` / `LlmService` / 设置页「智能能力」
+  整组 / `llm_provider_config` 表）；③ 「私人清单」卡片（`general_todo_page`）——**它只是「待办」页「通用待办」Tab
+  的重复入口，功能没删**，手动待办仍在 `TodoPage` 第二个 Tab 里。顺带把卡片文案改准了：`toolTodo` → 「待办」、
+  `toolTodoDesc` → 「智能待办与通用清单」。删表走 v8 迁移（见 `schema.dart` 的 `_migrateV7ToV8`）。
 
 ## 全局 UI / 动效
 - **动效时长/曲线只有 `AppMotion` 一个来源**。按下缩放 = `instant`(100ms) + `softSpring`；位移用 `expressive`，
@@ -240,11 +247,14 @@
 - **底色只用 token 显式赋过值的两档**（`surface` / `surfaceContainer`）：`surfaceContainerLow/Lowest` 是 Flutter 默认
   基线色（带紫灰），在「樱花粉」「晨曦暖橙」里会脏。
 - **工具箱彩色卡** `ToolCardTone`（`core/theme/app_colors.dart`，`@immutable`，字段 `key`/`light`/`deep`，
-  `gradientFor(Brightness)` 暗色下 `Color.lerp(..., Colors.white, 0.10/0.06)` 提亮）。六色定稿：`blue #446DC6/#34569F`、
+  `gradientFor(Brightness)` 暗色下 `Color.lerp(..., Colors.white, 0.10/0.06)` 提亮）。六色色板：`blue #446DC6/#34569F`、
   `violet #7E60BB/#61459C`、`rose #C04A74/#9E355C`、`amber #A5691A/#8A5410`、`green #377E61/#29674D`、
-  `teal #2E7B96/#21607A`。色板规则（有单测压着）：六色相**相对亮度 0.162~0.182（spread < 0.04）**、**白字对比度
-  > 4.4:1**、key 唯一且两端色不同、色相均匀铺开且一行「一冷一暖」。卡片是 `DecoratedBox` + `LinearGradient` 实色
-  渐变（**不再用 AppCard 浅底**），图标块 `Colors.white.withValues(alpha: 0.22)`。**改色必须重算明度与对比度**。
+  `teal #2E7B96/#21607A`。色板规则（有单测压着，`china_holiday_test.dart` 遍历 `ToolCardTone.all`）：六色相**相对亮度
+  0.162~0.182（spread < 0.04）**、**白字对比度 > 4.4:1**、key 唯一且两端色不同。
+  ⚠️ **`ToolCardTone.all` 是「色板全集」，不是「工具箱有几张卡的顺序表」** —— 卡片第 19 轮从六张删到四张，
+  色板与那几条单测都没动，别把两者绑在一起（改 `all` 会连色板护栏一起挂掉）。卡片是 `DecoratedBox` +
+  `LinearGradient` 实色渐变（**不再用 AppCard 浅底**），图标块 `Colors.white.withValues(alpha: 0.22)`。
+  **改色必须重算明度与对比度**。
 
 ## 机械表盘（只有一套实现）
 `core/widgets/dial_time_picker.dart`：内圈 12 个小时数字（1~12，12 点正上方），外圈 12 个分钟刻度（00/05/…/55），

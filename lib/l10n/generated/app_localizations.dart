@@ -1028,84 +1028,6 @@ abstract class AppLocalizations {
   /// **'Focus session complete'**
   String get focusDone;
 
-  /// No description provided for @noteTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Quick notes'**
-  String get noteTitle;
-
-  /// No description provided for @noteEditor.
-  ///
-  /// In en, this message translates to:
-  /// **'Note'**
-  String get noteEditor;
-
-  /// No description provided for @noteEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'Start writing...'**
-  String get noteEmpty;
-
-  /// No description provided for @aiExpand.
-  ///
-  /// In en, this message translates to:
-  /// **'Expand'**
-  String get aiExpand;
-
-  /// No description provided for @aiPolish.
-  ///
-  /// In en, this message translates to:
-  /// **'Polish'**
-  String get aiPolish;
-
-  /// No description provided for @aiSummarize.
-  ///
-  /// In en, this message translates to:
-  /// **'Summarize'**
-  String get aiSummarize;
-
-  /// No description provided for @aiApply.
-  ///
-  /// In en, this message translates to:
-  /// **'Apply result'**
-  String get aiApply;
-
-  /// No description provided for @aiDiscard.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard'**
-  String get aiDiscard;
-
-  /// No description provided for @aiDiffTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Review AI result'**
-  String get aiDiffTitle;
-
-  /// No description provided for @aiOriginal.
-  ///
-  /// In en, this message translates to:
-  /// **'Original'**
-  String get aiOriginal;
-
-  /// No description provided for @aiResult.
-  ///
-  /// In en, this message translates to:
-  /// **'Result'**
-  String get aiResult;
-
-  /// No description provided for @aiNoProvider.
-  ///
-  /// In en, this message translates to:
-  /// **'No LLM provider configured'**
-  String get aiNoProvider;
-
-  /// No description provided for @aiSelectTextFirst.
-  ///
-  /// In en, this message translates to:
-  /// **'Select a piece of text first'**
-  String get aiSelectTextFirst;
-
   /// No description provided for @scheduleCalendar.
   ///
   /// In en, this message translates to:
@@ -1141,48 +1063,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Minutes before'**
   String get eventReminderBefore;
-
-  /// No description provided for @generalTodoTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Personal to-do list'**
-  String get generalTodoTitle;
-
-  /// No description provided for @llmProviders.
-  ///
-  /// In en, this message translates to:
-  /// **'LLM providers'**
-  String get llmProviders;
-
-  /// No description provided for @llmProviderName.
-  ///
-  /// In en, this message translates to:
-  /// **'Name'**
-  String get llmProviderName;
-
-  /// No description provided for @llmBaseUrl.
-  ///
-  /// In en, this message translates to:
-  /// **'API base URL'**
-  String get llmBaseUrl;
-
-  /// No description provided for @llmApiKey.
-  ///
-  /// In en, this message translates to:
-  /// **'API key'**
-  String get llmApiKey;
-
-  /// No description provided for @llmModelName.
-  ///
-  /// In en, this message translates to:
-  /// **'Model name'**
-  String get llmModelName;
-
-  /// No description provided for @llmSetDefault.
-  ///
-  /// In en, this message translates to:
-  /// **'Use by default'**
-  String get llmSetDefault;
 
   /// No description provided for @manageTitle.
   ///
@@ -1640,12 +1520,6 @@ abstract class AppLocalizations {
   /// **'Choose Excel file'**
   String get importChooseFile;
 
-  /// No description provided for @noteSaved.
-  ///
-  /// In en, this message translates to:
-  /// **'Note saved'**
-  String get noteSaved;
-
   /// No description provided for @classSaved.
   ///
   /// In en, this message translates to:
@@ -1925,7 +1799,7 @@ abstract class AppLocalizations {
   /// No description provided for @toolTodo.
   ///
   /// In en, this message translates to:
-  /// **'Smart todos'**
+  /// **'Todos'**
   String get toolTodo;
 
   /// No description provided for @toolFocus.
@@ -1934,23 +1808,11 @@ abstract class AppLocalizations {
   /// **'Focus'**
   String get toolFocus;
 
-  /// No description provided for @toolNote.
-  ///
-  /// In en, this message translates to:
-  /// **'Notes'**
-  String get toolNote;
-
   /// No description provided for @toolCalendar.
   ///
   /// In en, this message translates to:
   /// **'Calendar'**
   String get toolCalendar;
-
-  /// No description provided for @toolPrivateTodo.
-  ///
-  /// In en, this message translates to:
-  /// **'Checklist'**
-  String get toolPrivateTodo;
 
   /// No description provided for @toolboxInsight.
   ///
@@ -2029,12 +1891,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Display & language'**
   String get groupDisplay;
-
-  /// No description provided for @groupAssistant.
-  ///
-  /// In en, this message translates to:
-  /// **'Smart features'**
-  String get groupAssistant;
 
   /// No description provided for @groupData.
   ///
@@ -2411,7 +2267,7 @@ abstract class AppLocalizations {
   /// No description provided for @toolTodoDesc.
   ///
   /// In en, this message translates to:
-  /// **'Auto-generated from attendance'**
+  /// **'Smart todos and general lists'**
   String get toolTodoDesc;
 
   /// No description provided for @toolFocusDesc.
@@ -2420,23 +2276,11 @@ abstract class AppLocalizations {
   /// **'Pomodoro focus timer'**
   String get toolFocusDesc;
 
-  /// No description provided for @toolNoteDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Quick notes with AI expansion'**
-  String get toolNoteDesc;
-
   /// No description provided for @toolCalendarDesc.
   ///
   /// In en, this message translates to:
   /// **'Events and reminders'**
   String get toolCalendarDesc;
-
-  /// No description provided for @toolPrivateTodoDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Your private checklist'**
-  String get toolPrivateTodoDesc;
 
   /// No description provided for @importReasonMissingClass.
   ///

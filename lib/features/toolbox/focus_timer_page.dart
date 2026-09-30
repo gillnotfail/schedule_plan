@@ -10,7 +10,7 @@ import 'package:schedule_plan/core/logging/app_logger.dart';
 import 'package:schedule_plan/core/widgets/app_card.dart';
 import 'package:schedule_plan/core/widgets/app_snackbar.dart';
 import 'package:schedule_plan/data/models/schedule_event.dart';
-import 'package:schedule_plan/data/repositories/note_repository.dart';
+import 'package:schedule_plan/data/repositories/schedule_event_repository.dart';
 import 'package:schedule_plan/data/settings_state.dart';
 
 /// 专注模式（番茄钟，模块五 5.1）。

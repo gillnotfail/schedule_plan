@@ -26,7 +26,10 @@ abstract final class DatabaseSchema {
   /// v6 -> v7：新增 `holiday_day`——节假日 / 调休安排的**本地缓存表**，
   /// 用来装从网上取回的年度安排，覆盖掉内置表里缺的年份（见
   /// `holiday_sync_service.dart`）。同样是纯加表，不动老表。
-  static const int version = 7;
+  /// v7 -> v8：**删表**——`note`（快速笔记）与 `llm_provider_config`（LLM 提供商）
+  /// 对应的功能整块下线（用户规格：这两个功能用得不多，通通去掉），
+  /// 建表语句与迁移脚本里的定义一并移除，老库升级时把这两张表 DROP 掉。
+  static const int version = 8;
 
   /// 首次建库时写入的默认作息模板名称（种子数据，非界面文案）。
   static const String _seedTemplateName = '默认作息';
@@ -194,15 +197,6 @@ abstract final class DatabaseSchema {
       sort_order INTEGER NOT NULL DEFAULT 0
     )
     ''',
-    // 3.10 快速笔记
-    '''
-    CREATE TABLE IF NOT EXISTS note (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      content TEXT NOT NULL,
-      created_at INTEGER NOT NULL,
-      updated_at INTEGER NOT NULL
-    )
-    ''',
     // 3.11 日程安排事件
     '''
     CREATE TABLE IF NOT EXISTS schedule_event (
@@ -234,17 +228,6 @@ abstract final class DatabaseSchema {
       success_count INTEGER NOT NULL,
       fail_count INTEGER NOT NULL,
       detail_json TEXT
-    )
-    ''',
-    // 3.14 LLM 提供商配置
-    '''
-    CREATE TABLE IF NOT EXISTS llm_provider_config (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      base_url TEXT NOT NULL,
-      api_key_encrypted TEXT NOT NULL,
-      model_name TEXT NOT NULL,
-      is_default INTEGER NOT NULL DEFAULT 0
     )
     ''',
     // 3.15 应用设置（单行 KV）
@@ -357,6 +340,9 @@ abstract final class DatabaseSchema {
         }
         if (from < 7 && to >= 7) {
           await _migrateV6ToV7(txn);
+        }
+        if (from < 8 && to >= 8) {
+          await _migrateV7ToV8(txn);
         }
       });
     } catch (error, stack) {
@@ -586,6 +572,21 @@ abstract final class DatabaseSchema {
       );
       AppLogger.i('v6 -> v7 迁移完成：新增 holiday_day（节假日缓存）');
     }
+  }
+
+  /// v7 -> v8：删掉 `note` 与 `llm_provider_config` 两张表。
+  ///
+  /// 这是本项目**第一次做"减表"迁移**（此前全是纯加表加列）：
+  /// 「快速笔记」和「LLM 提供商」两个功能整块下线，表再留着就是死表——
+  /// 每加一张表都得记得避开它，清库时还要单独绕开，不如一次删干净。
+  ///
+  /// 用 `DROP TABLE IF EXISTS`，保证这段脚本重复执行也不报错
+  /// （迁移中断后重跑是常见场景）；两张表都没被外键引用，删掉不影响别的表。
+  /// 新库（from == 0）走 [createTables]，本来就不会建这两张表，这里是无害的空操作。
+  static Future<void> _migrateV7ToV8(Transaction txn) async {
+    await txn.execute('DROP TABLE IF EXISTS note');
+    await txn.execute('DROP TABLE IF EXISTS llm_provider_config');
+    AppLogger.i('v7 -> v8 迁移完成：删除 note / llm_provider_config 两张表');
   }
 
   /// 迁移后一致性校验：

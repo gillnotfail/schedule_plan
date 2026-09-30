@@ -26,7 +26,7 @@ import 'package:schedule_plan/data/models/schedule_template.dart';
 import 'package:schedule_plan/data/repositories/class_repository.dart';
 import 'package:schedule_plan/data/repositories/course_repository.dart';
 import 'package:schedule_plan/data/repositories/lesson_repository.dart';
-import 'package:schedule_plan/data/repositories/note_repository.dart';
+import 'package:schedule_plan/data/repositories/schedule_event_repository.dart';
 import 'package:schedule_plan/data/repositories/settings_repository.dart';
 import 'package:schedule_plan/data/repositories/template_repository.dart';
 import 'package:schedule_plan/data/services/holiday_service.dart';

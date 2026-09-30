@@ -34,7 +34,6 @@ import 'package:schedule_plan/features/attendance/attendance_status_strip.dart';
 import 'package:schedule_plan/features/management/student_list_page.dart';
 import 'package:schedule_plan/features/settings/statistics_settings_page.dart';
 import 'package:schedule_plan/features/settings/update_page.dart';
-import 'package:schedule_plan/features/toolbox/llm_provider_page.dart';
 
 /// 设置页（模块七 + 用户规格）。
 ///
@@ -568,23 +567,6 @@ class _SettingsPageState extends State<SettingsPage> {
             children: <Widget>[
               _buildThemeRow(theme),
               _buildLanguageRow(localeController),
-            ],
-          ),
-
-          // ---------------- 智能能力 ----------------
-          GroupHeader(
-            title: l10n.groupAssistant,
-            icon: Icons.auto_awesome_outlined,
-          ),
-          SettingsGroup(
-            children: <Widget>[
-              SettingsTile(
-                icon: Icons.smart_toy_outlined,
-                title: l10n.llmProviders,
-                subtitle: l10n.aiExpand,
-                gradient: const <Color>[Color(0xFF7FD1C1), Color(0xFF0E7C6C)],
-                onTap: () => pushAppPage(context, const LlmProviderPage()),
-              ),
             ],
           ),
 

@@ -2,7 +2,7 @@ import 'package:schedule_plan/core/constants/app_constants.dart';
 import 'package:schedule_plan/core/logging/app_logger.dart';
 import 'package:schedule_plan/core/utils/date_utils.dart';
 import 'package:schedule_plan/data/repositories/lesson_repository.dart';
-import 'package:schedule_plan/data/repositories/note_repository.dart';
+import 'package:schedule_plan/data/repositories/schedule_event_repository.dart';
 import 'package:schedule_plan/data/services/notification_service.dart';
 
 /// 课前提醒与日程提醒的调度器（readme 模块七 7.1 / 7.2）。

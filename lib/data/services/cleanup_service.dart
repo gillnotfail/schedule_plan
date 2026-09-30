@@ -9,7 +9,7 @@ import 'package:schedule_plan/core/constants/setting_keys.dart';
 import 'package:schedule_plan/core/logging/app_logger.dart';
 import 'package:schedule_plan/core/utils/date_utils.dart';
 import 'package:schedule_plan/data/repositories/attendance_repository.dart';
-import 'package:schedule_plan/data/repositories/llm_repository.dart';
+import 'package:schedule_plan/data/repositories/import_log_repository.dart';
 import 'package:schedule_plan/data/repositories/settings_repository.dart';
 
 /// 本地数据自动清理（readme 模块七 7.6）。

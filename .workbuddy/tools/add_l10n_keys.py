@@ -531,6 +531,13 @@ UPDATE_KEYS = {
         "zh": "拍照或从相册选一张课表，本机识别后自动排进课表",
         "en": "Take or pick a timetable photo — it is recognized on-device",
     },
+    # 第 19 轮：「私人清单」卡片删掉后，手动记的清单只剩「待办」页那个 Tab 能进；
+    # 卡片还叫「智能待办 / 考勤联动自动生成」会让人以为清单功能没了，一并说清楚。
+    "toolTodo": {"zh": "待办", "en": "Todos"},
+    "toolTodoDesc": {
+        "zh": "智能待办与通用清单",
+        "en": "Smart todos and general lists",
+    },
 }
 
 # 本轮不需要的键（避免留下没人用的文案）。默认状态就是"出勤"，
@@ -544,7 +551,20 @@ DROP_KEYS = ["attendanceMarkAllPresent", "attendanceStatusHint",
              "attendanceRingNoRecord", "attendanceRingRate",
              "attendanceMakeupHint", "attendanceMakeupPending",
              "attendanceHolidayHint",
-             "attendanceLegendMarked"]
+             "attendanceLegendMarked",
+             # 第 19 轮：笔记（含 AI 拓写）、LLM 提供商整块下线；「私人清单」卡片
+             # （=「待办」页通用待办 Tab 的重复入口）也去掉。下面 26 条只服务这
+             # 三个功能，全库已无引用，一并清掉。
+             "noteTitle", "noteEditor", "noteEmpty", "noteSaved",
+             "aiExpand", "aiPolish", "aiSummarize", "aiApply", "aiDiscard",
+             "aiDiffTitle", "aiOriginal", "aiResult", "aiNoProvider",
+             "aiSelectTextFirst",
+             "generalTodoTitle",
+             "llmProviders", "llmProviderName", "llmBaseUrl", "llmApiKey",
+             "llmModelName", "llmSetDefault",
+             "toolNote", "toolNoteDesc",
+             "toolPrivateTodo", "toolPrivateTodoDesc",
+             "groupAssistant"]
 
 PLACEHOLDERS = {
     "gridMakeupHint": {

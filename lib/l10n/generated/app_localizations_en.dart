@@ -492,45 +492,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get focusDone => 'Focus session complete';
 
   @override
-  String get noteTitle => 'Quick notes';
-
-  @override
-  String get noteEditor => 'Note';
-
-  @override
-  String get noteEmpty => 'Start writing...';
-
-  @override
-  String get aiExpand => 'Expand';
-
-  @override
-  String get aiPolish => 'Polish';
-
-  @override
-  String get aiSummarize => 'Summarize';
-
-  @override
-  String get aiApply => 'Apply result';
-
-  @override
-  String get aiDiscard => 'Discard';
-
-  @override
-  String get aiDiffTitle => 'Review AI result';
-
-  @override
-  String get aiOriginal => 'Original';
-
-  @override
-  String get aiResult => 'Result';
-
-  @override
-  String get aiNoProvider => 'No LLM provider configured';
-
-  @override
-  String get aiSelectTextFirst => 'Select a piece of text first';
-
-  @override
   String get scheduleCalendar => 'Calendar';
 
   @override
@@ -547,27 +508,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get eventReminderBefore => 'Minutes before';
-
-  @override
-  String get generalTodoTitle => 'Personal to-do list';
-
-  @override
-  String get llmProviders => 'LLM providers';
-
-  @override
-  String get llmProviderName => 'Name';
-
-  @override
-  String get llmBaseUrl => 'API base URL';
-
-  @override
-  String get llmApiKey => 'API key';
-
-  @override
-  String get llmModelName => 'Model name';
-
-  @override
-  String get llmSetDefault => 'Use by default';
 
   @override
   String get manageTitle => 'Management';
@@ -814,9 +754,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importChooseFile => 'Choose Excel file';
 
   @override
-  String get noteSaved => 'Note saved';
-
-  @override
   String get classSaved => 'Class saved';
 
   @override
@@ -968,19 +905,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get toolStatistics => 'Statistics';
 
   @override
-  String get toolTodo => 'Smart todos';
+  String get toolTodo => 'Todos';
 
   @override
   String get toolFocus => 'Focus';
 
   @override
-  String get toolNote => 'Notes';
-
-  @override
   String get toolCalendar => 'Calendar';
-
-  @override
-  String get toolPrivateTodo => 'Checklist';
 
   @override
   String get toolboxInsight => 'This week';
@@ -1028,9 +959,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get groupDisplay => 'Display & language';
-
-  @override
-  String get groupAssistant => 'Smart features';
 
   @override
   String get groupData => 'Data';
@@ -1234,19 +1162,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get toolStatisticsDesc => 'Attendance trends and ranking';
 
   @override
-  String get toolTodoDesc => 'Auto-generated from attendance';
+  String get toolTodoDesc => 'Smart todos and general lists';
 
   @override
   String get toolFocusDesc => 'Pomodoro focus timer';
 
   @override
-  String get toolNoteDesc => 'Quick notes with AI expansion';
-
-  @override
   String get toolCalendarDesc => 'Events and reminders';
-
-  @override
-  String get toolPrivateTodoDesc => 'Your private checklist';
 
   @override
   String get importReasonMissingClass => 'Missing class';
