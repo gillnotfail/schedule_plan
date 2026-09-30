@@ -1284,5 +1284,15 @@
         "type": "String"
       }
     }
+  },
+  "attendanceResumeTitle": "是否复学？",
+  "attendanceResumeBody": "{name} 当前已休学。复学后将恢复正常点名。",
+  "attendanceResumeConfirm": "复学",
+  "@attendanceResumeBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -68,9 +68,13 @@
   `attendanceLongTermCount = 2`、`attendanceStatusChipWidth = 27.0`、`attendanceLongTermGroupGap = 6.0`。颜色
   `AttendancePalette.suspended` / `.exempt`。
 - **休学/免修是「课程级长期状态」**：`student_course_status` 表 + `CourseStudentStatus`（`[startDate, endDate]`
-  闭区间，跨度 `longTermStatusDays = 180`）。一次点击生效 180 天；同状态再点弹确认取消。命中者在这门课里**自动
-  沉底**（`compareRosterStudents` 里长期状态排最后）；已锁的日常胶囊置灰并给 `attendanceLongTermLocked` 提示。
-  API：`activeCourseStatuses` / `courseStatusesForStudent` / `setCourseStatus` / `clearCourseStatus`。
+  闭区间，跨度 `longTermStatusDays = 180`）。一次点击生效 180 天。命中者在这门课里**自动
+  沉底**（`compareRosterStudents` 里长期状态排最后）。API：`activeCourseStatuses` / `courseStatusesForStudent` /
+  `setCourseStatus` / `clearCourseStatus`。
+- **休学 ≠ 免修（第 16 轮改）**：休学 = 完全不来，**锁死日常五态与免修胶囊**，唯一出口是再点休学胶囊 → 「复学」确认
+  （`attendanceResume*` 键）；免修 = 免修这门课但仍会来上课，**只作角标、不锁日常五态**（迟到早退照常标）。
+  实现：strip 新增 `activeLongTerm`（与 `status` 并列，分别高亮长期/日常胶囊）；`locked` 只在「休学」时为真；
+  `_effectiveStatus` 只对休学返回长期状态；高风险/异常摘要也只把休学当「不在点名范围」、免修照常累计。
 - **名单按班级分组**：抬头是**班级横带** `ClassGroupBand`（`features/attendance/class_group_band.dart`，**公开**
   组件 + 独立测试，高 `rosterGroupBandHeight = 42.0`）。**不要**搬回页面当私有 `_ClassGroupBand`——私有类测不到，
   而横带是全页最挤的一行。名单是 `_RosterRow` / `_RosterGroup` 扁平序列 + `ListView.builder` 懒构建。班内排序纯函数
@@ -227,3 +231,40 @@
   `MainActivity.kt` 读 `intent.action/extras` & MethodChannel 递给 Dart；iOS 走 SiriKit / App Intents。端内 ASR 要用
   系统 `SpeechRecognizer` / `SFSpeechRecognizer`（离线看机型）或云端 ASR（**违背「不接服务商」**）。**要做先做
   「唤起 + 预填」，不要一上来做端内 ASR。**
+
+## 发布与更新链路（细则）
+- **客户端清单地址**：raw.githubusercontent（第一）+ jsDelivr（第二、国内可达）+ 用户可配镜像前缀。自动检查一天一次
+  （`updateLastCheckAt` 节流）。`UpdateService` 是独立 `ChangeNotifier`，`AppDependencies` 里
+  `unawaited(autoCheckIfDue())`（不阻塞启动、不弹窗打断）。清单默认下载地址指向 `github.com`。
+- **本机网络（实测）**：`github.com` 解析出的 IP **TCP 直连不通**（DNS 给 `20.205.243.166`，而 `140.82.112.4:443`
+  是通的 → **特定 IP 被封，不是域名**）；`api.github.com`/`uploads.github.com`/`objects.githubusercontent.com`/
+  `raw.githubusercontent.com`/jsDelivr **都通**。→ 发布不受影响；手机侧若同样封这组 IP 必须配镜像前缀，且**这台机器
+  验证不了下载地址**。系统代理配了 `127.0.0.1:7890` 但 **`ProxyEnable=0` 且端口没监听**。
+- **`tool/release.py`**：`--bump` 自增版本号并写回 pubspec；**推送必须显式 `--push`**（标签一次性，试探性的本地跑
+  不该造出不可回收的标签）；`--no-commit` 真空跑；`--skip-upload` 只产本地产物。分差基准取**严格小于当前
+  versionCode 里最大的那个**，不能取「清单里第一个不是自己的」（清单降序，补发旧版本时会拿更新的版本当基准，方向反了）。
+  **基准包缓存 `dist/releases/<code>/` 是分差的地基**——动过里面的 APK 就必须删掉整个 `dist/` 重跑。
+  **CHANGELOG 里没有对应版本节时直接拒绝发布**（设计如此，不是 bug）。
+- **`GITHUB_TOKEN` 探测**：环境变量优先，其次 `~/.schedule_plan-release.env`（dotenv）。`verify_token()` 在**打包之前**
+  先验（`GET /user` + `GET /repos/...` 的 `permissions.push`）。`token_looks_truncated()` 专拦「复制了一半」：
+  **细粒度 PAT 共 93 字符、中间还有一个下划线**，截断后服务端只回一句 `401 Bad credentials`。`commit_and_tag` **幂等**
+  （标签已存在且 `rev-parse <tag>^{}` == HEAD 就跳过）。`token_file_status()` 会区分「文件不存在 / 没有那一行 /
+  等号右边为空 / 有值读不出」——**别把四种合成一句**「没有可用的 GITHUB_TOKEN」。
+- **按行改 dotenv/ini 必须逐行比键名**：`re.sub(r"GITHUB_TOKEN=.*")` 会把注释行里同名的文字一起吃掉。
+- **`.gitignore` 覆盖** `*.jks`/`*.keystore`/`key.properties`/`*.apk`/`dist/`/`symbols/`。
+- **分差细节**：CDC（32 位 gear 哈希滚动找边界）+ SPDP v1（整体 gzip，固定头 98 字节）。**分块只在生成端**，设备端只
+  「校验指纹 → 按命令搬字节 → 校验产物指纹」；故无「两端边界一致」的跨语言陷阱，只需格式解析一致
+  （`test/fixtures/delta/` 固定样例锁住）。命令只有 `COPY_BASE(offset u64, length u32)` 13 字节与
+  `COPY_LITERAL(length u32)` 5 字节。`MAX_CHUNK = 64*1024`；`chunk_index` 必须**保留全部位置（含末尾残块）**；
+  命中候选必须**逐字节复核**（防碰撞）。纯零串在 gear 哈希下收敛到不动点（`-GEAR[0]=0xA7825A60`），长零填充稳定切
+  `MAX_CHUNK`；**撞上限的块长度与内容无关 → 边界不因内容改动漂移**（改 1 字节仍复用 99.9% 的原因）。用例用「数据块与
+  零填充交替」，**别整份都是零**。`UpdateManifest.deltaWorthwhileRatio = 0.9`（补丁 ≥ 整包 90% 不生成）。
+  - 实测 22.89 MB APK：改 1 字节 → 0.11%；删 4096 字节（后 10.9 MB 全位移）→ 0.10%；中间 500 KB 清零 → 0.17%；
+    完全相同 → 0.02%；**arm64 → armeabi-v7a（最坏）→ 42.5%**。
+- **客户端骨架**：`lib/data/models/app_release.dart`（`UpdateManifest.supportedSchemaVersion = 1`、`tryParse`、`plan`）、
+  `lib/data/services/apk_installer.dart`、`lib/data/services/update_service.dart`、`lib/features/settings/update_page.dart`、
+  `android/.../ApkInstallerChannel.kt` + `InstallResultReceiver.kt`；需 `REQUEST_INSTALL_PACKAGES` +
+  `canRequestPackageInstalls()` + 「安装未知应用」授权页。
+- **已发生的事故（供查）**：仓库曾为 private → 应用内检查更新必然失败且**无任何报错**（2026-09-30 转 public 修复）。
+  历史提交 `8b20383`~`2ffe4c2` 的 `.workbuddy/memory/*.md` 里残留两个**截断到 31 字符的 PAT 字面量**（从未生效，别当
+  有效凭据）；当前 HEAD 已清除，要彻底清需重写历史 + force push。

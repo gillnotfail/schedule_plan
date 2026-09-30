@@ -70,19 +70,30 @@ class AttendanceStatusStrip extends StatelessWidget {
     required this.status,
     required this.tokens,
     required this.onPick,
+    this.activeLongTerm,
     this.locked = false,
   });
 
-  /// 当前有效状态（已落库状态，或设置里的默认状态）
+  /// 当前有效的**日常**状态（已落库状态，或设置里的默认状态）。
+  ///
+  /// 休学时这里传的是「休学」本身（整行锁死，休学胶囊就是唯一高亮）；
+  /// 免修时这里仍是日常状态——免修不覆盖迟到早退，两者是并列的。
   final AttendanceStatus status;
   final AppColorTokens tokens;
   final ValueChanged<AttendanceStatus> onPick;
 
-  /// 该生在这门课上处于长期状态（休学 / 免修）时置真。
+  /// 生效中的长期状态（休学 / 免修），为 null 表示正常点名。
   ///
-  /// 长期状态期间这个学生本来就不该出现在考勤里，所以**日常五态一律置灰不可点**
-  /// （点了也没意义，还会把"休学"这件事冲掉）；想恢复点名就去点那枚长期状态胶囊，
-  /// 由调用方弹出取消确认（见 `AttendancePage._setStatus`）。
+  /// 与 [status] 是**并列**的两件事：[status] 决定日常五态里哪一枚高亮，
+  /// [activeLongTerm] 决定长期两态里哪一枚高亮——这正是「免修与迟到早退可以
+  /// 同时存在」的形态：日常胶囊亮「迟」，免修胶囊亮「免」。
+  final AttendanceStatus? activeLongTerm;
+
+  /// 该生在这门课上处于「休学」时置真。
+  ///
+  /// 休学期间这个学生不来了，所以**除休学胶囊以外的全部胶囊置灰不可点**
+  /// （想恢复点名就再点那枚休学胶囊，由调用方弹出「复学」确认）。
+  /// 免修**不**置锁：免修的学生仍会来上课，迟到早退照常标记。
   final bool locked;
 
   /// 可一键选中的七个状态（日常五种 + 长期两种）。
@@ -91,6 +102,10 @@ class AttendanceStatusStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 生效中的长期胶囊：优先用显式传入的 activeLongTerm；
+    // 老调用方只传 status（且 status 本身就是长期状态）时回落到它，保证兼容。
+    final activeLongTermStatus =
+        activeLongTerm ?? (status.isLongTerm ? status : null);
     return SizedBox(
       width: AppConstants.attendanceStatusStripWidth,
       child: Row(
@@ -104,9 +119,10 @@ class AttendanceStatusStrip extends StatelessWidget {
             _StatusChip(
               status: choices[i],
               color: statusColorOf(tokens, choices[i]),
-              selected: choices[i] == status,
-              dimmed: locked && !choices[i].isLongTerm,
-              onTap: locked && !choices[i].isLongTerm
+              selected:
+                  choices[i] == status || choices[i] == activeLongTermStatus,
+              dimmed: locked && choices[i] != activeLongTermStatus,
+              onTap: locked && choices[i] != activeLongTermStatus
                   ? null
                   : () => onPick(choices[i]),
             ),
@@ -128,7 +144,7 @@ class AttendanceStatusStrip extends StatelessWidget {
 
 /// 单个考勤状态胶囊：一个字、点一下直接落库。
 ///
-/// [onTap] 为空 = 这一格此刻不可点（例如学生处于休学 / 免修，日常五态被锁）。
+/// [onTap] 为空 = 这一格此刻不可点（例如学生处于休学，日常五态与免修胶囊被锁）。
 class _StatusChip extends StatelessWidget {
   const _StatusChip({
     required this.status,
@@ -151,8 +167,8 @@ class _StatusChip extends StatelessWidget {
     // 按底色亮度选前景色，两套主题都要可读。
     final foreground = selected
         ? (ThemeData.estimateBrightnessForColor(color) == Brightness.dark
-            ? Colors.white
-            : Colors.black87)
+              ? Colors.white
+              : Colors.black87)
         : color;
     final chip = AnimatedContainer(
       duration: AppMotion.quick,

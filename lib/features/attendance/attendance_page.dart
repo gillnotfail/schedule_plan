@@ -145,7 +145,8 @@ class _AttendancePageState extends State<AttendancePage> {
   /// - 日期取"这节课所在周几**离今天最近**的那天"（课表页已经算好放进 [request]，
   ///   例：今天周六 9/19 点周一的课 → 打开 9/21 那一周周一）。
   Future<void> _locateTo(AttendanceRequest request) async {
-    final date = app_dates.DateUtils.tryParseDate(request.date) ?? DateTime.now();
+    final date =
+        app_dates.DateUtils.tryParseDate(request.date) ?? DateTime.now();
     if (!mounted) {
       return;
     }
@@ -178,8 +179,9 @@ class _AttendancePageState extends State<AttendancePage> {
     }
     setState(() {
       _sortMode = StudentSortMode.fromStorage(mode);
-      _sortDirection =
-          desc ? SortDirection.descending : SortDirection.ascending;
+      _sortDirection = desc
+          ? SortDirection.descending
+          : SortDirection.ascending;
     });
   }
 
@@ -334,10 +336,11 @@ class _AttendancePageState extends State<AttendancePage> {
       _records = records;
       _longTerm = longTerm;
       // 先用「今天这一节」的记录做一次快速判断，逐生统计随后异步补上。
-      // 休学 / 免修的学生不算高风险：他们本来就不该出现在考勤里。
+      // 休学的学生不算高风险（他们不来）；免修的仍会来上课，迟到缺勤照常算。
       _highRisk = <int, bool>{
         for (final student in students)
-          student.id!: longTerm.containsKey(student.id)
+          student.id!:
+              longTerm[student.id]?.status == AttendanceStatus.suspended
               ? false
               : (records[student.id!]?.status.countsAsAbsence ?? false),
       };
@@ -360,15 +363,16 @@ class _AttendancePageState extends State<AttendancePage> {
       app_dates.DateUtils.startOfWeek(_selectedDate),
     );
     final weekEnd = app_dates.DateUtils.formatDate(
-      app_dates.DateUtils.startOfWeek(_selectedDate)
-          .add(const Duration(days: 6)),
+      app_dates.DateUtils.startOfWeek(
+        _selectedDate,
+      ).add(const Duration(days: 6)),
     );
     final risk = <int, bool>{};
     try {
       for (final student in students) {
-        // 休学 / 免修的学生不参与高风险判定：他们不在这门课的点名范围内，
-        // 既不该亮红，也不值得为此多查一次库。
-        if (_longTerm.containsKey(student.id)) {
+        // 休学的学生不参与高风险判定：他们不在这门课的点名范围内。
+        // 免修的仍会来上课，迟到缺勤照常累计，不跳过。
+        if (_longTerm[student.id]?.status == AttendanceStatus.suspended) {
           risk[student.id!] = false;
           continue;
         }
@@ -425,9 +429,10 @@ class _AttendancePageState extends State<AttendancePage> {
       return;
     }
     final locked = _longTerm[studentId];
-    if (locked != null) {
-      // 长期状态期间这个学生本来就不上课，日常点名没有意义；
-      // 想恢复点名就再点一下那枚长期状态胶囊（会弹取消确认）。
+    if (locked != null && locked.status == AttendanceStatus.suspended) {
+      // 只有休学才锁日常点名：休学期间这个学生不来了，点名没意义，
+      // 想恢复就再点一下那枚休学胶囊（会弹「复学」确认）。
+      // 免修不在此列——免修的学生仍会来上课，迟到早退照常标记。
       showAppSnackBar(
         context,
         context.l10n.attendanceLongTermLocked(
@@ -505,22 +510,26 @@ class _AttendancePageState extends State<AttendancePage> {
     final existing = _longTerm[studentId];
 
     if (existing != null && existing.status == status) {
+      // 同状态再点 = 恢复，不是覆盖。休学恢复叫「复学」、免修恢复叫「取消免修」，
+      // 两者措辞不同但都是「恢复正常点名」。老师必须有这条出口，否则学生被
+      // 卡在长期状态里永远改不回来（这正是本次要修的 bug）。
+      final isResume = status == AttendanceStatus.suspended;
       final confirmed = await showAppConfirm(
         context: context,
-        title: l10n.attendanceLongTermClearTitle(
-          statusLabelOf(context, status),
-        ),
-        body: l10n.attendanceLongTermClearBody(student.name),
-        danger: true,
+        title: isResume
+            ? l10n.attendanceResumeTitle
+            : l10n.attendanceLongTermClearTitle(statusLabelOf(context, status)),
+        body: isResume
+            ? l10n.attendanceResumeBody(student.name)
+            : l10n.attendanceLongTermClearBody(student.name),
+        confirmLabel: isResume ? l10n.attendanceResumeConfirm : null,
+        danger: !isResume,
       );
       if (!confirmed || !mounted) {
         return;
       }
       try {
-        await repo.clearCourseStatus(
-          studentId: studentId,
-          courseId: courseId,
-        );
+        await repo.clearCourseStatus(studentId: studentId, courseId: courseId);
         if (!mounted) {
           return;
         }
@@ -552,7 +561,8 @@ class _AttendancePageState extends State<AttendancePage> {
       AppMotion.confirm();
       setState(() {
         _longTerm[studentId] = saved;
-        // 休学 / 免修期间不算高风险，免得名单上还亮着红字
+        // 刚点上长期状态时先不亮红（还没记过迟到缺勤）；
+        // 免修之后迟到缺勤会照常累计，由点名落库时更新 _highRisk。
         _highRisk[studentId] = false;
       });
       showAppSnackBar(
@@ -658,12 +668,12 @@ class _AttendancePageState extends State<AttendancePage> {
   /// 用户规格："大部分情况需要的肯定是特殊情况，比方说迟到、早退这种，
   /// 而不是登记出勤情况，因为默认就是出勤。"
   String _abnormalSummary() {
+    final settings = context.read<SettingsState>();
     final grouped = <AttendanceStatus, List<String>>{};
     for (final student in _students) {
-      // 长期状态（休学 / 免修）优先，其次当天记录，最后默认出勤
-      final status = _longTerm[student.id!]?.status ??
-          _records[student.id!]?.status ??
-          AttendanceStatus.present;
+      // 与名单行同一口径：休学显示为「休学」；免修不覆盖当天表现，
+      // 迟到早退照常进摘要（免修本身不算异常）。
+      final status = _effectiveStatus(student, settings);
       if (status == AttendanceStatus.present ||
           status == AttendanceStatus.unmarked) {
         continue;
@@ -696,8 +706,9 @@ class _AttendancePageState extends State<AttendancePage> {
 
   Future<void> _onSortTap(StudentSortMode mode) async {
     // 同一列再点一次 = 翻转方向；换列 = 从升序开始
-    final next =
-        mode == _sortMode ? _sortDirection.toggled : SortDirection.ascending;
+    final next = mode == _sortMode
+        ? _sortDirection.toggled
+        : SortDirection.ascending;
     setState(() {
       _sortMode = mode;
       _sortDirection = next;
@@ -863,9 +874,11 @@ class _AttendancePageState extends State<AttendancePage> {
       children: <Widget>[
         Row(
           children: <Widget>[
-            for (var weekday = 1;
-                weekday <= AppConstants.weekdayCount;
-                weekday++)
+            for (
+              var weekday = 1;
+              weekday <= AppConstants.weekdayCount;
+              weekday++
+            )
               Expanded(
                 child: Center(
                   child: Text(
@@ -923,8 +936,7 @@ class _AttendancePageState extends State<AttendancePage> {
               Text(
                 context.l10n.weekdayShort(day.weekday),
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color:
-                      isSelected ? scheme.primary : scheme.onSurfaceVariant,
+                  color: isSelected ? scheme.primary : scheme.onSurfaceVariant,
                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                 ),
               ),
@@ -946,8 +958,8 @@ class _AttendancePageState extends State<AttendancePage> {
                     color: isSelected
                         ? scheme.primary
                         : (isToday
-                            ? scheme.primaryContainer.withValues(alpha: 0.55)
-                            : Colors.transparent),
+                              ? scheme.primaryContainer.withValues(alpha: 0.55)
+                              : Colors.transparent),
                     shape: BoxShape.circle,
                     border: isToday && !isSelected
                         ? Border.all(
@@ -962,8 +974,10 @@ class _AttendancePageState extends State<AttendancePage> {
                       color: isSelected
                           ? scheme.onPrimary
                           : (inMonth
-                              ? scheme.onSurface
-                              : scheme.onSurfaceVariant.withValues(alpha: 0.4)),
+                                ? scheme.onSurface
+                                : scheme.onSurfaceVariant.withValues(
+                                    alpha: 0.4,
+                                  )),
                       fontWeight: isSelected || isToday
                           ? FontWeight.w800
                           : FontWeight.w500,
@@ -1001,7 +1015,6 @@ class _AttendancePageState extends State<AttendancePage> {
       growable: false,
     );
   }
-
 
   // ---------------------------------------------------------------------------
   // 当日课程横滑条
@@ -1203,8 +1216,10 @@ class _AttendancePageState extends State<AttendancePage> {
               longTerm: _longTerm[student.id!],
               risk: _highRisk[student.id!] ?? false,
               tokens: tokens,
-              // 长期状态期间日常五态锁死，只有"再点一次取消"这一条出口
-              locked: _longTerm.containsKey(student.id),
+              // 只有休学才锁日常五态（免修仍可标记迟到早退），
+              // 休学的唯一出口是「再点一次休学胶囊 → 复学」。
+              locked:
+                  _longTerm[student.id]?.status == AttendanceStatus.suspended,
               onStatusPick: (picked) => _setStatus(student, picked),
               onTap: () => _markPresent(student),
               onLongPress: () => _openTags(student),
@@ -1256,15 +1271,22 @@ class _AttendancePageState extends State<AttendancePage> {
     ];
   }
 
-  /// 这一行的**有效状态**：长期状态（休学 / 免修）> 已落库的考勤 > 默认状态。
+  /// 这一行的**有效状态**：休学 > 已落库的考勤 > 默认状态。
+  ///
+  /// 「免修」**不**覆盖日常状态：免修的学生仍会来上课，也可能迟到早退，
+  /// 所以它只是名单里的一个角标（见 `_StudentRow.longTerm`），有效状态
+  /// 仍按「当天记录 / 默认出勤」算。
   ///
   /// "默认出勤"是刻意的：老师点名时先假设全员到齐，只去点少数异常，
   /// 一节课的名单扫一遍就完事（用户规格：以最快点名的方式）。因此表头
   /// 不需要"全部出勤"按钮 —— 未标记的行本来就显示为出勤。
-  AttendanceStatus _effectiveStatus(Student student, SettingsState settings) =>
-      _longTerm[student.id!]?.status ??
-      _records[student.id!]?.status ??
-      settings.defaultAttendanceStatus;
+  AttendanceStatus _effectiveStatus(Student student, SettingsState settings) {
+    final longTerm = _longTerm[student.id!];
+    if (longTerm?.status == AttendanceStatus.suspended) {
+      return AttendanceStatus.suspended;
+    }
+    return _records[student.id!]?.status ?? settings.defaultAttendanceStatus;
+  }
 
   /// 班内排序（用户规格：每个班支持姓名 / 学号 / 考勤排序）。
   ///
@@ -1313,7 +1335,8 @@ int compareRosterStudents(
   }
   final sign = direction == SortDirection.ascending ? 1 : -1;
   return switch (mode) {
-    StudentSortMode.namePinyin => sign * PinyinUtils.compareByName(a.name, b.name),
+    StudentSortMode.namePinyin =>
+      sign * PinyinUtils.compareByName(a.name, b.name),
     StudentSortMode.studentNo =>
       sign * (a.studentNo ?? '').compareTo(b.studentNo ?? ''),
     StudentSortMode.attendanceStatus =>
@@ -1366,9 +1389,9 @@ class _StatusLegend extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 10.5,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 10.5,
+          ),
         ),
       ],
     );
@@ -1405,9 +1428,9 @@ class _SummaryDialog extends StatelessWidget {
             : SingleChildScrollView(
                 child: SelectableText(
                   summary,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        height: 1.5,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(height: 1.5),
                 ),
               ),
       ),
@@ -1453,10 +1476,13 @@ class _StudentRow extends StatelessWidget {
   final AppColorTokens tokens;
   final ValueChanged<AttendanceStatus> onStatusPick;
 
-  /// 这门课上生效中的长期状态（休学 / 免修），为空表示正常点名
+  /// 这门课上生效中的长期状态（休学 / 免修），为空表示正常点名。
+  /// 免修时它只作为角标展示（副标题「免修 · 至 …」+ 免修胶囊高亮），
+  /// 日常点名不受影响。
   final CourseStudentStatus? longTerm;
 
-  /// 处于长期状态时锁住日常五态（只有"再点一次取消"这一条出口）
+  /// 休学时锁住日常五态与免修胶囊（只有"再点一次休学胶囊 → 复学"这一条出口）。
+  /// 免修不锁：免修学生仍会来上课，迟到早退照常标记。
   final bool locked;
 
   /// 点整行 = 记「出勤」（一天里绝大多数人是出勤，顺着点下来最快）
@@ -1472,8 +1498,8 @@ class _StudentRow extends StatelessWidget {
       color: risk
           ? scheme.errorContainer.withValues(alpha: 0.32)
           : (locked
-              ? scheme.surfaceContainerHighest.withValues(alpha: 0.55)
-              : scheme.surfaceContainerLow),
+                ? scheme.surfaceContainerHighest.withValues(alpha: 0.55)
+                : scheme.surfaceContainerLow),
       borderRadius: AppRadii.tileAll,
       child: InkWell(
         borderRadius: AppRadii.tileAll,
@@ -1549,6 +1575,7 @@ class _StudentRow extends StatelessWidget {
               ),
               AttendanceStatusStrip(
                 status: status,
+                activeLongTerm: longTerm?.status,
                 tokens: tokens,
                 locked: locked,
                 onPick: onStatusPick,

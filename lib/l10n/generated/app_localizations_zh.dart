@@ -2204,4 +2204,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String updateSettingsSubtitleAvailable(String version) {
     return '有新版本 $version';
   }
+
+  @override
+  String get attendanceResumeTitle => '是否复学？';
+
+  @override
+  String attendanceResumeBody(String name) {
+    return '$name 当前已休学。复学后将恢复正常点名。';
+  }
+
+  @override
+  String get attendanceResumeConfirm => '复学';
 }

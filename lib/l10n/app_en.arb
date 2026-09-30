@@ -1284,5 +1284,15 @@
         "type": "String"
       }
     }
+  },
+  "attendanceResumeTitle": "Resume roll call?",
+  "attendanceResumeBody": "{name} is currently suspended. Resuming restores normal roll call.",
+  "attendanceResumeConfirm": "Resume",
+  "@attendanceResumeBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

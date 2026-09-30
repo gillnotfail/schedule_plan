@@ -4171,6 +4171,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Version {version} available'**
   String updateSettingsSubtitleAvailable(String version);
+
+  /// No description provided for @attendanceResumeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume roll call?'**
+  String get attendanceResumeTitle;
+
+  /// No description provided for @attendanceResumeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is currently suspended. Resuming restores normal roll call.'**
+  String attendanceResumeBody(String name);
+
+  /// No description provided for @attendanceResumeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get attendanceResumeConfirm;
 }
 
 class _AppLocalizationsDelegate

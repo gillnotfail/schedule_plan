@@ -45,6 +45,16 @@ NEW_KEYS = {
     },
     # ---- 第 7 轮：考勤名单按班级分组的横带 ----
     "rosterGroupCount": {"zh": "{count} 人", "en": "{count} students"},
+    # ---- 第 16 轮：休学加「复学」确认、免修改为可并存的角标 ----
+    # 背景：休学 / 免修以前都会锁死日常五态，导致学生一旦被标记就无法再改。
+    # 实际上休学才「不来」，免修的学生仍会来上课、还可能迟到早退。所以：
+    # 休学 → 再点弹「复学」确认；免修 → 只当角标，日常点名照常。
+    "attendanceResumeTitle": {"zh": "是否复学？", "en": "Resume roll call?"},
+    "attendanceResumeBody": {
+        "zh": "{name} 当前已休学。复学后将恢复正常点名。",
+        "en": "{name} is currently suspended. Resuming restores normal roll call.",
+    },
+    "attendanceResumeConfirm": {"zh": "复学", "en": "Resume"},
     # ---- 第 8 轮：课表分享（截图 + 底部 app 名 + 二维码位）----
     "shareSchedule": {"zh": "分享课表", "en": "Share schedule"},
     "shareSavedToGallery": {"zh": "已保存到相册", "en": "Saved to gallery"},
@@ -548,6 +558,7 @@ PLACEHOLDERS = {
         },
     },
     "rosterGroupCount": {"placeholders": {"count": {"type": "int"}}},
+    "attendanceResumeBody": {"placeholders": {"name": {"type": "String"}}},
     "timelineEventTime": {
         "placeholders": {
             "start": {"type": "String"},

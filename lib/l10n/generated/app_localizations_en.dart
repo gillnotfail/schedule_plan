@@ -2275,4 +2275,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String updateSettingsSubtitleAvailable(String version) {
     return 'Version $version available';
   }
+
+  @override
+  String get attendanceResumeTitle => 'Resume roll call?';
+
+  @override
+  String attendanceResumeBody(String name) {
+    return '$name is currently suspended. Resuming restores normal roll call.';
+  }
+
+  @override
+  String get attendanceResumeConfirm => 'Resume';
 }
