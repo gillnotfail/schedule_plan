@@ -42,8 +42,14 @@
   「人数 · 班级」，再点同一格才开详情弹层；点展开列的星期表头收回等宽。列宽两端之和恒等于 `dayArea`。
 - `ClassGridView.onLessonTap` 必须是 `Future<void> Function(LessonWithTime)`（课表页要等对话框关掉才返回，grid 在它返回后
   `_collapse()`）。三条收回路径（弹窗取消/点遮罩、点其它空格子、点展开列星期表头）都汇到 `_collapse()`。**不要改回 `void`**。
-- 格子底色：课程色斜向渐变 + 左侧色脊 + 同色描边 + 展开时投影；空格子隔行深浅交替、今天那列泛主色、休息节次一条中性色带；
-  `SizedBox.expand` 铺满。**交换模式下空格子不可点**（`_swapMode` 时 `onTap: null`）。
+- 格子配色（第 19 轮定稿）：**整格铺满课程色 + 白色文字**。铺之前一律先过
+  `solidFillColor`（`core/utils/color_utils.dart`）—— 它把**过亮**的色按 HSL 压到「白字对比度 ≥ 3.2」为止（只降不升，
+  明度有 0.30 下限）。浅蓝 `29B6F6`/黄绿 `7CB342`/亮橙 `FF7043` 直接铺满只有 2.2~2.9，白字会糊。
+  折叠态**无描边、无渐变**（左侧色脊已删），展开态与拖拽态靠**白描边 + 同色投影**浮起来。
+  **不要再退回「淡渐变底 + 左侧色脊 + 同色描边 + 深色字」那一版**（用户："配色方案我还是不喜欢，最好表格里的颜色能
+  做成这种填满"）。空格子隔行深浅交替、「今天」那列泛主色、休息节次一条中性色带；`SizedBox.expand` 铺满。
+  **「今天」必须走 `widget.todayWeekday`**（不是 `DateTime.now().weekday`）—— 调休日两者不是同一天，裸用会把底色
+  铺到没课的那一列上，和表头的「今天」圆点各说各话。**交换模式下空格子不可点**（`_swapMode` 时 `onTap: null`）。
 
 ### 曲线档 `timeline_view.dart` 也必须一屏铺满
 同一张表右上角「网格 ⇄ 曲线」切换。
@@ -51,6 +57,9 @@
   `TimeAxis.fitted(lessons, availableHeight)`（clamp 到 `[pxPerMinuteFloor, pxPerMinuteCeiling]`）。**整条无滚动**。
   回归 `test/widget/timeline_view_test.dart`。
 - 课程块 `FittedBox` 缩放、最小高 14.0；文本必须先按列宽换行再缩放（否则 7 列时字缩到 4px）。
+- 课程块配色与表格档**同一条口径**（第 19 轮）：`TimelineView.courseColors`（由 `_ScheduleData.courseColors` 供）
+  给出「课程自选色 → 班级色 → 主题兜底」，再统一过 `solidFillColor` 铺满 + 白字。**这里曾经只读 `lesson.classColor`
+  且用 `int.tryParse` 裸转** —— 后果是"改了课程色只有表格档跟着变"，改配色时别再各写一份。
 - **日程**：`TimelineView.events` + `_EventMarker`。收起态只有玫红色块 + 标题；**点一下**在该块右上角浮出
   `_EventDetailPanel`（`FractionalTranslation(0, -0.95)`，宽 `_panelWidth = 118`），显示「14:30 - 15:10」+ 标题
   （有地点缀 ` · 地点`）。`endAt` 为空时**只显示开始时间**，不给空尾巴。状态 `_openEventId` + `_toggleEvent()`。

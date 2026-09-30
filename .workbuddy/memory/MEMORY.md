@@ -12,7 +12,7 @@
 - 只做 Android APK；iOS 只留默认模板，不验证。**暂不加鸿蒙（ohos）代码**。
 
 ## 质量门槛与工具链（提交前必跑）
-- `flutter analyze --no-pub` 零 issue（**含 test/**）；`flutter test` 全绿（当前 +403）。跑完**立刻**在 IDEA 里
+- `flutter analyze --no-pub` 零 issue（**含 test/**）；`flutter test` 全绿（当前 +416）。跑完**立刻**在 IDEA 里
   只看这两条命令的日志末行。
 - **跑前设 `NO_PROXY=localhost,127.0.0.1,::1`**，否则代理劫持 flutter_tester 的 WebSocket。
 - **本机 Git Bash 的 coreutils 全废**（`ls`/`grep`/`tail` not found）。flutter 一律走 **PowerShell**；找文件用 Glob、
@@ -54,6 +54,9 @@
   `hide DatabaseException`，且别与 `sqflite` 同时 import（analyzer 判 unnecessary）。
 - 课程配色唯一口径 `CourseDetail.color`：课程自选 > 挂载班级里第一个 > 主题兜底。只走 `parseHexColor`
   （`core/utils/color_utils.dart`），**禁止 `int.parse` 裸转**；课表/课程卡/表单预览不许各写一套。
+  **凡是"把课程色铺满一块"的地方（课表格子、错峰曲线课块）都必须再过一个 `solidFillColor`** ——
+  它把过亮的色压到白字对比度 ≥ 3.2（色板里浅蓝/黄绿/亮橙只有 2.2~2.9，不压会糊）。课表格子第 19 轮起是
+  **整格铺满 + 白字**（旧的淡渐变底 + 色脊 + 描边 + 深色字已被用户否掉）；两个视图共用 `_ScheduleData.courseColors`。
 - 翻月走 `DateUtils.shiftMonth`（`DateTime(y,m±1,d)` 会进位：3/31 往前变 3/3）；加天用 `DateTime(y,m,d+n)`。
 
 ## i18n

@@ -1365,13 +1365,7 @@ class _SchedulePageState extends State<SchedulePage> {
       // 「今天」按调休映射落列，并把本周的调休安排提前标在对应列上
       todayWeekday: _todayLabelWeekday,
       makeupHints: _makeupHeaderHints(),
-      // 课程自己挑过的颜色优先（**与课程管理里锁定的是同一个来源**），
-      // 没挑过才回落成班级色（LessonWithTime.classColor）。
-      // 这里用全量课程构建，避免"课在别的班 → 取不到课程色 → 颜色对不上"。
-      courseColors: <int, String>{
-        for (final detail in data.courses)
-          if (detail.id != null) detail.id!: detail.color,
-      },
+      courseColors: data.courseColors,
       onEmptyCellTap: (weekday, periodIndex) =>
           _onEmptyCellTap(data, weekday, periodIndex),
       onLessonTap: (lesson) => _onLessonTap(data, lesson),
@@ -1390,6 +1384,8 @@ class _SchedulePageState extends State<SchedulePage> {
       tokens: tokens,
       weekdays: _activeWeekdays(data),
       events: _events,
+      // 曲线档也吃课程自选色 —— 否则改了课程色只有表格档跟着变
+      courseColors: data.courseColors,
       onLessonTap: (lesson) =>
           showLessonActionsSheet(context, lesson).then((_) => _load()),
     );
@@ -1543,6 +1539,16 @@ class _ScheduleData {
 
   /// 一周内节次数最多的一天有几节，用于「一键生成作息」的默认节数。
   final int maxPeriodCount;
+
+  /// 课程自己挑过的颜色优先（**与课程管理里锁定的是同一个来源**），没挑过才
+  /// 回落成班级色（`LessonWithTime.classColor`）。两个视图共用这一份：表格档与
+  /// 曲线档各构建一遍的话，"改了课程色只有一边跟着变"是迟早的事。
+  ///
+  /// 用全量课程构建，避免"课在别的班 → 取不到课程色 → 颜色对不上"。
+  Map<int, String> get courseColors => <int, String>{
+    for (final detail in courses)
+      if (detail.id != null) detail.id!: detail.color,
+  };
 
   CourseDetail? detailFor(int courseId) {
     for (final item in courses) {

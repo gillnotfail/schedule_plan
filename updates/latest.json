@@ -3,6 +3,52 @@
   "assetsBase": "https://github.com/gillnotfail/schedule_plan/releases/download",
   "releases": [
     {
+      "versionCode": 5,
+      "versionName": "1.0.4",
+      "tag": "v1.0.4",
+      "publishedAt": "2026-10-01T00:56:31+08:00",
+      "notes": [
+        "**课程表里的格子改成整块颜色铺满了**：以前格子里只有薄薄一层颜色，现在是整格用这门课的颜色填满、课程名用白字压在中间，一列扫过去就知道哪节是哪门课",
+        "颜色偏浅的课（浅蓝、黄绿、亮橙）会自动加深一点点 —— 不加深的话白字会糊在底色里看不清",
+        "「课程表」和「错峰课表」两个视图用同一套配色，来回切换不会看到同一个班两种颜色",
+        "修好了「在课程管理里给课程单独选了颜色，课程表跟着变了、错峰课表却没变」的问题：现在两个视图都认你选的课程色"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24134964,
+          "sha256": "6be38cc773c5b6da516b591d4439d5fec958421e42345cf40b34b72150160da2"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22133884,
+          "sha256": "234730d0a69424a844bc42b3f7d1957057d85bd4e0bad84c55ea1b60962a4404"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 4,
+          "abi": "arm64-v8a",
+          "file": "patch-4-5-arm64-v8a.spdp",
+          "size": 3971422,
+          "targetSize": 24134964,
+          "sha256": "ba8bba981befa6a41b5cbd39d53fc981edced153cf9c1561f0d454fed2ca4e40",
+          "baseSha256": "4982f199cd4564eca6865b8a5e9fe49dce5563770b7f33a059441041419583ab"
+        },
+        {
+          "fromVersionCode": 4,
+          "abi": "armeabi-v7a",
+          "file": "patch-4-5-armeabi-v7a.spdp",
+          "size": 4398953,
+          "targetSize": 22133884,
+          "sha256": "33587e13916d37dbca052f6ea8e0579c93630ee01c7dfbf4644fc0c10b26ac0b",
+          "baseSha256": "f0cd315570aecc644b9b47dc92aca7d23a4562f895981636ef12cc5ce0c06721"
+        }
+      ]
+    },
+    {
       "versionCode": 4,
       "versionName": "1.0.3",
       "tag": "v1.0.3",
@@ -193,5 +239,5 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-10-01T00:35:15+08:00"
+  "generatedAt": "2026-10-01T00:56:31+08:00"
 }

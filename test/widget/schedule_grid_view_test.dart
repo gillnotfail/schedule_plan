@@ -7,6 +7,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:schedule_plan/core/constants/app_constants.dart';
 import 'package:schedule_plan/core/theme/app_colors.dart';
 import 'package:schedule_plan/core/theme/app_theme.dart';
+import 'package:schedule_plan/core/utils/color_utils.dart';
 import 'package:schedule_plan/data/db/schema.dart';
 import 'package:schedule_plan/data/models/lesson.dart';
 import 'package:schedule_plan/data/models/schedule_template.dart';
@@ -393,8 +394,8 @@ void main() {
     await tester.pump();
 
     final accent = _cellAccent(tester, '数学');
-    expect(accent, const Color(0xFFE53935));
-    expect(accent, isNot(const Color(0xFF26A69A)));
+    expect(accent, solidFillColor(const Color(0xFFE53935)));
+    expect(accent, isNot(solidFillColor(const Color(0xFF26A69A))));
   });
 
   testWidgets('课程没挑颜色时仍然沿用班级色', (tester) async {
@@ -415,7 +416,45 @@ void main() {
     );
     await tester.pump();
 
-    expect(_cellAccent(tester, '数学'), const Color(0xFF26A69A));
+    expect(_cellAccent(tester, '数学'), solidFillColor(const Color(0xFF26A69A)));
+  });
+
+  testWidgets('格子是整格铺满 + 白字，不再是淡渐变底与同色描边', (tester) async {
+    final lesson = _lessonFor(seededPeriods[1]!.first, seededTemplateId);
+
+    await tester.pumpWidget(
+      _host(
+        ClassGridView(
+          templateId: seededTemplateId,
+          periodsByWeekday: seededPeriods,
+          lessons: <LessonWithTime>[lesson],
+          courseColors: const <int, String>{},
+          onEmptyCellTap: _noopAdd,
+          onLessonTap: _noopTapLesson,
+          onPeriodTap: _noopTapPeriod,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final container = tester.widget<Container>(
+      find
+          .ancestor(of: find.text('数学'), matching: find.byType(Container))
+          .first,
+    );
+    final decoration = container.decoration! as BoxDecoration;
+    expect(decoration.color, isNotNull, reason: '要有铺满的底色');
+    expect(decoration.gradient, isNull, reason: '铺满后不该再有渐变底');
+    expect(decoration.border, isNull, reason: '折叠态不描边（展开态才有白边）');
+
+    // 白字压在铺满的底色上 —— 浅色课程不压暗的话这里就会糊
+    final name = tester.widget<Text>(find.text('数学'));
+    expect(name.style?.color, Colors.white);
+    expect(
+      whiteContrastRatio(decoration.color!),
+      greaterThanOrEqualTo(3.2),
+      reason: '课程名是白字，底色必须压到看得清',
+    );
   });
 }
 
@@ -455,16 +494,17 @@ double _columnWidth(WidgetTester tester, String weekdayLabel) {
       .width;
 }
 
-/// 取课程格子身上的**课程色**（描边的 RGB，透明度去掉）。
+/// 取课程格子身上的**课程色**（整格铺满的底色）。
 ///
-/// 只看"用的是哪一支颜色"，不看透明度——描边浓淡属于视觉微调，
-/// 不该让"颜色取自课程还是班级"这条断言跟着抖。
+/// 第 19 轮起格子是"铺满 + 白字"，主色从描边搬到了底色上。
+/// 期望值一律写成 `solidFillColor(原色)` —— 铺满色统一要过这一道压暗，
+/// 直接写原色的话，将来调压暗阈值会把"颜色取自课程还是班级"这条断言一起带红。
 Color _cellAccent(WidgetTester tester, String label) {
   final container = tester.widget<Container>(
     find.ancestor(of: find.text(label), matching: find.byType(Container)).first,
   );
   final decoration = container.decoration! as BoxDecoration;
-  return decoration.border!.top.color.withValues(alpha: 1);
+  return decoration.color!;
 }
 
 String periodIndexLabelText(int index) => '第 $index 节';

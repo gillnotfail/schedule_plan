@@ -7,6 +7,7 @@ import 'package:schedule_plan/core/constants/app_constants.dart';
 import 'package:schedule_plan/core/l10n/l10n_extensions.dart';
 import 'package:schedule_plan/core/theme/app_colors.dart';
 import 'package:schedule_plan/core/theme/app_motion.dart';
+import 'package:schedule_plan/core/utils/color_utils.dart';
 import 'package:schedule_plan/core/utils/date_utils.dart' as app_dates;
 import 'package:schedule_plan/core/utils/time_utils.dart';
 import 'package:schedule_plan/data/models/lesson.dart';
@@ -35,6 +36,7 @@ class TimelineView extends StatefulWidget {
     required this.tokens,
     this.weekdays = defaultWeekdays,
     this.events = const <ScheduleEvent>[],
+    this.courseColors = const <int, String>{},
     this.onLessonTap,
     this.onLessonLongPress,
   });
@@ -64,6 +66,13 @@ class TimelineView extends StatefulWidget {
   final List<TemplatePeriod> breakPeriods;
   final DateTime weekStart;
   final AppColorTokens tokens;
+
+  /// 课程自己挑过的颜色（`courseId → hex`），与课程管理里锁定的是同一个来源。
+  ///
+  /// 第 19 轮补上：这里以前只读 `lesson.classColor`（班级色），于是老师在课程
+  /// 管理里改了课程色，**表格档跟着变、曲线档不变**。现在两个视图同一条口径。
+  final Map<int, String> courseColors;
+
   final ValueChanged<LessonWithTime>? onLessonTap;
   final ValueChanged<LessonWithTime>? onLessonLongPress;
 
@@ -367,6 +376,7 @@ class _TimelineViewState extends State<TimelineView> {
                 // 7 列时能把字缩到 4px（用户："看不清就没有意义了"）。
                 maxWidth: width - 12,
                 theme: theme,
+                courseColors: widget.courseColors,
                 onTap: widget.onLessonTap,
                 onLongPress: widget.onLessonLongPress,
               ),
@@ -443,16 +453,24 @@ class _TimelineViewState extends State<TimelineView> {
 ///
 /// 色块内展示课程名、班级/年级名与**真实起止时间**，
 /// 不展示裸的「第 N 节」编号（跨年级场景下编号没有可比较的意义）。
+///
+/// 配色与表格档**保持一致**（用户规格第 19 轮：整格铺满课程色 + 白色文字）：
+/// 取色走「课程自选色 > 班级色 > 主题兜底」，再过 [solidFillColor] 压暗到
+/// 白色文字看得清。曲线块比表格格子更矮、字更小，浅色课上不压暗会读不出课程名。
 class _LessonBlock extends StatelessWidget {
   const _LessonBlock({
     required this.lesson,
     required this.theme,
     required this.maxWidth,
+    this.courseColors = const <int, String>{},
     this.onTap,
     this.onLongPress,
   });
 
   final LessonWithTime lesson;
+
+  /// 课程自己挑过的颜色（`courseId → hex`）——**与表格档同一个来源**。
+  final Map<int, String> courseColors;
 
   /// 文本可用宽度：先在这个宽度内换行，再交给 FittedBox 整体等比缩小。
   ///
@@ -467,27 +485,27 @@ class _LessonBlock extends StatelessWidget {
   final ValueChanged<LessonWithTime>? onTap;
   final ValueChanged<LessonWithTime>? onLongPress;
 
-  Color get _color {
-    final raw = lesson.classColor.replaceAll('#', '');
-    final value = int.tryParse(raw, radix: 16);
-    if (value == null) {
-      return theme.colorScheme.primary;
-    }
-    return Color(value | 0xFF000000);
+  Color get _fill {
+    final own = courseColors[lesson.lesson.courseId];
+    return solidFillColor(
+      parseHexColor(
+        own != null && own.isNotEmpty ? own : lesson.classColor,
+        theme.colorScheme.primary,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final color = _color;
+    final fill = _fill;
     return GestureDetector(
       onTap: onTap == null ? null : () => onTap!(lesson),
       onLongPress: onLongPress == null ? null : () => onLongPress!(lesson),
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.16),
+          color: fill,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withValues(alpha: 0.6)),
         ),
         // 块高是自适应的（一屏要装下一整天），矮到放不下两行字时整体等比缩小，
         // 而不是溢出成"黑色条纹"——这也是"永远一屏放得下"的一部分。
@@ -507,7 +525,7 @@ class _LessonBlock extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelMedium?.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: color,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -516,7 +534,7 @@ class _LessonBlock extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                    color: Colors.white.withValues(alpha: 0.82),
                   ),
                 ),
               ],

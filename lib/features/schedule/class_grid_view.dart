@@ -766,7 +766,10 @@ class _ClassGridViewState extends State<ClassGridView>
     if (isBreak) {
       return scheme.surfaceContainerHighest.withValues(alpha: 0.62);
     }
-    if (weekday == DateTime.now().weekday) {
+    // 「今天」那一列泛一点主色。这里必须与表头的「今天」圆点同一个口径 ——
+    // 调休日（周六上周三的课）的 todayWeekday 是 3 而不是 6，裸用
+    // DateTime.now().weekday 会把底色铺到没课的那一列上，和表头各说各话。
+    if (weekday == (widget.todayWeekday ?? DateTime.now().weekday)) {
       return scheme.primaryContainer.withValues(alpha: 0.20);
     }
     return zebra ? scheme.surfaceContainer : scheme.surface;
@@ -775,10 +778,12 @@ class _ClassGridViewState extends State<ClassGridView>
   /// 课程格子。折叠态**只显示课程名称**（居中）；展开态（[focused]）才淡入
   /// 「人数 · 班级」——用户规格："不点击的话默认显示课程名称，不显示其他"。
   ///
-  /// 配色（用户规格："课表、对话框最好加个底色，目前颜色太单调"）：
-  /// 以课程色为基调做**斜向渐变底 + 左侧色脊 + 同色描边 + 展开时投影**，
-  /// 折叠时是一枚清爽的色片，展开时明显"立起来"，层次全靠课程色本身撑，
-  /// 不需要额外引入别的颜色（六套主题切换后依旧成立）。
+  /// 配色（用户规格第 19 轮："现在课表页的配色方案我还是不喜欢，最好表格里的
+  /// 颜色能做成这种填满"）：**整格用课程色实心铺满 + 白色文字**，去掉了原来的
+  /// 斜向淡渐变底、左侧色脊与半透明同色描边（色脊在铺满之后已经没有信息量）。
+  /// 偏亮的课程色先过一遍 [solidFillColor] 压暗到白字看得清 —— 浅蓝 / 黄绿 /
+  /// 亮橙直接铺满的话白字对比度只有 2.2~2.9，会糊在底色里。
+  /// 展开态改靠**白色描边 + 同色投影**立起来，不再靠"把底色加深一档"。
   Widget _buildLessonCell(
     LessonWithTime lesson,
     ThemeData theme, {
@@ -789,13 +794,13 @@ class _ClassGridViewState extends State<ClassGridView>
   }) {
     final own = widget.courseColors[lesson.lesson.courseId];
     // 课程管理里给课程锁定的颜色优先，没锁过才回落成班级色
-    final color = _colorOf(
-      own != null && own.isNotEmpty ? own : lesson.classColor,
-      theme,
+    final fill = solidFillColor(
+      _colorOf(own != null && own.isNotEmpty ? own : lesson.classColor, theme),
     );
     final detailText = _detailTextOf(lesson);
-    final strong = dragging ? 0.34 : (focused ? 0.26 : 0.17);
-    final soft = dragging ? 0.20 : (focused ? 0.13 : 0.07);
+    // 展开态与"被拖起来的那块"都要浮出表面（白描边 + 同色投影），
+    // 拖拽时投影更重 —— 手指底下那块得看得见。
+    final lifted = focused || dragging;
 
     return GestureDetector(
       onTap: onTap,
@@ -809,85 +814,65 @@ class _ClassGridViewState extends State<ClassGridView>
         curve: AppMotion.effects,
         margin: const EdgeInsets.all(AppConstants.gridCellGap),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: <Color>[
-              color.withValues(alpha: strong),
-              color.withValues(alpha: soft),
-            ],
-          ),
+          color: fill,
           borderRadius: AppRadii.cellAll,
-          border: Border.all(
-            color: color.withValues(alpha: focused ? 0.85 : 0.42),
-            width: focused ? 1.6 : 1,
-          ),
-          boxShadow: focused
+          border: lifted
+              ? Border.all(
+                  color: Colors.white.withValues(alpha: dragging ? 0.70 : 1),
+                  width: 1.6,
+                )
+              : null,
+          boxShadow: lifted
               ? <BoxShadow>[
                   BoxShadow(
-                    color: color.withValues(alpha: 0.30),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    color: fill.withValues(alpha: dragging ? 0.50 : 0.42),
+                    blurRadius: dragging ? 18 : 14,
+                    offset: Offset(0, dragging ? 8 : 5),
                   ),
                 ]
               : null,
         ),
-        child: ClipRRect(
-          borderRadius: AppRadii.cellAll,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: focused ? 6 : 3,
+            vertical: 4,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            // 用户规格：课表页的课程名称要居中
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              // 左侧色脊：一眼把"这节课是哪门课"和颜色对上
-              Container(
-                width: focused ? 4 : 3,
-                color: color.withValues(alpha: focused ? 1 : 0.75),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: focused ? 6 : 3,
-                    vertical: 4,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    // 用户规格：课表页的课程名称要居中
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        lesson.courseName,
-                        textAlign: TextAlign.center,
-                        maxLines: focused ? 1 : 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: color,
-                          fontSize: focused ? 12.5 : 11.5,
-                          height: 1.15,
-                        ),
-                      ),
-                      if (focused && detailText.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Opacity(
-                            opacity: detailOpacity,
-                            child: Text(
-                              detailText,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              softWrap: false,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontSize: 9.5,
-                                height: 1.1,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+              Text(
+                lesson.courseName,
+                textAlign: TextAlign.center,
+                maxLines: focused ? 1 : 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  fontSize: focused ? 12.5 : 11.5,
+                  height: 1.15,
                 ),
               ),
+              if (focused && detailText.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Opacity(
+                    opacity: detailOpacity,
+                    child: Text(
+                      detailText,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.82),
+                        fontSize: 9.5,
+                        height: 1.1,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
