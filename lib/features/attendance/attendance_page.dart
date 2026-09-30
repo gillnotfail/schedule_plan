@@ -19,6 +19,7 @@ import 'package:schedule_plan/core/widgets/pulse_loading.dart';
 import 'package:schedule_plan/core/widgets/sort_arrow.dart';
 import 'package:schedule_plan/core/widgets/staggered_entrance.dart';
 import 'package:schedule_plan/data/models/attendance.dart';
+import 'package:schedule_plan/data/models/china_holiday.dart';
 import 'package:schedule_plan/data/models/lesson.dart';
 import 'package:schedule_plan/data/models/student.dart';
 import 'package:schedule_plan/data/repositories/attendance_repository.dart';
@@ -27,6 +28,7 @@ import 'package:schedule_plan/data/repositories/course_repository.dart';
 import 'package:schedule_plan/data/repositories/lesson_repository.dart';
 import 'package:schedule_plan/data/repositories/settings_repository.dart';
 import 'package:schedule_plan/data/repositories/student_repository.dart';
+import 'package:schedule_plan/data/services/holiday_service.dart';
 import 'package:schedule_plan/data/settings_state.dart';
 import 'package:schedule_plan/features/attendance/attendance_status_strip.dart';
 import 'package:schedule_plan/features/attendance/class_group_band.dart';
@@ -58,6 +60,18 @@ class _AttendancePageState extends State<AttendancePage> {
   /// 逐日考勤概览（日历圆环的数据源），key = "YYYY-MM-DD"。
   Map<String, AttendanceDayStat> _dayStats = <String, AttendanceDayStat>{};
 
+  /// 节假日 / 调休服务。`kindOf` / `infoOf` 是纯静态查表（判断这天是放假
+  /// 还是调休上班），`shiftMap` 一次取回整段区间的「调休日上周几的课」。
+  final HolidayService _holidays = HolidayService();
+
+  /// [_dayStats] 覆盖区间内，老师确认过的调休映射（key = "YYYY-MM-DD"，
+  /// value = 这天实际执行的星期几）。日历的标记与说明文案读它 ——
+  /// 放 state 里是为了让 `build` 能同步取到（否则每格都得 await 一次查库）。
+  Map<String, int> _shifts = const <String, int>{};
+
+  /// 节假日与调休总开关。关掉之后一律按「周六周日休息」看，日历不再标调休。
+  bool _holidayAware = true;
+
   /// [_dayStats] 已覆盖的日期区间（"YYYY-MM-DD"）。切日期时若还在区间内就不重查。
   String? _statsFrom;
   String? _statsTo;
@@ -85,6 +99,9 @@ class _AttendancePageState extends State<AttendancePage> {
   /// 跨 Tab 导航状态（由课表页投递定位意图）。
   AppNavigationState? _navigation;
 
+  /// 上一个可见的 Tab 下标：用来感知"老师从别的 Tab 回到考勤页了"。
+  int _lastTabIndex = AppNavigationState.attendanceTabIndex;
+
   /// 高风险检测的世代号：数字一变，尚未返回的旧计算就作废（见 [_refreshRisk]）。
   int _riskToken = 0;
 
@@ -106,11 +123,12 @@ class _AttendancePageState extends State<AttendancePage> {
       _navigation?.removeListener(_onNavigationChanged);
       _navigation = navigation;
       navigation.addListener(_onNavigationChanged);
+      _lastTabIndex = navigation.tabIndex;
     }
     // 首帧之后再消费：定位过程包含 setState 与查库，不能在 build 期间跑
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _consumePendingAttendance(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _consumePendingAttendance();
+    });
   }
 
   @override
@@ -120,21 +138,71 @@ class _AttendancePageState extends State<AttendancePage> {
   }
 
   void _onNavigationChanged() {
-    _consumePendingAttendance();
+    // 「去点名」跳转自己会重载当日课程，不必再走一遍回切刷新
+    if (_consumePendingAttendance()) {
+      return;
+    }
+    _reloadIfReturned();
   }
 
   /// 消费课表页投递的「去点名」请求（同一个请求只生效一次）。
-  Future<void> _consumePendingAttendance() async {
+  ///
+  /// 返回值只表示"这次有没有真的消费掉一个请求"，供 [_onNavigationChanged]
+  /// 判断要不要再做回切刷新；定位本身是异步的，这里不 await。
+  bool _consumePendingAttendance() {
     final navigation = _navigation;
     if (navigation == null || !mounted) {
-      return;
+      return false;
     }
     final request = navigation.pendingAttendance;
     if (request == null) {
-      return;
+      return false;
     }
     navigation.consumeAttendance();
-    await _locateTo(request);
+    // ignore: discarded_futures — _locateTo 自己 setState 驱动 UI
+    _locateTo(request);
+    return true;
+  }
+
+  /// 从别的 Tab 回到考勤页时刷新一次。
+  ///
+  /// `IndexedStack` 切回来**既不 `initState` 也不重读库**，所以要显式刷。
+  /// 非刷不可的理由：调休映射可能在别的 Tab 被改掉（工具箱日历页 / 课表页的
+  /// 调休提醒条），不刷的话日历上"哪天调休、那天上周几的课"还是改之前的样子。
+  ///
+  /// 只重算圆环与当日课程，**不置整页 `_loading`** —— 切个 Tab 就白屏一下太糙。
+  void _reloadIfReturned() {
+    final navigation = _navigation;
+    if (navigation == null) {
+      return;
+    }
+    final index = navigation.tabIndex;
+    final previous = _lastTabIndex;
+    _lastTabIndex = index;
+    if (previous == index || index != AppNavigationState.attendanceTabIndex) {
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
+    // 总开关可能刚被改过，先让服务里的缓存失效，再重算
+    _holidays.invalidate();
+    // ignore: discarded_futures — 由 setState 驱动 UI
+    _refreshHolidayContext();
+  }
+
+  /// 重算调休相关的展示：日历标记 + 圆环 + 当日课程（不整页转圈）。
+  Future<void> _refreshHolidayContext() async {
+    final aware = await _holidays.isEnabled();
+    if (!mounted) {
+      return;
+    }
+    setState(() => _holidayAware = aware);
+    await _loadDayStats(force: true);
+    if (!mounted) {
+      return;
+    }
+    await _loadDayLessons();
   }
 
   /// 定位到指定课表条目：切日期 → 选中课程 → 拉学生名单与已保存考勤。
@@ -190,6 +258,7 @@ class _AttendancePageState extends State<AttendancePage> {
       setState(() => _loading = true);
     }
     try {
+      _holidayAware = await _holidays.isEnabled();
       await _loadClasses();
       // 圆环要覆盖整个月视图（42 天），一次查完；周视图是它的子集，不用再查
       await _loadDayStats();
@@ -230,7 +299,8 @@ class _AttendancePageState extends State<AttendancePage> {
 
   /// 加载「日历圆环」需要的数据：整段可见区间内，每天的应点名人次 / 已点名 / 出勤。
   ///
-  /// 只有两条聚合查询，所以切换日期时可以直接重算；已经覆盖当前日期就跳过，
+  /// 只有两条聚合查询 + 一次调休映射读取（`shiftMap` 一次 LIKE 覆盖 42 天，
+  /// 不是逐天查），所以切换日期时可以直接重算；已经覆盖当前日期就跳过，
   /// 免得点一下日期就跑一次无关的统计（用户规格：圆环要"一目了然"而不是"卡一下"）。
   Future<void> _loadDayStats({bool force = false}) async {
     if (!force && _statsCover(_selectedDate)) {
@@ -240,16 +310,21 @@ class _AttendancePageState extends State<AttendancePage> {
     final from = app_dates.DateUtils.formatDate(days.first);
     final to = app_dates.DateUtils.formatDate(days.last);
     final repo = context.read<AttendanceRepository>();
+    // 一次性取回整段的调休映射：圆环的「应点名」要按这天**实际上**的
+    // 星期几去算（周六上周三的课 → 按周三算），否则调休日的圆环会是空的。
+    final shifts = await _holidays.shiftMap(from: days.first, to: days.last);
     final stats = await repo.dayStats(
       fromDate: from,
       toDate: to,
       teacherId: AppConstants.currentTeacherId,
+      weekdayOverrides: shifts,
     );
     if (!mounted) {
       return;
     }
     setState(() {
       _dayStats = stats;
+      _shifts = shifts;
       _statsFrom = from;
       _statsTo = to;
     });
@@ -268,9 +343,14 @@ class _AttendancePageState extends State<AttendancePage> {
 
   Future<void> _loadDayLessons() async {
     final lessonsRepo = context.read<LessonRepository>();
+    // **按调休映射取课**：这天若是调休上班日、学校通知上周三的课，那么要点名的
+    // 就是周三排的那几节，而不是"周六的课"（周六通常压根没排课，会显示成
+    // 「今天没有课」，老师反而以为漏了课）。没确认过映射时 labelWeekday
+    // 自动回落成天然星期几，行为与以前完全一致。
+    final weekday = (await _holidays.dayOf(_selectedDate)).labelWeekday;
     final lessons = await lessonsRepo.queryWithTime(
       teacherId: AppConstants.currentTeacherId,
-      weekday: app_dates.DateUtils.isoWeekday(_selectedDate),
+      weekday: weekday,
     );
     // 按真实时间排序展示
     lessons.sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
@@ -921,6 +1001,11 @@ class _AttendancePageState extends State<AttendancePage> {
     final isToday = app_dates.DateUtils.isSameDay(day, DateTime.now());
     final inMonth = !monthGrid || day.month == _selectedDate.month;
     final stat = _dayStats[app_dates.DateUtils.formatDate(day)];
+    // 放假 / 调休上班的标记。总开关关掉时不标（与工具箱日历同一个条件）
+    final mark = _dayMark(
+      _holidayAware ? HolidayService.kindOf(day) : null,
+      scheme,
+    );
 
     return InkWell(
       borderRadius: AppRadii.innerAll,
@@ -930,21 +1015,37 @@ class _AttendancePageState extends State<AttendancePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            // 周视图把标记并进「周X」那一行，不额外占高度；
+            // 月视图没有那一行，就在顶部留一条固定高度的标记带
+            // （固定高度是为了让有标记/没标记的格子一样高，网格不会参差）。
             if (monthGrid)
-              const SizedBox(height: 2)
+              SizedBox(
+                height: 6,
+                child: mark == null ? null : Center(child: mark),
+              )
             else
-              Text(
-                context.l10n.weekdayShort(day.weekday),
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: isSelected ? scheme.primary : scheme.onSurfaceVariant,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    context.l10n.weekdayShort(day.weekday),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: isSelected
+                          ? scheme.primary
+                          : scheme.onSurfaceVariant,
+                      fontWeight: isSelected
+                          ? FontWeight.w800
+                          : FontWeight.w500,
+                    ),
+                  ),
+                  if (mark != null) ...<Widget>[const SizedBox(width: 3), mark],
+                ],
               ),
             const SizedBox(height: 3),
             // 日期数字外面套一圈考勤进度环（用户规格：红点换成圆圈，
             // 有课没点名 = 透明圈；点过名 = 红色圆弧按出勤率填充）
             Tooltip(
-              message: _ringHint(stat),
+              message: _dayHint(day, stat),
               waitDuration: const Duration(milliseconds: 400),
               child: DayAttendanceRing(
                 stat: stat,
@@ -992,17 +1093,56 @@ class _AttendancePageState extends State<AttendancePage> {
     );
   }
 
-  /// 圆环的说明文案（长按日期可见）：没点过名说"未点名"，
-  /// 点过名就把出勤率原样报出来，老师不用去猜这圈红弧到底代表多少。
-  String _ringHint(AttendanceDayStat? stat) {
+  /// 日历格子上表示「放假 / 调休上班」的小圆点。
+  ///
+  /// 颜色口径与工具箱日历**一致**（放假红、调休上班橙）：老师在那页认过的
+  /// 颜色，到考勤页不用重新学。没有安排的日子返回 null，一个像素都不占。
+  Widget? _dayMark(CalendarDayKind? kind, ColorScheme scheme) {
+    final color = switch (kind) {
+      CalendarDayKind.holiday => scheme.error,
+      CalendarDayKind.makeupWorkday => scheme.tertiary,
+      _ => null,
+    };
+    if (color == null) {
+      return null;
+    }
+    return Container(
+      width: 5,
+      height: 5,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
+  }
+
+  /// 日历格子的说明文案（长按日期可见）：先说日历安排（放假 / 调休上班上周几的课），
+  /// 再说这一天的点名情况，两行都是给老师"不用去猜"用的。
+  String _dayHint(DateTime day, AttendanceDayStat? stat) {
     final l10n = context.l10n;
-    if (stat == null || !stat.hasLesson) {
-      return l10n.noData;
+    final parts = <String>[];
+    if (_holidayAware) {
+      final kind = HolidayService.kindOf(day);
+      if (kind == CalendarDayKind.holiday) {
+        parts.add(
+          l10n.attendanceHolidayHint(
+            l10n.holidayName(HolidayService.infoOf(day)?.name),
+          ),
+        );
+      } else if (kind == CalendarDayKind.makeupWorkday) {
+        final shift = _shifts[app_dates.DateUtils.formatDate(day)];
+        parts.add(
+          shift == null
+              ? l10n.attendanceMakeupPending
+              : l10n.attendanceMakeupHint(l10n.weekdayShort(shift)),
+        );
+      }
     }
-    if (!stat.hasRecord) {
-      return l10n.attendanceRingNoRecord;
+    if (stat != null && stat.hasLesson) {
+      parts.add(
+        stat.hasRecord
+            ? l10n.attendanceRingRate(stat.present, stat.expected)
+            : l10n.attendanceRingNoRecord,
+      );
     }
-    return l10n.attendanceRingRate(stat.present, stat.expected);
+    return parts.isEmpty ? l10n.noData : parts.join('\n');
   }
 
   List<DateTime> _monthDays(DateTime month) {

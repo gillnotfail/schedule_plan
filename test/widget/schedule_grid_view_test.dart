@@ -116,6 +116,75 @@ void main() {
     expect(find.text(AppConstants.defaultDayStartTime), findsWidgets);
   });
 
+  testWidgets('调休日：角标标在「实际上课的那一列」，长按可见说明', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        ClassGridView(
+          templateId: seededTemplateId,
+          periodsByWeekday: seededPeriods,
+          lessons: const <LessonWithTime>[],
+          // 周六补周三的课 → 角标该落在「周三」列，而不是周六
+          makeupHints: const <int, String>{3: '10-10 调休上班，上周三的课'},
+          onEmptyCellTap: _noopAdd,
+          onLessonTap: _noopTapLesson,
+          onPeriodTap: _noopTapPeriod,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final marked = tester.widget<Tooltip>(
+      find.ancestor(of: find.text('周三'), matching: find.byType(Tooltip)),
+    );
+    expect(marked.message, '10-10 调休上班，上周三的课');
+
+    // 没有调休安排的列不长角标
+    expect(
+      find.ancestor(of: find.text('周一'), matching: find.byType(Tooltip)),
+      findsNothing,
+    );
+  });
+
+  testWidgets('「今天」跟着调休走：按实际执行的星期几落列', (tester) async {
+    final scheme = AppTheme.build(
+      AppColorTokens.of(AppThemeKind.mint),
+    ).colorScheme;
+
+    await tester.pumpWidget(
+      _host(
+        ClassGridView(
+          templateId: seededTemplateId,
+          periodsByWeekday: seededPeriods,
+          lessons: const <LessonWithTime>[],
+          // 周六压根不在「周一到周五」这几列里，所以一列都不该是「今天」。
+          // 若实现还偷偷用 DateTime.now().weekday，今天是工作日时就会有一列亮起来。
+          todayWeekday: DateTime.saturday,
+          onEmptyCellTap: _noopAdd,
+          onLessonTap: _noopTapLesson,
+          onPeriodTap: _noopTapPeriod,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    Color? headerColor(String label) =>
+        (tester
+                    .widget<AnimatedContainer>(
+                      find.ancestor(
+                        of: find.text(label),
+                        matching: find.byType(AnimatedContainer),
+                      ),
+                    )
+                    .decoration
+                as BoxDecoration)
+            .color;
+
+    final todayColor = scheme.primaryContainer.withValues(alpha: 0.85);
+    for (final label in <String>['周一', '周二', '周三', '周四', '周五']) {
+      expect(headerColor(label), isNot(todayColor), reason: '$label 不该被判成今天');
+    }
+  });
+
   testWidgets('格子默认只显示课程名；点开后先淡入详情，再交给课表页弹详情并收回等宽', (tester) async {
     final lesson = _lessonFor(seededPeriods[1]!.first, seededTemplateId);
     final detailTaps = <LessonWithTime>[];
@@ -294,8 +363,9 @@ void main() {
 
     // 一屏放得下 ⇒ 纵向也不用滚（内容比视口高时才有 maxScrollExtent）。
     // 允许亚像素级的浮点残差，但绝不能真的多出一行的高度。
-    final position =
-        tester.state<ScrollableState>(find.byType(Scrollable).first).position;
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position;
     expect(
       position.maxScrollExtent,
       lessThan(0.5),
@@ -391,9 +461,7 @@ double _columnWidth(WidgetTester tester, String weekdayLabel) {
 /// 不该让"颜色取自课程还是班级"这条断言跟着抖。
 Color _cellAccent(WidgetTester tester, String label) {
   final container = tester.widget<Container>(
-    find
-        .ancestor(of: find.text(label), matching: find.byType(Container))
-        .first,
+    find.ancestor(of: find.text(label), matching: find.byType(Container)).first,
   );
   final decoration = container.decoration! as BoxDecoration;
   return decoration.border!.top.color.withValues(alpha: 1);

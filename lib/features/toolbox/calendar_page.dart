@@ -99,13 +99,15 @@ class _CalendarPageState extends State<CalendarPage> {
   /// 某个日期当天的日程（重复日程按 `occursOnWeek` 判定，与错峰课表同一口径）。
   List<ScheduleEvent> _eventsOn(DateTime day) {
     final weekStart = app_dates.DateUtils.startOfWeek(day);
-    return _events.where((event) {
-      if (!event.occursOnWeek(weekStart)) {
-        return false;
-      }
-      final start = DateTime.fromMillisecondsSinceEpoch(event.startAt);
-      return start.weekday == day.weekday;
-    }).toList(growable: false);
+    return _events
+        .where((event) {
+          if (!event.occursOnWeek(weekStart)) {
+            return false;
+          }
+          final start = DateTime.fromMillisecondsSinceEpoch(event.startAt);
+          return start.weekday == day.weekday;
+        })
+        .toList(growable: false);
   }
 
   void _select(DateTime day) {
@@ -269,8 +271,10 @@ class _CalendarPageState extends State<CalendarPage> {
     final numberColor = holiday
         ? scheme.error
         : makeup
-            ? scheme.tertiary
-            : (inMonth ? scheme.onSurface : scheme.onSurfaceVariant.withValues(alpha: 0.45));
+        ? scheme.tertiary
+        : (inMonth
+              ? scheme.onSurface
+              : scheme.onSurfaceVariant.withValues(alpha: 0.45));
 
     return GestureDetector(
       onTap: () => _select(day),
@@ -297,7 +301,9 @@ class _CalendarPageState extends State<CalendarPage> {
             ),
             if (holiday || makeup)
               Text(
-                holiday ? context.l10n.holidayKindHoliday : context.l10n.holidayKindMakeup,
+                holiday
+                    ? context.l10n.holidayKindHoliday
+                    : context.l10n.holidayKindMakeup,
                 style: theme.textTheme.labelSmall?.copyWith(
                   fontSize: 8,
                   height: 1.0,
@@ -358,10 +364,10 @@ class _CalendarPageState extends State<CalendarPage> {
                 Expanded(
                   child: Text(
                     holiday
-                        ? '${_holidayName(context, info.name)} · '
-                            '${l10n.holidayKindHoliday}'
-                        : '${_holidayName(context, info.name)} · '
-                            '${l10n.holidayKindMakeup}',
+                        ? '${context.l10n.holidayName(info.name)} · '
+                              '${l10n.holidayKindHoliday}'
+                        : '${context.l10n.holidayName(info.name)} · '
+                              '${l10n.holidayKindMakeup}',
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w800,
                       color: accent,
@@ -376,10 +382,10 @@ class _CalendarPageState extends State<CalendarPage> {
                 _loadingShift
                     ? l10n.loading
                     : (_shiftOfSelected == null
-                        ? l10n.holidayMakeupNotSet
-                        : l10n.holidayMakeupResolved(
-                            l10n.weekdayShort(_shiftOfSelected!),
-                          )),
+                          ? l10n.holidayMakeupNotSet
+                          : l10n.holidayMakeupResolved(
+                              l10n.weekdayShort(_shiftOfSelected!),
+                            )),
                 style: theme.textTheme.bodySmall,
               ),
               const SizedBox(height: AppConstants.spaceS),
@@ -449,7 +455,8 @@ class _CalendarPageState extends State<CalendarPage> {
           SectionHeader(
             title: l10n.eventDayTitle,
             icon: Icons.event_note_outlined,
-            description: '${_selected.month} 月 ${_selected.day} 日 · '
+            description:
+                '${_selected.month} 月 ${_selected.day} 日 · '
                 '${l10n.weekdayShort(_selected.weekday)}',
           ),
           if (_loading)
@@ -644,22 +651,6 @@ String _recurrenceLabel(AppLocalizations l10n, EventRecurrence recurrence) =>
       EventRecurrence.monthly => l10n.eventRecurrenceMonthly,
     };
 
-/// 节日名的本地化。
-String _holidayName(BuildContext context, HolidayName? name) {
-  final l10n = context.l10n;
-  return switch (name) {
-    HolidayName.newYear => l10n.holidayNameNewYear,
-    HolidayName.springFestival => l10n.holidayNameSpringFestival,
-    HolidayName.qingming => l10n.holidayNameQingming,
-    HolidayName.labourDay => l10n.holidayNameLabourDay,
-    HolidayName.dragonBoat => l10n.holidayNameDragonBoat,
-    HolidayName.midAutumn => l10n.holidayNameMidAutumn,
-    HolidayName.nationalDay => l10n.holidayNameNationalDay,
-    HolidayName.nationalDayMidAutumn => l10n.holidayNameNationalDayMidAutumn,
-    null => '',
-  };
-}
-
 class _EventForm extends StatefulWidget {
   const _EventForm({required this.day});
 
@@ -693,8 +684,10 @@ class _EventFormState extends State<_EventForm> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Text(l10n.eventFormTitle,
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l10n.eventFormTitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: AppConstants.spaceM),
           TextField(
             controller: _title,
@@ -726,8 +719,10 @@ class _EventFormState extends State<_EventForm> {
             onChanged: (value) => setState(() => _reminder = value),
           ),
           const SizedBox(height: AppConstants.spaceM),
-          Text(l10n.eventRecurrence,
-              style: Theme.of(context).textTheme.labelLarge),
+          Text(
+            l10n.eventRecurrence,
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
           const SizedBox(height: AppConstants.spaceS),
           SegmentedButton<EventRecurrence>(
             segments: <ButtonSegment<EventRecurrence>>[
@@ -755,9 +750,7 @@ class _EventFormState extends State<_EventForm> {
           if (_reminder)
             TextField(
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: l10n.eventReminderBefore,
-              ),
+              decoration: InputDecoration(labelText: l10n.eventReminderBefore),
               controller: TextEditingController(text: '$_minutesBefore'),
               onChanged: (value) =>
                   _minutesBefore = int.tryParse(value) ?? _minutesBefore,
@@ -780,8 +773,9 @@ class _EventFormState extends State<_EventForm> {
                 ScheduleEvent(
                   title: _title.text.trim(),
                   startAt: start.millisecondsSinceEpoch,
-                  location:
-                      _location.text.trim().isEmpty ? null : _location.text.trim(),
+                  location: _location.text.trim().isEmpty
+                      ? null
+                      : _location.text.trim(),
                   reminderEnabled: _reminder,
                   reminderMinutesBefore: _reminder ? _minutesBefore : null,
                   recurrence: _recurrence,

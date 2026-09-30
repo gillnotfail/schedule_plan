@@ -222,10 +222,7 @@ void main() {
       await templates.setDefaultTemplate(second);
       final list = await templates.listTemplates();
       expect(list.where((item) => item.isDefault).length, 1);
-      expect(
-        list.firstWhere((item) => item.id == second).isDefault,
-        isTrue,
-      );
+      expect(list.firstWhere((item) => item.id == second).isDefault, isTrue);
     });
 
     test('保存节次前执行校验，重叠直接拒绝且不落库', () async {
@@ -233,10 +230,20 @@ void main() {
       final before = await templates.periodsForWeekday(template.id!, 1);
       expect(
         () => templates.saveWeekdayPeriods(template.id!, 1, <TemplatePeriod>[
-          TemplatePeriod(templateId: template.id!, weekday: 1, periodIndex: 1,
-              startTime: '08:00', endTime: '08:45'),
-          TemplatePeriod(templateId: template.id!, weekday: 1, periodIndex: 2,
-              startTime: '08:30', endTime: '09:15'),
+          TemplatePeriod(
+            templateId: template.id!,
+            weekday: 1,
+            periodIndex: 1,
+            startTime: '08:00',
+            endTime: '08:45',
+          ),
+          TemplatePeriod(
+            templateId: template.id!,
+            weekday: 1,
+            periodIndex: 2,
+            startTime: '08:30',
+            endTime: '09:15',
+          ),
         ]),
         throwsA(isA<ValidationException>()),
       );
@@ -247,10 +254,20 @@ void main() {
     test('保存节次后自动重排序号（不留空洞）', () async {
       final template = (await templates.listTemplates()).first;
       await templates.saveWeekdayPeriods(template.id!, 1, <TemplatePeriod>[
-        TemplatePeriod(templateId: template.id!, weekday: 1, periodIndex: 99,
-            startTime: '08:00', endTime: '08:45'),
-        TemplatePeriod(templateId: template.id!, weekday: 1, periodIndex: 77,
-            startTime: '08:55', endTime: '09:40'),
+        TemplatePeriod(
+          templateId: template.id!,
+          weekday: 1,
+          periodIndex: 99,
+          startTime: '08:00',
+          endTime: '08:45',
+        ),
+        TemplatePeriod(
+          templateId: template.id!,
+          weekday: 1,
+          periodIndex: 77,
+          startTime: '08:55',
+          endTime: '09:40',
+        ),
       ]);
       final saved = await templates.periodsForWeekday(template.id!, 1);
       expect(saved.map((item) => item.periodIndex).toList(), <int>[1, 2]);
@@ -337,12 +354,14 @@ void main() {
 
     test('模板被班级绑定时禁止删除，并列出受影响班级', () async {
       final template = (await templates.listTemplates()).first;
-      await classes.createClass(ClassInfo(
-        name: '高一(3)班',
-        grade: '高一',
-        color: '#2196F3',
-        templateId: template.id!,
-      ));
+      await classes.createClass(
+        ClassInfo(
+          name: '高一(3)班',
+          grade: '高一',
+          color: '#2196F3',
+          templateId: template.id!,
+        ),
+      );
       try {
         await templates.deleteTemplate(template.id!);
         fail('应当抛出 TemplateInUseException');
@@ -354,8 +373,13 @@ void main() {
     test('未绑定的模板可以删除，且节次级联清理', () async {
       final id = await templates.createTemplate('临时模板');
       await templates.saveWeekdayPeriods(id, 1, <TemplatePeriod>[
-        TemplatePeriod(templateId: id, weekday: 1, periodIndex: 1,
-            startTime: '08:00', endTime: '08:45'),
+        TemplatePeriod(
+          templateId: id,
+          weekday: 1,
+          periodIndex: 1,
+          startTime: '08:00',
+          endTime: '08:45',
+        ),
       ]);
       expect(await templates.periodsForWeekday(id, 1), isNotEmpty);
       await templates.deleteTemplate(id);
@@ -365,18 +389,22 @@ void main() {
 
     test('列表页展示绑定班级数量', () async {
       final template = (await templates.listTemplates()).first;
-      await classes.createClass(ClassInfo(
-        name: '高一(1)班',
-        grade: '高一',
-        color: '#4CAF50',
-        templateId: template.id!,
-      ));
-      await classes.createClass(ClassInfo(
-        name: '高一(2)班',
-        grade: '高一',
-        color: '#FF9800',
-        templateId: template.id!,
-      ));
+      await classes.createClass(
+        ClassInfo(
+          name: '高一(1)班',
+          grade: '高一',
+          color: '#4CAF50',
+          templateId: template.id!,
+        ),
+      );
+      await classes.createClass(
+        ClassInfo(
+          name: '高一(2)班',
+          grade: '高一',
+          color: '#FF9800',
+          templateId: template.id!,
+        ),
+      );
       final list = await templates.listTemplates();
       expect(list.first.boundClassCount, 2);
     });
@@ -385,32 +413,50 @@ void main() {
   group('班级 / 课程 / 学生', () {
     test('新增学生后 student_count 冗余字段同步', () async {
       final template = (await templates.listTemplates()).first;
-      final classId = await classes.createClass(ClassInfo(
-        name: '高二(1)班',
-        grade: '高二',
-        color: '#9C27B0',
-        templateId: template.id!,
-      ));
-      await students.createStudent(Student(name: '张三', studentNo: '001', classId: classId));
-      await students.createStudent(Student(name: '李四', studentNo: '002', classId: classId));
+      final classId = await classes.createClass(
+        ClassInfo(
+          name: '高二(1)班',
+          grade: '高二',
+          color: '#9C27B0',
+          templateId: template.id!,
+        ),
+      );
+      await students.createStudent(
+        Student(name: '张三', studentNo: '001', classId: classId),
+      );
+      await students.createStudent(
+        Student(name: '李四', studentNo: '002', classId: classId),
+      );
       final info = await classes.getClass(classId);
       expect(info!.studentCount, 2);
     });
 
     test('删除班级时课程与学生级联清理', () async {
       final template = (await templates.listTemplates()).first;
-      final classId = await classes.createClass(ClassInfo(
-        name: '高二(2)班',
-        grade: '高二',
-        color: '#009688',
-        templateId: template.id!,
-      ));
-      await courses.createCourse(Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]));
+      final classId = await classes.createClass(
+        ClassInfo(
+          name: '高二(2)班',
+          grade: '高二',
+          color: '#009688',
+          templateId: template.id!,
+        ),
+      );
+      await courses.createCourse(
+        Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]),
+      );
       await students.createStudent(Student(name: '王五', classId: classId));
       await classes.deleteClass(classId);
 
-      final remainingStudents = await db.query('student', where: 'class_id = ?', whereArgs: <Object?>[classId]);
-      final remainingCourses = await db.query('course', where: 'class_id = ?', whereArgs: <Object?>[classId]);
+      final remainingStudents = await db.query(
+        'student',
+        where: 'class_id = ?',
+        whereArgs: <Object?>[classId],
+      );
+      final remainingCourses = await db.query(
+        'course',
+        where: 'class_id = ?',
+        whereArgs: <Object?>[classId],
+      );
       expect(remainingStudents, isEmpty);
       expect(remainingCourses, isEmpty);
     });
@@ -418,8 +464,22 @@ void main() {
     test('批量修改年级模板只影响该年级', () async {
       final template = (await templates.listTemplates()).first;
       final other = await templates.createTemplate('高三作息');
-      await classes.createClass(ClassInfo(name: '高一(1)班', grade: '高一', color: '#4CAF50', templateId: template.id!));
-      await classes.createClass(ClassInfo(name: '高三(1)班', grade: '高三', color: '#FF5722', templateId: template.id!));
+      await classes.createClass(
+        ClassInfo(
+          name: '高一(1)班',
+          grade: '高一',
+          color: '#4CAF50',
+          templateId: template.id!,
+        ),
+      );
+      await classes.createClass(
+        ClassInfo(
+          name: '高三(1)班',
+          grade: '高三',
+          color: '#FF5722',
+          templateId: template.id!,
+        ),
+      );
 
       await classes.updateTemplateForGrade('高三', other);
 
@@ -432,8 +492,22 @@ void main() {
 
     test('拖拽排序持久化', () async {
       final template = (await templates.listTemplates()).first;
-      final a = await classes.createClass(ClassInfo(name: 'A班', grade: '高一', color: '#000001', templateId: template.id!));
-      final b = await classes.createClass(ClassInfo(name: 'B班', grade: '高一', color: '#000002', templateId: template.id!));
+      final a = await classes.createClass(
+        ClassInfo(
+          name: 'A班',
+          grade: '高一',
+          color: '#000001',
+          templateId: template.id!,
+        ),
+      );
+      final b = await classes.createClass(
+        ClassInfo(
+          name: 'B班',
+          grade: '高一',
+          color: '#000002',
+          templateId: template.id!,
+        ),
+      );
       await classes.reorderClasses(<int>[b, a]);
       final all = await classes.listClasses();
       expect(all.first.id, b);
@@ -448,27 +522,37 @@ void main() {
       required String className,
       required String grade,
     }) async {
-      final classId = await classes.createClass(ClassInfo(
-        name: className,
-        grade: grade,
-        color: '#2196F3',
-        templateId: templateId,
-      ));
-      await courses.createCourse(Course(name: '数学', teacherName: '李老师', classIds: <int>[classId]));
+      final classId = await classes.createClass(
+        ClassInfo(
+          name: className,
+          grade: grade,
+          color: '#2196F3',
+          templateId: templateId,
+        ),
+      );
+      await courses.createCourse(
+        Course(name: '数学', teacherName: '李老师', classIds: <int>[classId]),
+      );
       return classId;
     }
 
     test('新增课表成功', () async {
       final template = (await templates.listTemplates()).first;
-      final classId = await prepareClass(templateId: template.id!, className: '高一(3)班', grade: '高一');
+      final classId = await prepareClass(
+        templateId: template.id!,
+        className: '高一(3)班',
+        grade: '高一',
+      );
       final course = (await courses.listCourses(classId: classId)).first;
-      final id = await lessons.addLesson(Lesson(
-        courseId: course.id!,
-        classId: classId,
-        teacherId: 1,
-        weekday: 1,
-        periodIndex: 1,
-      ));
+      final id = await lessons.addLesson(
+        Lesson(
+          courseId: course.id!,
+          classId: classId,
+          teacherId: 1,
+          weekday: 1,
+          periodIndex: 1,
+        ),
+      );
       expect(id, greaterThan(0));
       final withTime = await lessons.queryWithTime(teacherId: 1, weekday: 1);
       expect(withTime.length, 1);
@@ -478,15 +562,31 @@ void main() {
 
     test('同班级同节次重复排课被拒绝', () async {
       final template = (await templates.listTemplates()).first;
-      final classId = await prepareClass(templateId: template.id!, className: '高一(3)班', grade: '高一');
+      final classId = await prepareClass(
+        templateId: template.id!,
+        className: '高一(3)班',
+        grade: '高一',
+      );
       final course = (await courses.listCourses(classId: classId)).first;
-      await lessons.addLesson(Lesson(
-        courseId: course.id!, classId: classId, teacherId: 1, weekday: 1, periodIndex: 1,
-      ));
+      await lessons.addLesson(
+        Lesson(
+          courseId: course.id!,
+          classId: classId,
+          teacherId: 1,
+          weekday: 1,
+          periodIndex: 1,
+        ),
+      );
       expect(
-        () => lessons.addLesson(Lesson(
-          courseId: course.id!, classId: classId, teacherId: 1, weekday: 1, periodIndex: 1,
-        )),
+        () => lessons.addLesson(
+          Lesson(
+            courseId: course.id!,
+            classId: classId,
+            teacherId: 1,
+            weekday: 1,
+            periodIndex: 1,
+          ),
+        ),
         throwsA(isA<ConflictException>()),
       );
     });
@@ -496,50 +596,105 @@ void main() {
       // 另建一个「错峰模板」：第 1 节实际是 08:15-09:00，与基础模板第 1 节重叠
       final offset = await templates.createTemplate('错峰作息');
       await templates.saveWeekdayPeriods(offset, 1, <TemplatePeriod>[
-        TemplatePeriod(templateId: offset, weekday: 1, periodIndex: 1,
-            startTime: '08:15', endTime: '09:00'),
+        TemplatePeriod(
+          templateId: offset,
+          weekday: 1,
+          periodIndex: 1,
+          startTime: '08:15',
+          endTime: '09:00',
+        ),
       ]);
 
-      final classA = await prepareClass(templateId: base.id!, className: '高一(3)班', grade: '高一');
-      final classB = await prepareClass(templateId: offset, className: '高二(1)班', grade: '高二');
+      final classA = await prepareClass(
+        templateId: base.id!,
+        className: '高一(3)班',
+        grade: '高一',
+      );
+      final classB = await prepareClass(
+        templateId: offset,
+        className: '高二(1)班',
+        grade: '高二',
+      );
       final courseA = (await courses.listCourses(classId: classA)).first;
       final courseB = (await courses.listCourses(classId: classB)).first;
 
-      await lessons.addLesson(Lesson(
-        courseId: courseA.id!, classId: classA, teacherId: 1, weekday: 1, periodIndex: 1,
-      ));
+      await lessons.addLesson(
+        Lesson(
+          courseId: courseA.id!,
+          classId: classA,
+          teacherId: 1,
+          weekday: 1,
+          periodIndex: 1,
+        ),
+      );
       // 不同班级、同为「第 1 节」，但真实时间 08:15-09:00 与 08:00-08:45 重叠
       expect(
-        () => lessons.addLesson(Lesson(
-          courseId: courseB.id!, classId: classB, teacherId: 1, weekday: 1, periodIndex: 1,
-        )),
+        () => lessons.addLesson(
+          Lesson(
+            courseId: courseB.id!,
+            classId: classB,
+            teacherId: 1,
+            weekday: 1,
+            periodIndex: 1,
+          ),
+        ),
         throwsA(isA<ConflictException>()),
       );
     });
 
     test('班级绑定模板中不存在该节次时拒绝排课', () async {
       final template = (await templates.listTemplates()).first;
-      final classId = await prepareClass(templateId: template.id!, className: '高一(3)班', grade: '高一');
+      final classId = await prepareClass(
+        templateId: template.id!,
+        className: '高一(3)班',
+        grade: '高一',
+      );
       final course = (await courses.listCourses(classId: classId)).first;
       expect(
-        () => lessons.addLesson(Lesson(
-          courseId: course.id!, classId: classId, teacherId: 1, weekday: 6, periodIndex: 1,
-        )),
+        () => lessons.addLesson(
+          Lesson(
+            courseId: course.id!,
+            classId: classId,
+            teacherId: 1,
+            weekday: 6,
+            periodIndex: 1,
+          ),
+        ),
         throwsA(isA<ValidationException>()),
       );
     });
 
     test('交换两节课（同班级同模板）', () async {
       final template = (await templates.listTemplates()).first;
-      final classId = await prepareClass(templateId: template.id!, className: '高一(3)班', grade: '高一');
+      final classId = await prepareClass(
+        templateId: template.id!,
+        className: '高一(3)班',
+        grade: '高一',
+      );
       final course = (await courses.listCourses(classId: classId)).first;
-      final firstId = await lessons.addLesson(Lesson(
-        courseId: course.id!, classId: classId, teacherId: 1, weekday: 1, periodIndex: 1,
-      ));
-      final secondId = await lessons.addLesson(Lesson(
-        courseId: course.id!, classId: classId, teacherId: 1, weekday: 1, periodIndex: 2,
-      ));
-      final before = await lessons.queryWithTime(teacherId: 1, weekday: 1, classId: classId);
+      final firstId = await lessons.addLesson(
+        Lesson(
+          courseId: course.id!,
+          classId: classId,
+          teacherId: 1,
+          weekday: 1,
+          periodIndex: 1,
+        ),
+      );
+      final secondId = await lessons.addLesson(
+        Lesson(
+          courseId: course.id!,
+          classId: classId,
+          teacherId: 1,
+          weekday: 1,
+          periodIndex: 2,
+        ),
+      );
+      final before = await lessons.queryWithTime(
+        teacherId: 1,
+        weekday: 1,
+        classId: classId,
+      );
       final source = before.firstWhere((item) => item.lesson.id == firstId);
       final target = before.firstWhere((item) => item.lesson.id == secondId);
       await lessons.swapLessons(source: source, target: target);
@@ -553,25 +708,56 @@ void main() {
   group('考勤记录', () {
     test('同天同课程不同节次考勤互不覆盖（唯一键含 lesson_id）', () async {
       final template = (await templates.listTemplates()).first;
-      final classId = await classes.createClass(ClassInfo(
-        name: '高一(3)班', grade: '高一', color: '#2196F3', templateId: template.id!,
-      ));
-      await courses.createCourse(Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]));
+      final classId = await classes.createClass(
+        ClassInfo(
+          name: '高一(3)班',
+          grade: '高一',
+          color: '#2196F3',
+          templateId: template.id!,
+        ),
+      );
+      await courses.createCourse(
+        Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]),
+      );
       final course = (await courses.listCourses(classId: classId)).first;
-      final lesson1 = await lessons.addLesson(Lesson(
-        courseId: course.id!, classId: classId, teacherId: 1, weekday: 1, periodIndex: 1,
-      ));
-      final lesson2 = await lessons.addLesson(Lesson(
-        courseId: course.id!, classId: classId, teacherId: 1, weekday: 1, periodIndex: 2,
-      ));
-      final studentId = await students.createStudent(Student(name: '赵六', classId: classId));
+      final lesson1 = await lessons.addLesson(
+        Lesson(
+          courseId: course.id!,
+          classId: classId,
+          teacherId: 1,
+          weekday: 1,
+          periodIndex: 1,
+        ),
+      );
+      final lesson2 = await lessons.addLesson(
+        Lesson(
+          courseId: course.id!,
+          classId: classId,
+          teacherId: 1,
+          weekday: 1,
+          periodIndex: 2,
+        ),
+      );
+      final studentId = await students.createStudent(
+        Student(name: '赵六', classId: classId),
+      );
 
-      await attendance.upsert(AttendanceRecord(
-        studentId: studentId, lessonId: lesson1, date: '2026-09-14', status: AttendanceStatus.absent,
-      ));
-      await attendance.upsert(AttendanceRecord(
-        studentId: studentId, lessonId: lesson2, date: '2026-09-14', status: AttendanceStatus.present,
-      ));
+      await attendance.upsert(
+        AttendanceRecord(
+          studentId: studentId,
+          lessonId: lesson1,
+          date: '2026-09-14',
+          status: AttendanceStatus.absent,
+        ),
+      );
+      await attendance.upsert(
+        AttendanceRecord(
+          studentId: studentId,
+          lessonId: lesson2,
+          date: '2026-09-14',
+          status: AttendanceStatus.present,
+        ),
+      );
 
       final first = await attendance.forLessonDate(lesson1, '2026-09-14');
       final second = await attendance.forLessonDate(lesson2, '2026-09-14');
@@ -581,22 +767,47 @@ void main() {
 
     test('同一条记录重复写入按唯一键覆盖（UPSERT）', () async {
       final template = (await templates.listTemplates()).first;
-      final classId = await classes.createClass(ClassInfo(
-        name: '高一(3)班', grade: '高一', color: '#2196F3', templateId: template.id!,
-      ));
-      await courses.createCourse(Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]));
+      final classId = await classes.createClass(
+        ClassInfo(
+          name: '高一(3)班',
+          grade: '高一',
+          color: '#2196F3',
+          templateId: template.id!,
+        ),
+      );
+      await courses.createCourse(
+        Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]),
+      );
       final course = (await courses.listCourses(classId: classId)).first;
-      final lessonId = await lessons.addLesson(Lesson(
-        courseId: course.id!, classId: classId, teacherId: 1, weekday: 1, periodIndex: 1,
-      ));
-      final studentId = await students.createStudent(Student(name: '赵六', classId: classId));
+      final lessonId = await lessons.addLesson(
+        Lesson(
+          courseId: course.id!,
+          classId: classId,
+          teacherId: 1,
+          weekday: 1,
+          periodIndex: 1,
+        ),
+      );
+      final studentId = await students.createStudent(
+        Student(name: '赵六', classId: classId),
+      );
 
-      await attendance.upsert(AttendanceRecord(
-        studentId: studentId, lessonId: lessonId, date: '2026-09-14', status: AttendanceStatus.present,
-      ));
-      await attendance.upsert(AttendanceRecord(
-        studentId: studentId, lessonId: lessonId, date: '2026-09-14', status: AttendanceStatus.late,
-      ));
+      await attendance.upsert(
+        AttendanceRecord(
+          studentId: studentId,
+          lessonId: lessonId,
+          date: '2026-09-14',
+          status: AttendanceStatus.present,
+        ),
+      );
+      await attendance.upsert(
+        AttendanceRecord(
+          studentId: studentId,
+          lessonId: lessonId,
+          date: '2026-09-14',
+          status: AttendanceStatus.late,
+        ),
+      );
 
       final rows = await attendance.forLessonDate(lessonId, '2026-09-14');
       expect(rows.length, 1);
@@ -605,23 +816,40 @@ void main() {
 
     test('按时间范围统计各状态次数（高风险检测口径）', () async {
       final template = (await templates.listTemplates()).first;
-      final classId = await classes.createClass(ClassInfo(
-        name: '高一(3)班', grade: '高一', color: '#2196F3', templateId: template.id!,
-      ));
-      await courses.createCourse(Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]));
+      final classId = await classes.createClass(
+        ClassInfo(
+          name: '高一(3)班',
+          grade: '高一',
+          color: '#2196F3',
+          templateId: template.id!,
+        ),
+      );
+      await courses.createCourse(
+        Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]),
+      );
       final course = (await courses.listCourses(classId: classId)).first;
-      final studentId = await students.createStudent(Student(name: '孙七', classId: classId));
+      final studentId = await students.createStudent(
+        Student(name: '孙七', classId: classId),
+      );
 
       for (var i = 1; i <= 4; i++) {
-        final lessonId = await lessons.addLesson(Lesson(
-          courseId: course.id!, classId: classId, teacherId: 1, weekday: i, periodIndex: i,
-        ));
-        await attendance.upsert(AttendanceRecord(
-          studentId: studentId,
-          lessonId: lessonId,
-          date: '2026-09-0$i',
-          status: i <= 3 ? AttendanceStatus.absent : AttendanceStatus.late,
-        ));
+        final lessonId = await lessons.addLesson(
+          Lesson(
+            courseId: course.id!,
+            classId: classId,
+            teacherId: 1,
+            weekday: i,
+            periodIndex: i,
+          ),
+        );
+        await attendance.upsert(
+          AttendanceRecord(
+            studentId: studentId,
+            lessonId: lessonId,
+            date: '2026-09-0$i',
+            status: i <= 3 ? AttendanceStatus.absent : AttendanceStatus.late,
+          ),
+        );
       }
 
       final counts = await attendance.statusCountsForStudent(
@@ -632,43 +860,88 @@ void main() {
       expect(counts['absent'], 3);
       expect(counts['late'], 1);
       // 达到默认阈值即为高风险
-      expect((counts['absent'] ?? 0) >= AppConstants.riskAbsenceThreshold, isTrue);
+      expect(
+        (counts['absent'] ?? 0) >= AppConstants.riskAbsenceThreshold,
+        isTrue,
+      );
     });
 
     test('超期考勤记录可清理', () async {
       final template = (await templates.listTemplates()).first;
-      final classId = await classes.createClass(ClassInfo(
-        name: '高一(3)班', grade: '高一', color: '#2196F3', templateId: template.id!,
-      ));
-      await courses.createCourse(Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]));
+      final classId = await classes.createClass(
+        ClassInfo(
+          name: '高一(3)班',
+          grade: '高一',
+          color: '#2196F3',
+          templateId: template.id!,
+        ),
+      );
+      await courses.createCourse(
+        Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]),
+      );
       final course = (await courses.listCourses(classId: classId)).first;
-      final lessonId = await lessons.addLesson(Lesson(
-        courseId: course.id!, classId: classId, teacherId: 1, weekday: 1, periodIndex: 1,
-      ));
-      final studentId = await students.createStudent(Student(name: '周八', classId: classId));
-      await attendance.upsert(AttendanceRecord(
-        studentId: studentId, lessonId: lessonId, date: '2025-01-01', status: AttendanceStatus.present,
-      ));
-      await attendance.upsert(AttendanceRecord(
-        studentId: studentId, lessonId: lessonId, date: '2026-09-14', status: AttendanceStatus.present,
-      ));
+      final lessonId = await lessons.addLesson(
+        Lesson(
+          courseId: course.id!,
+          classId: classId,
+          teacherId: 1,
+          weekday: 1,
+          periodIndex: 1,
+        ),
+      );
+      final studentId = await students.createStudent(
+        Student(name: '周八', classId: classId),
+      );
+      await attendance.upsert(
+        AttendanceRecord(
+          studentId: studentId,
+          lessonId: lessonId,
+          date: '2025-01-01',
+          status: AttendanceStatus.present,
+        ),
+      );
+      await attendance.upsert(
+        AttendanceRecord(
+          studentId: studentId,
+          lessonId: lessonId,
+          date: '2026-09-14',
+          status: AttendanceStatus.present,
+        ),
+      );
       final removed = await attendance.deleteBefore('2026-01-01');
       expect(removed, 1);
     });
 
     test('标记考勤时把课程 / 班级 / 节次快照一起落库', () async {
       final template = (await templates.listTemplates()).first;
-      final classId = await classes.createClass(ClassInfo(
-        name: '高一(3)班', grade: '高一', color: '#2196F3', templateId: template.id!,
-      ));
-      await courses.createCourse(Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]));
+      final classId = await classes.createClass(
+        ClassInfo(
+          name: '高一(3)班',
+          grade: '高一',
+          color: '#2196F3',
+          templateId: template.id!,
+        ),
+      );
+      await courses.createCourse(
+        Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]),
+      );
       final course = (await courses.listCourses(classId: classId)).first;
-      final lessonId = await lessons.addLesson(Lesson(
-        courseId: course.id!, classId: classId, teacherId: 1, weekday: 1, periodIndex: 1,
-      ));
-      final studentId = await students.createStudent(Student(name: '赵六', classId: classId));
-      final withTime =
-          (await lessons.queryWithTime(teacherId: 1, weekday: 1)).single;
+      final lessonId = await lessons.addLesson(
+        Lesson(
+          courseId: course.id!,
+          classId: classId,
+          teacherId: 1,
+          weekday: 1,
+          periodIndex: 1,
+        ),
+      );
+      final studentId = await students.createStudent(
+        Student(name: '赵六', classId: classId),
+      );
+      final withTime = (await lessons.queryWithTime(
+        teacherId: 1,
+        weekday: 1,
+      )).single;
 
       await attendance.mark(
         lesson: withTime,
@@ -677,7 +950,10 @@ void main() {
         status: AttendanceStatus.absent,
       );
 
-      final record = (await attendance.forLessonDate(lessonId, '2026-09-14')).single;
+      final record = (await attendance.forLessonDate(
+        lessonId,
+        '2026-09-14',
+      )).single;
       expect(record.courseName, '语文');
       expect(record.className, '高一(3)班');
       expect(record.weekday, 1);
@@ -689,17 +965,34 @@ void main() {
 
     test('课表条目被删除后，历史考勤仍然保留（lesson_id 置空 + 快照可读）', () async {
       final template = (await templates.listTemplates()).first;
-      final classId = await classes.createClass(ClassInfo(
-        name: '高一(3)班', grade: '高一', color: '#2196F3', templateId: template.id!,
-      ));
-      await courses.createCourse(Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]));
+      final classId = await classes.createClass(
+        ClassInfo(
+          name: '高一(3)班',
+          grade: '高一',
+          color: '#2196F3',
+          templateId: template.id!,
+        ),
+      );
+      await courses.createCourse(
+        Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]),
+      );
       final course = (await courses.listCourses(classId: classId)).first;
-      final lessonId = await lessons.addLesson(Lesson(
-        courseId: course.id!, classId: classId, teacherId: 1, weekday: 1, periodIndex: 1,
-      ));
-      final studentId = await students.createStudent(Student(name: '赵六', classId: classId));
-      final withTime =
-          (await lessons.queryWithTime(teacherId: 1, weekday: 1)).single;
+      final lessonId = await lessons.addLesson(
+        Lesson(
+          courseId: course.id!,
+          classId: classId,
+          teacherId: 1,
+          weekday: 1,
+          periodIndex: 1,
+        ),
+      );
+      final studentId = await students.createStudent(
+        Student(name: '赵六', classId: classId),
+      );
+      final withTime = (await lessons.queryWithTime(
+        teacherId: 1,
+        weekday: 1,
+      )).single;
       await attendance.mark(
         lesson: withTime,
         studentId: studentId,
@@ -708,14 +1001,14 @@ void main() {
       );
 
       // 老师把这一格移出课表 / 删掉了这门课
-      await db.delete('lesson', where: 'id = ?', whereArgs: <Object?>[lessonId]);
+      await db.delete(
+        'lesson',
+        where: 'id = ?',
+        whereArgs: <Object?>[lessonId],
+      );
 
       final kept = await db.query('attendance_record');
-      expect(
-        kept.length,
-        1,
-        reason: '用户规格：考勤信息要长期保存，不能随课表条目一起消失',
-      );
+      expect(kept.length, 1, reason: '用户规格：考勤信息要长期保存，不能随课表条目一起消失');
       expect(kept.single['lesson_id'], isNull);
       expect(kept.single['course_name'], '语文');
 
@@ -732,32 +1025,51 @@ void main() {
 
     test('重复点名只刷新更新时间，首次标记时间不被覆盖', () async {
       final template = (await templates.listTemplates()).first;
-      final classId = await classes.createClass(ClassInfo(
-        name: '高一(3)班', grade: '高一', color: '#2196F3', templateId: template.id!,
-      ));
-      await courses.createCourse(Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]));
+      final classId = await classes.createClass(
+        ClassInfo(
+          name: '高一(3)班',
+          grade: '高一',
+          color: '#2196F3',
+          templateId: template.id!,
+        ),
+      );
+      await courses.createCourse(
+        Course(name: '语文', teacherName: '王老师', classIds: <int>[classId]),
+      );
       final course = (await courses.listCourses(classId: classId)).first;
-      final lessonId = await lessons.addLesson(Lesson(
-        courseId: course.id!, classId: classId, teacherId: 1, weekday: 1, periodIndex: 1,
-      ));
-      final studentId = await students.createStudent(Student(name: '赵六', classId: classId));
+      final lessonId = await lessons.addLesson(
+        Lesson(
+          courseId: course.id!,
+          classId: classId,
+          teacherId: 1,
+          weekday: 1,
+          periodIndex: 1,
+        ),
+      );
+      final studentId = await students.createStudent(
+        Student(name: '赵六', classId: classId),
+      );
 
-      await attendance.upsert(AttendanceRecord(
-        studentId: studentId,
-        lessonId: lessonId,
-        date: '2026-09-14',
-        status: AttendanceStatus.present,
-        recordedAt: 1000,
-        updatedAt: 1000,
-      ));
-      await attendance.upsert(AttendanceRecord(
-        studentId: studentId,
-        lessonId: lessonId,
-        date: '2026-09-14',
-        status: AttendanceStatus.late,
-        recordedAt: 2000,
-        updatedAt: 2000,
-      ));
+      await attendance.upsert(
+        AttendanceRecord(
+          studentId: studentId,
+          lessonId: lessonId,
+          date: '2026-09-14',
+          status: AttendanceStatus.present,
+          recordedAt: 1000,
+          updatedAt: 1000,
+        ),
+      );
+      await attendance.upsert(
+        AttendanceRecord(
+          studentId: studentId,
+          lessonId: lessonId,
+          date: '2026-09-14',
+          status: AttendanceStatus.late,
+          recordedAt: 2000,
+          updatedAt: 2000,
+        ),
+      );
 
       final rows = await attendance.forLessonDate(lessonId, '2026-09-14');
       expect(rows.length, 1, reason: '唯一键仍然是 (student, lesson, date)');
@@ -771,20 +1083,34 @@ void main() {
     /// 造一门挂在两个班上的合班课：班 A 两人、班 B 一人。
     Future<(int, List<Student>)> seedSharedCourse() async {
       final template = (await templates.listTemplates()).first;
-      final classA = await classes.createClass(ClassInfo(
-        name: '高一(1)班', grade: '高一', color: '#26A69A', templateId: template.id!,
-      ));
-      final classB = await classes.createClass(ClassInfo(
-        name: '高一(2)班', grade: '高一', color: '#2196F3', templateId: template.id!,
-      ));
-      final courseId = await courses.createCourse(Course(
-        name: '音乐',
-        teacherName: '李老师',
-        classIds: <int>[classA, classB],
-      ));
-      await lessons.addLesson(Lesson(
-        courseId: courseId, classId: classA, teacherId: 1, weekday: 1, periodIndex: 1,
-      ));
+      final classA = await classes.createClass(
+        ClassInfo(
+          name: '高一(1)班',
+          grade: '高一',
+          color: '#26A69A',
+          templateId: template.id!,
+        ),
+      );
+      final classB = await classes.createClass(
+        ClassInfo(
+          name: '高一(2)班',
+          grade: '高一',
+          color: '#2196F3',
+          templateId: template.id!,
+        ),
+      );
+      final courseId = await courses.createCourse(
+        Course(name: '音乐', teacherName: '李老师', classIds: <int>[classA, classB]),
+      );
+      await lessons.addLesson(
+        Lesson(
+          courseId: courseId,
+          classId: classA,
+          teacherId: 1,
+          weekday: 1,
+          periodIndex: 1,
+        ),
+      );
       await students.insertMany(<Student>[
         Student(name: '陈一', classId: classA),
         Student(name: '陈二', classId: classA),
@@ -801,11 +1127,11 @@ void main() {
       final classIds = await courses.classIdsOfCourse(courseId);
       expect(classIds.length, 2, reason: '课程管理里挂了两条班级');
 
-      expect(
-        roster.map((item) => item.name).toList(),
-        <String>['陈一', '陈二', '陈三'],
-        reason: '两个班的学生都要出现，按班级再按 id 排',
-      );
+      expect(roster.map((item) => item.name).toList(), <String>[
+        '陈一',
+        '陈二',
+        '陈三',
+      ], reason: '两个班的学生都要出现，按班级再按 id 排');
 
       // 只取 lesson.class_id（旧实现）会漏掉另一个班 —— 这正是本轮的 bug
       final onlyFirst = await students.listByClass(classIds.first);
@@ -816,7 +1142,10 @@ void main() {
       final (courseId, roster) = await seedSharedCourse();
       // 2026-09-21 是周一，正好对上这门课的 weekday
       const date = '2026-09-21';
-      final withTime = (await lessons.queryWithTime(teacherId: 1, weekday: 1)).single;
+      final withTime = (await lessons.queryWithTime(
+        teacherId: 1,
+        weekday: 1,
+      )).single;
 
       var stats = await attendance.dayStats(
         fromDate: date,
@@ -876,23 +1205,49 @@ void main() {
         reason: '周六没有排课，不该有标记',
       );
     });
+
+    test('调休日按覆盖后的星期几取应点名人次：周六上星期一的课', () async {
+      await seedSharedCourse();
+      // 2026-10-10 是周六，也是国务院排的调休上班日
+      const makeup = '2026-10-10';
+
+      // 不传映射：那天算「周六的课」，而周六本来就没排课 → 日历上一个标记都没有
+      final plain = await attendance.dayStats(
+        fromDate: makeup,
+        toDate: makeup,
+        teacherId: 1,
+      );
+      expect(plain[makeup], isNull, reason: '周六本来就没排课');
+
+      // 传了映射（上周一的课）：必须按周一那门课的人数算 ——
+      // 否则调休日明明要上课，圆环反而是个空圈，和当天真实要点的名对不上
+      final shifted = await attendance.dayStats(
+        fromDate: makeup,
+        toDate: makeup,
+        teacherId: 1,
+        weekdayOverrides: const <String, int>{makeup: 1},
+      );
+      expect(shifted[makeup], isNotNull);
+      expect(shifted[makeup]!.hasLesson, isTrue);
+      expect(shifted[makeup]!.expected, 3, reason: '合班课，两个班共 3 人');
+    });
   });
 
   group('课程级长期状态：休学 / 免修（点一次管 180 天）', () {
     /// 造一门课 + 一名学生。
     Future<(int courseId, int studentId)> seedCourseAndStudent() async {
       final template = (await templates.listTemplates()).first;
-      final classId = await classes.createClass(ClassInfo(
-        name: '高一(6)班',
-        grade: '高一',
-        color: '#26A69A',
-        templateId: template.id!,
-      ));
-      final courseId = await courses.createCourse(Course(
-        name: '体育',
-        teacherName: '王老师',
-        classIds: <int>[classId],
-      ));
+      final classId = await classes.createClass(
+        ClassInfo(
+          name: '高一(6)班',
+          grade: '高一',
+          color: '#26A69A',
+          templateId: template.id!,
+        ),
+      );
+      final courseId = await courses.createCourse(
+        Course(name: '体育', teacherName: '王老师', classIds: <int>[classId]),
+      );
       final studentId = await students.createStudent(
         Student(name: '张三', classId: classId),
       );
@@ -988,17 +1343,17 @@ void main() {
     test('长期状态与别的课程互不影响', () async {
       final (courseId, studentId) = await seedCourseAndStudent();
       final template = (await templates.listTemplates()).first;
-      final otherClass = await classes.createClass(ClassInfo(
-        name: '高一(7)班',
-        grade: '高一',
-        color: '#2196F3',
-        templateId: template.id!,
-      ));
-      final otherCourse = await courses.createCourse(Course(
-        name: '音乐',
-        teacherName: '李老师',
-        classIds: <int>[otherClass],
-      ));
+      final otherClass = await classes.createClass(
+        ClassInfo(
+          name: '高一(7)班',
+          grade: '高一',
+          color: '#2196F3',
+          templateId: template.id!,
+        ),
+      );
+      final otherCourse = await courses.createCourse(
+        Course(name: '音乐', teacherName: '李老师', classIds: <int>[otherClass]),
+      );
 
       await attendance.setCourseStatus(
         studentId: studentId,
@@ -1074,7 +1429,10 @@ void main() {
 
   group('设置 KV', () {
     test('读写与默认值', () async {
-      expect(await settings.read('missing_key', fallback: 'fallback'), 'fallback');
+      expect(
+        await settings.read('missing_key', fallback: 'fallback'),
+        'fallback',
+      );
       await settings.write('theme', 'nightCare');
       expect(await settings.read('theme'), 'nightCare');
     });

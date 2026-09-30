@@ -21,7 +21,10 @@ class AttendanceRepository {
   Future<Database> get _database async => _db ??= await AppDatabase.instance();
 
   /// 某一节课某一天的全部考勤记录。
-  Future<List<AttendanceRecord>> forLessonDate(int lessonId, String date) async {
+  Future<List<AttendanceRecord>> forLessonDate(
+    int lessonId,
+    String date,
+  ) async {
     final db = await _database;
     final rows = await db.query(
       'attendance_record',
@@ -95,25 +98,31 @@ class AttendanceRepository {
     required String date,
     required AttendanceStatus status,
     String? note,
-  }) =>
-      upsert(
-        AttendanceRecord.forLesson(
-          lesson: lesson,
-          studentId: studentId,
-          date: date,
-          status: status,
-          note: note,
-        ),
-      );
+  }) => upsert(
+    AttendanceRecord.forLesson(
+      lesson: lesson,
+      studentId: studentId,
+      date: date,
+      status: status,
+      note: note,
+    ),
+  );
 
   Future<void> deleteRecord(int id) async {
     final db = await _database;
-    await db.delete('attendance_record', where: 'id = ?', whereArgs: <Object?>[id]);
+    await db.delete(
+      'attendance_record',
+      where: 'id = ?',
+      whereArgs: <Object?>[id],
+    );
   }
 
   /// 未记录过的日期默认全部学生状态由调用方决定（present 或 unmarked）。
   /// 此处只返回已落库的记录，缺省由上层按设置填充。
-  Future<Map<int, AttendanceRecord>> mapForLessonDate(int lessonId, String date) async {
+  Future<Map<int, AttendanceRecord>> mapForLessonDate(
+    int lessonId,
+    String date,
+  ) async {
     final records = await forLessonDate(lessonId, date);
     return <int, AttendanceRecord>{
       for (final record in records) record.studentId: record,
@@ -121,7 +130,10 @@ class AttendanceRepository {
   }
 
   /// 表现标签记录（readme 3.8 表）。
-  Future<List<StudentTagRecord>> tagsForStudentDate(int studentId, String date) async {
+  Future<List<StudentTagRecord>> tagsForStudentDate(
+    int studentId,
+    String date,
+  ) async {
     final db = await _database;
     final rows = await db.query(
       'student_tag_record',
@@ -157,7 +169,8 @@ class AttendanceRepository {
       <Object?>[studentId, fromDate, toDate],
     );
     return <String, int>{
-      for (final row in rows) row['status'] as String: (row['cnt'] as int?) ?? 0,
+      for (final row in rows)
+        row['status'] as String: (row['cnt'] as int?) ?? 0,
     };
   }
 
@@ -185,8 +198,7 @@ class AttendanceRepository {
       where.add('a.course_id = ?');
       args.add(courseId);
     }
-    final rows = await db.rawQuery(
-      '''
+    final rows = await db.rawQuery('''
       SELECT s.id, s.name, s.student_no, s.class_id,
              SUM(CASE WHEN a.status = 'absent' THEN 1 ELSE 0 END) AS absent_count,
              SUM(CASE WHEN a.status = 'late' THEN 1 ELSE 0 END) AS late_count,
@@ -195,9 +207,7 @@ class AttendanceRepository {
       JOIN attendance_record a ON a.student_id = s.id
       WHERE ${where.join(' AND ')}
       GROUP BY s.id
-      ''',
-      args,
-    );
+      ''', args);
     final result = rows.map((row) {
       final absent = (row['absent_count'] as int?) ?? 0;
       final late = (row['late_count'] as int?) ?? 0;
@@ -212,7 +222,10 @@ class AttendanceRepository {
         absentCount: absent,
         lateCount: late,
         earlyLeaveCount: early,
-        riskScore: absent * weightAbsent + late * weightLate + early * weightEarlyLeave,
+        riskScore:
+            absent * weightAbsent +
+            late * weightLate +
+            early * weightEarlyLeave,
       );
     }).toList();
     result.sort((a, b) => b.riskScore.compareTo(a.riskScore));
@@ -237,7 +250,8 @@ class AttendanceRepository {
       <Object?>[classId, fromDate, toDate],
     );
     return <String, int>{
-      for (final row in rows) row['status'] as String: (row['cnt'] as int?) ?? 0,
+      for (final row in rows)
+        row['status'] as String: (row['cnt'] as int?) ?? 0,
     };
   }
 
@@ -262,8 +276,7 @@ class AttendanceRepository {
       where.add('COALESCE(a.course_id, l.course_id) = ?');
       args.add(courseId);
     }
-    return db.rawQuery(
-      '''
+    return db.rawQuery('''
       SELECT COALESCE(a.class_name, c.name) AS class_name,
              COALESCE(a.course_name, co.name) AS course_name,
              a.date AS date, a.status AS status, COUNT(*) AS cnt
@@ -276,9 +289,7 @@ class AttendanceRepository {
                COALESCE(a.course_name, co.name),
                a.date, a.status
       ORDER BY a.date ASC, class_name ASC
-      ''',
-      args,
-    );
+      ''', args);
   }
 
   /// 异常出勤明细（模块三 3.3：所有非 present 状态的记录）。
@@ -304,8 +315,7 @@ class AttendanceRepository {
       clauses.add('a.status = ?');
       args.add(status.storageKey);
     }
-    return db.rawQuery(
-      '''
+    return db.rawQuery('''
       SELECT a.date AS date, s.name AS student_name, s.student_no AS student_no,
              COALESCE(a.class_name, c.name) AS class_name,
              COALESCE(a.course_name, co.name) AS course_name,
@@ -323,9 +333,7 @@ class AttendanceRepository {
        AND tp.period_index = COALESCE(a.period_index, l.period_index)
       WHERE ${clauses.join(' AND ')}
       ORDER BY a.date DESC, COALESCE(a.start_time, tp.start_time) ASC
-      ''',
-      args,
-    );
+      ''', args);
   }
 
   /// 「受益学生数」：给定区间内**被点过名的去重总人数**（教学成果的情绪价值指标）。
@@ -417,8 +425,7 @@ class AttendanceRepository {
       where.add('COALESCE(a.course_id, l.course_id) = ?');
       args.add(courseId);
     }
-    return db.rawQuery(
-      '''
+    return db.rawQuery('''
       SELECT COALESCE(a.class_name, c.name) AS class_name,
              COALESCE(a.course_name, co.name) AS course_name,
              SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END) AS present_count,
@@ -430,9 +437,7 @@ class AttendanceRepository {
       WHERE ${where.join(' AND ')}
       GROUP BY COALESCE(a.class_name, c.name), COALESCE(a.course_name, co.name)
       ORDER BY class_name ASC, course_name ASC
-      ''',
-      args,
-    );
+      ''', args);
   }
 
   /// 按「日期 × 课程」的出勤率序列（模块三 3.1 折线图的多课程曲线数据源）。
@@ -451,8 +456,7 @@ class AttendanceRepository {
       where.add('COALESCE(a.course_id, l.course_id) = ?');
       args.add(courseId);
     }
-    return db.rawQuery(
-      '''
+    return db.rawQuery('''
       SELECT a.date AS date,
              COALESCE(a.course_id, l.course_id) AS course_id,
              COALESCE(a.course_name, co.name) AS course_name,
@@ -464,9 +468,7 @@ class AttendanceRepository {
       WHERE ${where.join(' AND ')}
       GROUP BY a.date, COALESCE(a.course_id, l.course_id), COALESCE(a.course_name, co.name)
       ORDER BY a.date ASC, course_name ASC
-      ''',
-      args,
-    );
+      ''', args);
   }
 
   /// 某班级某周内出现的缺勤次数（模块四 4.1 待办自动生成规则）。
@@ -500,10 +502,18 @@ class AttendanceRepository {
   ///   的学生数加起来（合班课算全部班的人，与「去点名」看到的名单同一口径）；
   ///   课程一个班都没挂时回落成 `lesson.class_id`，避免算成 0；
   /// - 「已点名/出勤人次」按 `date` 算，直接数考勤记录（唯一键保证一人一节一条）。
+  ///
+  /// [weekdayOverrides] 是「调休日实际上周几的课」的覆盖表（key = `"YYYY-MM-DD"`，
+  /// value = 实际执行的星期几，来自 `HolidayService.shiftMap`）。调休上班日照常
+  /// 要上课，但上的是**别的星期几**的课表，所以那几天的 [AttendanceDayStat.expected]
+  /// 必须按覆盖后的星期几去取，否则「周六上星期三的课」会算成 0 个应点名
+  /// —— 圆环于是变成一个空圈，和当天真实要点的名完全对不上。
+  /// 传空表 = 全部按天然星期几，行为与旧版一致。
   Future<Map<String, AttendanceDayStat>> dayStats({
     required String fromDate,
     required String toDate,
     required int teacherId,
+    Map<String, int> weekdayOverrides = const <String, int>{},
   }) async {
     final db = await _database;
     // 每个 weekday 的应点名人次
@@ -545,8 +555,10 @@ class AttendanceRepository {
     );
     final actualByDate = <String, (int, int)>{
       for (final row in actualRows)
-        (row['date'] as String? ?? ''):
-            ((row['marked'] as int?) ?? 0, (row['present'] as int?) ?? 0),
+        (row['date'] as String? ?? ''): (
+          (row['marked'] as int?) ?? 0,
+          (row['present'] as int?) ?? 0,
+        ),
     };
 
     final start = DateTime.tryParse(fromDate);
@@ -555,9 +567,14 @@ class AttendanceRepository {
       return const <String, AttendanceDayStat>{};
     }
     final result = <String, AttendanceDayStat>{};
-    for (var day = start; !day.isAfter(end); day = day.add(const Duration(days: 1))) {
+    for (
+      var day = start;
+      !day.isAfter(end);
+      day = day.add(const Duration(days: 1))
+    ) {
       final key = DateUtils.formatDate(day);
-      final weekday = day.weekday;
+      // 调休上班日按老师确认的映射取课（周六上周三的课 → 取周三那套）
+      final weekday = weekdayOverrides[key] ?? day.weekday;
       final hasLesson = expectedByWeekday.containsKey(weekday);
       final actual = actualByDate[key];
       final marked = actual?.$1 ?? 0;

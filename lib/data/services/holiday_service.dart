@@ -25,7 +25,7 @@ import 'package:schedule_plan/data/services/china_holiday_calendar.dart';
 /// 猜错了就是某一天的课凭空多出来或少掉，比不问严重得多。
 class HolidayService {
   HolidayService({SettingsRepository? settings})
-      : _settings = settings ?? SettingsRepository();
+    : _settings = settings ?? SettingsRepository();
 
   final SettingsRepository _settings;
 
@@ -46,8 +46,9 @@ class HolidayService {
       ChinaHolidayCalendar.isMakeupWorkday(date);
 
   /// 节假日总开关是否开启（关闭后一律"周六周日休息"）。
-  Future<bool> isEnabled() async =>
-      _enabledCache ??= await _settings.readBool(SettingKeys.holidayAwareEnabled);
+  Future<bool> isEnabled() async => _enabledCache ??= await _settings.readBool(
+    SettingKeys.holidayAwareEnabled,
+  );
 
   /// 掉线重连用：设置页改完开关后调用，下次读库。
   void invalidate() => _enabledCache = null;
@@ -106,10 +107,57 @@ class HolidayService {
   Future<int?> shiftOf(DateTime date) async {
     final raw = await _settings.read(_shiftKey(date));
     final parsed = int.tryParse(raw);
-    if (parsed == null || parsed < DateTime.monday || parsed > DateTime.sunday) {
+    if (parsed == null ||
+        parsed < DateTime.monday ||
+        parsed > DateTime.sunday) {
       return null;
     }
     return parsed;
+  }
+
+  /// 一段日期区间里，老师**确认过**的调休日映射。
+  ///
+  /// key = `"YYYY-MM-DD"`，value = 这天实际该按星期几的课表上课。
+  /// 只包含「是调休上班日 **且** 老师选过」的日子 —— 其余日期不在表里，
+  /// 调用方一律按 `map[key] ?? date.weekday` 解析，语义与 [labelWeekdayOf] 一致。
+  ///
+  /// 存在的意义是**一次 IO 覆盖一整段**：考勤页的圆环一次要算 42 天，
+  /// 逐天调 [shiftOf] 就是 42 次 query。总开关关掉时直接返回空表
+  /// （关掉之后调休一律不作数，和 [dayOf] 的口径保持一致）。
+  Future<Map<String, int>> shiftMap({
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    if (!await isEnabled()) {
+      return const <String, int>{};
+    }
+    final raw = await _settings.readByPrefix(SettingKeys.holidayShiftPrefix);
+    if (raw.isEmpty) {
+      return const <String, int>{};
+    }
+    final start = DateUtils.dateOnly(from);
+    final end = DateUtils.dateOnly(to);
+    final result = <String, int>{};
+    for (final entry in raw.entries) {
+      final date = DateUtils.tryParseDate(
+        entry.key.substring(SettingKeys.holidayShiftPrefix.length),
+      );
+      if (date == null || date.isBefore(start) || date.isAfter(end)) {
+        continue;
+      }
+      // 只有调休上班日允许被改：别把脏数据（手工写错日期的键）当回事
+      if (ChinaHolidayCalendar.kindOf(date) != CalendarDayKind.makeupWorkday) {
+        continue;
+      }
+      final parsed = int.tryParse(entry.value);
+      if (parsed == null ||
+          parsed < DateTime.monday ||
+          parsed > DateTime.sunday) {
+        continue;
+      }
+      result[DateUtils.formatDate(date)] = parsed;
+    }
+    return result;
   }
 
   /// 确认 / 修改调休日"上周几的课"。传 null 表示恢复"不调整"。
@@ -126,8 +174,12 @@ class HolidayService {
 
   /// 上次为别的调休日选过的星期几（用来给新调休日做预选）。
   Future<int?> lastShift() async {
-    final parsed = int.tryParse(await _settings.read(SettingKeys.holidayLastShift));
-    if (parsed == null || parsed < DateTime.monday || parsed > DateTime.sunday) {
+    final parsed = int.tryParse(
+      await _settings.read(SettingKeys.holidayLastShift),
+    );
+    if (parsed == null ||
+        parsed < DateTime.monday ||
+        parsed > DateTime.sunday) {
       return null;
     }
     return parsed;

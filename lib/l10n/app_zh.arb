@@ -1294,5 +1294,33 @@
         "type": "String"
       }
     }
+  },
+  "attendanceMakeupHint": "调休上班 · 按{weekday}的课表",
+  "attendanceMakeupPending": "调休上班 · 还没确认上周几的课",
+  "attendanceHolidayHint": "{name} · 放假",
+  "gridMakeupHint": "{date} 调休上班，上{weekday}的课",
+  "@attendanceMakeupHint": {
+    "placeholders": {
+      "weekday": {
+        "type": "String"
+      }
+    }
+  },
+  "@attendanceHolidayHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@gridMakeupHint": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "weekday": {
+        "type": "String"
+      }
+    }
   }
 }

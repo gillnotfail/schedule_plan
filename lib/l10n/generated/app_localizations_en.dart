@@ -2286,4 +2286,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attendanceResumeConfirm => 'Resume';
+
+  @override
+  String attendanceMakeupHint(String weekday) {
+    return 'Make-up workday · $weekday schedule';
+  }
+
+  @override
+  String get attendanceMakeupPending => 'Make-up workday · weekday not set yet';
+
+  @override
+  String attendanceHolidayHint(String name) {
+    return '$name · Holiday';
+  }
+
+  @override
+  String gridMakeupHint(String date, String weekday) {
+    return '$date make-up workday · $weekday schedule';
+  }
 }

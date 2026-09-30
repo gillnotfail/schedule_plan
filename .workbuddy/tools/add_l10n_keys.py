@@ -498,6 +498,24 @@ NEW_KEYS = {
         "zh": "有新版本 {version}",
         "en": "Version {version} available",
     },
+    # ---- 第 17 轮：调休在考勤日历与课表表头上的呈现 ----
+    # 背景：工具箱日历里已经能确认「调休那天上周几的课」，但考勤日历看不到
+    # 哪几天是调休、课表页也不知道"今天该照着哪一天的课表上"。于是：
+    # 考勤日历 → 放假/调休各一个小圆点 + 长按说明；
+    # 课表表头 → 「今天」圆点落列改按调休映射，并把本周调休提前标在对应列。
+    "attendanceMakeupHint": {
+        "zh": "调休上班 · 按{weekday}的课表",
+        "en": "Make-up workday · {weekday} schedule",
+    },
+    "attendanceMakeupPending": {
+        "zh": "调休上班 · 还没确认上周几的课",
+        "en": "Make-up workday · weekday not set yet",
+    },
+    "attendanceHolidayHint": {"zh": "{name} · 放假", "en": "{name} · Holiday"},
+    "gridMakeupHint": {
+        "zh": "{date} 调休上班，上{weekday}的课",
+        "en": "{date} make-up workday · {weekday} schedule",
+    },
 }
 
 # 需要改口径的旧键（用户规格变了，文案必须跟着走，否则和界面行为对不上）
@@ -528,9 +546,16 @@ DROP_KEYS = ["attendanceMarkAllPresent", "attendanceStatusHint",
              "toolboxToolsTab", "toolboxAchievementsTab"]
 
 PLACEHOLDERS = {
-    "attendanceRingRate": {
+    "attendanceMakeupHint": {"placeholders": {"weekday": {"type": "String"}}},
+    "attendanceHolidayHint": {"placeholders": {"name": {"type": "String"}}},
+    "gridMakeupHint": {
         "placeholders": {
-            "present": {"type": "int"},
+            "date": {"type": "String"},
+            "weekday": {"type": "String"},
+        },
+    },
+    "attendanceRingRate": {
+        "placeholders": {            "present": {"type": "int"},
             "expected": {"type": "int"},
         },
     },

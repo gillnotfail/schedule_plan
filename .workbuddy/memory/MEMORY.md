@@ -12,7 +12,7 @@
 - 只做 Android APK；iOS 只留默认模板，不验证。**暂不加鸿蒙（ohos）代码**。
 
 ## 质量门槛与工具链（提交前必跑）
-- `flutter analyze --no-pub` 零 issue（**含 test/**）；`flutter test` 全绿（当前 +394）。跑完**立刻**在 IDEA 里
+- `flutter analyze --no-pub` 零 issue（**含 test/**）；`flutter test` 全绿（当前 +403）。跑完**立刻**在 IDEA 里
   只看这两条命令的日志末行。
 - **跑前设 `NO_PROXY=localhost,127.0.0.1,::1`**，否则代理劫持 flutter_tester 的 WebSocket。
 - **本机 Git Bash 的 coreutils 全废**（`ls`/`grep`/`tail` not found）。flutter 一律走 **PowerShell**；找文件用 Glob、
@@ -117,6 +117,9 @@
 - **节假日两个正交维度绝不能合并**：`DateTime.weekday`（天然）vs `CalendarDayKind`（国家安排）；所有「这天休息吗」
   必须查 `CalendarDayKind`，**禁止只判 `weekday == 6 || 7`**（否则课时算少）。**「调休那天上周几的课」必须老师确认、
   不准猜**（存 `app_settings`，值 `'1'..'7'` 或空串，**没有任何默认猜测**）。课时结算**走日历而非 weekday**。
+  **「这天该上哪一套课」只有一个入口：`HolidayService.dayOf(date).labelWeekday`** —— 考勤页取当日课程、圆环
+  `dayStats` 的应点名、课表表头「今天」落列全都要走它，**禁止裸用 `date.weekday`/`DateUtils.isoWeekday`**
+  （漏一处就是「调休日照常上课，界面却显示当天没课」）。
 - **动效时长/曲线只有 `AppMotion` 一个来源**，禁止裸写 `Duration(milliseconds: ...)`；**过冲曲线只能用于位移/缩放**，
   喂给 `Interval.transform`/`lerpDouble` 的值必须 `.clamp(0.0, 1.0)`；**颜色/描边/阴影/透明度一律用单调的 `effects`**。
 - **`FilledButton`/`ElevatedButton`/`OutlinedButton` 不能直接放进 `Row`**（全局 `minimumSize: Size.fromHeight(52)`

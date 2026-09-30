@@ -61,6 +61,8 @@ class ClassGridView extends StatefulWidget {
     this.courseColors = const <int, String>{},
     this.events = const <ScheduleEvent>[],
     this.weekStart,
+    this.todayWeekday,
+    this.makeupHints = const <int, String>{},
     this.onSwap,
   });
 
@@ -78,6 +80,21 @@ class ClassGridView extends StatefulWidget {
   /// 当前这一周的周一，用来判定隔周 / 隔月活动在这一周发不发生。
   /// 缺省按 `DateTime.now()` 取本周（测试不传 events 时根本用不到）。
   final DateTime? weekStart;
+
+  /// 表头的「今天」圆点画在哪一列 —— 取今天**实际执行的星期几**。
+  ///
+  /// 调休上班日会与 `DateTime.now().weekday` 不同：今天周六却要上星期三的课，
+  /// 圆点就该落在「周三」那一列（那才是今天要照着上的课表），
+  /// 而不是落在周六 —— 周六往往压根没排课，点在那儿等于指着一列空表格。
+  ///
+  /// 不传时按天然星期几取，测试和「没接节假日的调用方」行为不变。
+  final int? todayWeekday;
+
+  /// 列（weekday）→ 表头角标提示。
+  ///
+  /// 本周的调休日会标在**它实际上课的那一列**上（周六补周三的课 → 标在周三列），
+  /// 让老师一眼看出"这周哪天要补班、补的是哪一天的课"。空 map = 不标。
+  final Map<int, String> makeupHints;
 
   /// 课程 id → 人数（合班课为各班人数之和），展开时显示这个数
   final Map<int, int> courseStudentCounts;
@@ -227,7 +244,8 @@ class _ClassGridViewState extends State<ClassGridView>
       return const <ScheduleEvent>[];
     }
     // weekStart 可空：缺省按今天取本周（schedule_page 总会传真实值）
-    final week = widget.weekStart ?? app_dates.DateUtils.startOfWeek(DateTime.now());
+    final week =
+        widget.weekStart ?? app_dates.DateUtils.startOfWeek(DateTime.now());
     return <ScheduleEvent>[
       for (final event in widget.events)
         if (event.occursOnWeek(week) &&
@@ -357,7 +375,8 @@ class _ClassGridViewState extends State<ClassGridView>
               final dayArea = math.max(0.0, constraints.maxWidth - gutter);
               // 底部留一点点呼吸感也要算进"一屏"里，否则最后一行会被挤出视口
               // 让表格变成可滚动的——用户要的是"同一页面上显示，不需要缩放"。
-              final rowsHeight = constraints.maxHeight -
+              final rowsHeight =
+                  constraints.maxHeight -
                   AppConstants.gridHeaderHeight -
                   AppConstants.spaceS;
               // 行高等比压缩到"刚好放得下"，节数很少时允许长高铺满一屏，
@@ -461,7 +480,9 @@ class _ClassGridViewState extends State<ClassGridView>
   ) {
     final l10n = context.l10n;
     final scheme = theme.colorScheme;
-    final today = DateTime.now().weekday;
+    // 「今天」按**实际执行的星期几**取：调休日今天周六上星期三的课，
+    // 圆点就落在周三那一列（见 [todayWeekday]）。
+    final today = widget.todayWeekday ?? DateTime.now().weekday;
     return Container(
       height: AppConstants.gridHeaderHeight,
       decoration: BoxDecoration(
@@ -471,7 +492,9 @@ class _ClassGridViewState extends State<ClassGridView>
           top: Radius.circular(AppRadii.cell),
         ),
         border: Border(
-          bottom: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.8)),
+          bottom: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.8),
+          ),
         ),
       ),
       child: Row(
@@ -504,6 +527,7 @@ class _ClassGridViewState extends State<ClassGridView>
               width: widths[i],
               weekday: days[i],
               isToday: days[i] == today,
+              makeupHint: widget.makeupHints[days[i]],
               expanded: days[i] == _expandedDay,
               onTap: _collapse,
             ),
@@ -528,7 +552,9 @@ class _ClassGridViewState extends State<ClassGridView>
       height: rowHeight,
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.4)),
+          bottom: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.4),
+          ),
         ),
       ),
       child: Row(
@@ -584,13 +610,15 @@ class _ClassGridViewState extends State<ClassGridView>
       );
     }
     final lesson = _lessonAt(weekday, period.periodIndex);
-    final focused = _expandedDay == weekday && _focusedPeriod == period.periodIndex;
+    final focused =
+        _expandedDay == weekday && _focusedPeriod == period.periodIndex;
     // 「内容延迟淡入」：列宽先走完大半，详情再出现，层次才分得开。
     // 同样要夹住——expressive 曲线的过冲会让 Interval.transform 直接断言失败。
     final detailOpacity = focused
-        ? Interval(AppConstants.gridAccordionDetailFadeBegin, 1)
-            .transform(_expandCurve.value.clamp(0.0, 1.0))
-            .clamp(0.0, 1.0)
+        ? Interval(
+            AppConstants.gridAccordionDetailFadeBegin,
+            1,
+          ).transform(_expandCurve.value.clamp(0.0, 1.0)).clamp(0.0, 1.0)
         : 0.0;
     // 格子铺满整格：底色才连成一张表（否则每格都缩成图标大小，中间全是空白）
     final cell = SizedBox.expand(
@@ -615,18 +643,15 @@ class _ClassGridViewState extends State<ClassGridView>
         child: SizedBox(
           width: math.max(48.0, AppConstants.gridDayMinWidth - 8),
           height: math.max(38.0, rowHeight - 10),
-          child: _buildLessonCell(
-            lesson,
-            theme,
-            dragging: true,
-            onTap: () {},
-          ),
+          child: _buildLessonCell(lesson, theme, dragging: true, onTap: () {}),
         ),
       ),
       childWhenDragging: Opacity(opacity: 0.32, child: cell),
       child: DragTarget<LessonWithTime>(
-        onWillAcceptWithDetails: (details) =>
-            LessonConflictDetector.canSwap(source: details.data, target: lesson),
+        onWillAcceptWithDetails: (details) => LessonConflictDetector.canSwap(
+          source: details.data,
+          target: lesson,
+        ),
         onAcceptWithDetails: (details) {
           AppMotion.confirm();
           widget.onSwap?.call(details.data, lesson);
@@ -884,18 +909,30 @@ class _ClassGridViewState extends State<ClassGridView>
 }
 
 /// 表头星期格。点展开列的星期格可以把手风琴收回来。
+///
+/// 两种角标，都是星期文字**右边**的一个 5px 小圆点（不额外占列宽）：
+/// - **今天是这一列** → primary 点 + `primaryContainer` 胶囊底（原有表现）；
+/// - **本周有调休落在这列** → tertiary 点 + 淡 `tertiaryContainer` 底，
+///   长按可见"哪天调休、补的是哪一天的课"。与工具箱日历同一套颜色口径。
+///
+/// 两者同时成立时（今天恰好就是要补的那一天）以「今天」的样式为准，
+/// 但长按提示仍带着调休说明。
 class _DayHeaderCell extends StatelessWidget {
   const _DayHeaderCell({
     required this.width,
     required this.weekday,
     required this.isToday,
     required this.onTap,
+    this.makeupHint,
     this.expanded = false,
   });
 
   final double width;
   final int weekday;
   final bool isToday;
+
+  /// 非空 = 本周有调休日「上这一天的课」，内容是长按可见的说明文案。
+  final String? makeupHint;
   final bool expanded;
   final VoidCallback onTap;
 
@@ -905,6 +942,56 @@ class _DayHeaderCell extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final label = l10n.weekdayShort(weekday);
+    final hinted = makeupHint != null;
+    // 优先级：今天 > 调休角标 > 展开列
+    final Color background;
+    final Color? textColor;
+    if (isToday) {
+      background = scheme.primaryContainer.withValues(alpha: 0.85);
+      textColor = scheme.onPrimaryContainer;
+    } else if (hinted) {
+      background = scheme.tertiaryContainer.withValues(alpha: 0.7);
+      textColor = scheme.onTertiaryContainer;
+    } else {
+      background = expanded
+          ? scheme.secondaryContainer.withValues(alpha: 0.7)
+          : Colors.transparent;
+      textColor = null;
+    }
+
+    final cell = AnimatedContainer(
+      duration: AppMotion.standard,
+      curve: AppMotion.effects,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: AppRadii.stadiumAll,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(
+            label,
+            maxLines: 1,
+            softWrap: false,
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: isToday || expanded || hinted
+                  ? FontWeight.w800
+                  : FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+          if (isToday) ...<Widget>[
+            const SizedBox(width: 4),
+            _headerDot(scheme.primary),
+          ] else if (hinted) ...<Widget>[
+            const SizedBox(width: 4),
+            _headerDot(scheme.tertiary),
+          ],
+        ],
+      ),
+    );
+
     // 列宽是自适应的：窄列上把胶囊整体等比缩小，绝不撑破
     return SizedBox(
       width: width,
@@ -913,51 +1000,24 @@ class _DayHeaderCell extends StatelessWidget {
           onTap: expanded ? onTap : null,
           child: FittedBox(
             fit: BoxFit.scaleDown,
-            child: AnimatedContainer(
-              duration: AppMotion.standard,
-              curve: AppMotion.effects,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: isToday
-                    ? scheme.primaryContainer.withValues(alpha: 0.85)
-                    : (expanded
-                        ? scheme.secondaryContainer.withValues(alpha: 0.7)
-                        : Colors.transparent),
-                borderRadius: AppRadii.stadiumAll,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(
-                    label,
-                    maxLines: 1,
-                    softWrap: false,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      fontWeight: isToday || expanded
-                          ? FontWeight.w800
-                          : FontWeight.w600,
-                      color: isToday ? scheme.onPrimaryContainer : null,
-                    ),
+            child: makeupHint == null
+                ? cell
+                : Tooltip(
+                    message: makeupHint!,
+                    waitDuration: const Duration(milliseconds: 400),
+                    child: cell,
                   ),
-                  if (isToday) ...<Widget>[
-                    const SizedBox(width: 4),
-                    Container(
-                      width: 5,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: scheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
           ),
         ),
       ),
     );
   }
+
+  static Widget _headerDot(Color color) => Container(
+    width: 5,
+    height: 5,
+    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+  );
 }
 
 /// 左侧节次 / 时间格。
@@ -1058,10 +1118,7 @@ void showAppSnackBarRejection(BuildContext context, String message) {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: AppConstants.snackBarDuration,
-      ),
+      SnackBar(content: Text(message), duration: AppConstants.snackBarDuration),
     );
 }
 

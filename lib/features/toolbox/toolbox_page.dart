@@ -324,7 +324,10 @@ class _ToolboxPageState extends State<ToolboxPage> {
               tone: ToolCardTone.blue,
               title: l10n.insightSectionLessons,
               subtitle: l10n.insightSectionLessonsDesc,
-              summary: l10n.insightDoneOfTotal(insight.doneLessons, insight.totalLessons),
+              summary: l10n.insightDoneOfTotal(
+                insight.doneLessons,
+                insight.totalLessons,
+              ),
               expanded: _openSections.contains(_InsightSectionId.lessons),
               onToggle: () => _toggleSection(_InsightSectionId.lessons),
               child: _LessonsDetail(insight: insight),
@@ -747,7 +750,11 @@ class _HolidayStrip extends StatelessWidget {
       elevated: false,
       child: Row(
         children: <Widget>[
-          Icon(Icons.beach_access_outlined, size: 16, color: scheme.onSurfaceVariant),
+          Icon(
+            Icons.beach_access_outlined,
+            size: 16,
+            color: scheme.onSurfaceVariant,
+          ),
           const SizedBox(width: AppConstants.spaceS),
           Expanded(
             child: Wrap(
@@ -788,7 +795,8 @@ class _TodayCard extends StatelessWidget {
       (day) => app_dates.DateUtils.isSameDay(day.date, DateTime.now()),
       orElse: () => HolidayDay(
         date: app_dates.DateUtils.dateOnly(DateTime.now()),
-        kind: DateTime.now().weekday == DateTime.saturday ||
+        kind:
+            DateTime.now().weekday == DateTime.saturday ||
                 DateTime.now().weekday == DateTime.sunday
             ? CalendarDayKind.weekend
             : CalendarDayKind.workday,
@@ -814,10 +822,7 @@ class _TodayCard extends StatelessWidget {
                 ),
               ),
               if (today.kind == CalendarDayKind.holiday)
-                _Tag(
-                  text: l10n.holidayKindHoliday,
-                  color: scheme.error,
-                )
+                _Tag(text: l10n.holidayKindHoliday, color: scheme.error)
               else if (today.kind == CalendarDayKind.makeupWorkday)
                 _Tag(
                   text: today.isShifted
@@ -854,7 +859,10 @@ class _Tag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppConstants.spaceS, vertical: 3),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spaceS,
+        vertical: 3,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.14),
         borderRadius: AppRadii.stadiumAll,
@@ -862,9 +870,9 @@ class _Tag extends StatelessWidget {
       child: Text(
         text,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-            ),
+          color: color,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -882,7 +890,8 @@ class _EventRow extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final start = DateTime.fromMillisecondsSinceEpoch(event.startAt);
-    final time = '${start.hour.toString().padLeft(2, '0')}:'
+    final time =
+        '${start.hour.toString().padLeft(2, '0')}:'
         '${start.minute.toString().padLeft(2, '0')}';
     final location = event.location;
     return Padding(
@@ -966,7 +975,9 @@ class _InsightSection extends StatelessWidget {
             borderRadius: AppRadii.innerAll,
             onTap: onToggle,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppConstants.spaceXs),
+              padding: const EdgeInsets.symmetric(
+                vertical: AppConstants.spaceXs,
+              ),
               child: Row(
                 children: <Widget>[
                   Container(
@@ -1026,8 +1037,9 @@ class _InsightSection extends StatelessWidget {
           AnimatedCrossFade(
             duration: AppMotion.standard,
             sizeCurve: AppMotion.expressive,
-            crossFadeState:
-                expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            crossFadeState: expanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
             firstChild: const SizedBox(width: double.infinity, height: 0),
             secondChild: Padding(
               padding: const EdgeInsets.only(top: AppConstants.spaceM),
@@ -1137,7 +1149,7 @@ class _LessonsDetail extends StatelessWidget {
             child: Text(
               [
                 for (final day in insight.holidayDays)
-                  '${_formatMonthDay(day.date)} ${_holidayName(l10n, day.name)}',
+                  '${_formatMonthDay(day.date)} ${l10n.holidayName(day.name)}',
                 for (final day in insight.holidayWeek.days)
                   if (day.kind == CalendarDayKind.makeupWorkday)
                     '${_formatMonthDay(day.date)} '
@@ -1178,10 +1190,12 @@ class _DayBar extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final isMakeup = shiftDay != null;
-    final isOff = realDay?.kind == CalendarDayKind.holiday ||
+    final isOff =
+        realDay?.kind == CalendarDayKind.holiday ||
         realDay?.kind == CalendarDayKind.weekend;
-    final barColor =
-        isOff && !isMakeup ? scheme.outlineVariant : ToolCardTone.blue.light;
+    final barColor = isOff && !isMakeup
+        ? scheme.outlineVariant
+        : ToolCardTone.blue.light;
     final height = count == 0 ? 4.0 : 6.0 + 40.0 * count / maxCount;
     // 角标优先显示「班」：这一列的课是调休挪过来的，比"这天本来放假"更该被看见
     final badge = isMakeup
@@ -1287,7 +1301,9 @@ class _AttendanceDetail extends StatelessWidget {
         const SizedBox(height: AppConstants.spaceM),
         if (!insight.hasClassComparison)
           Text(
-            insight.containsClassData ? l10n.insightSingleClass : l10n.insightNoClassData,
+            insight.containsClassData
+                ? l10n.insightSingleClass
+                : l10n.insightNoClassData,
             style: theme.textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
@@ -1395,7 +1411,9 @@ class _ClassRateRow extends StatelessWidget {
         ),
         const SizedBox(width: AppConstants.spaceS),
         Text(
-          item == null ? '' : l10n.insightClassRate(item!.ratePercent, item!.total),
+          item == null
+              ? ''
+              : l10n.insightClassRate(item!.ratePercent, item!.total),
           style: theme.textTheme.labelSmall?.copyWith(color: accent),
         ),
       ],
@@ -1417,7 +1435,9 @@ class _FocusDetail extends StatelessWidget {
     if (insight.focusSessions == 0) {
       return Text(
         l10n.insightFocusNoRecord,
-        style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
       );
     }
     final average = (insight.focusMinutes / insight.focusSessions).round();
@@ -1501,7 +1521,9 @@ class _EventsDetail extends StatelessWidget {
     if (insight.weekEvents.isEmpty) {
       return Text(
         l10n.insightEventsEmpty,
-        style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
       );
     }
     return Column(
@@ -1642,16 +1664,3 @@ class _ToolEntry {
   final ToolCardTone tone;
   final Widget target;
 }
-
-/// 节日名的本地化（`HolidayName` → 文案）。
-String _holidayName(AppLocalizations l10n, HolidayName? name) => switch (name) {
-      HolidayName.newYear => l10n.holidayNameNewYear,
-      HolidayName.springFestival => l10n.holidayNameSpringFestival,
-      HolidayName.qingming => l10n.holidayNameQingming,
-      HolidayName.labourDay => l10n.holidayNameLabourDay,
-      HolidayName.dragonBoat => l10n.holidayNameDragonBoat,
-      HolidayName.midAutumn => l10n.holidayNameMidAutumn,
-      HolidayName.nationalDay => l10n.holidayNameNationalDay,
-      HolidayName.nationalDayMidAutumn => l10n.holidayNameNationalDayMidAutumn,
-      null => '',
-    };

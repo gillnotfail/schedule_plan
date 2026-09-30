@@ -162,6 +162,33 @@
 - **`HolidaySyncService` 是 `ChangeNotifier`**：后台拉到数据后 `notifyListeners()`；日历页 `context.watch` 即可，
   课表页必须走 listener（`_bindHolidaySync` → `_load()`）——那里要**重算** `_makeupToday`。非订不可的场景：**首次
   安装又正好跨年**（2027-01 装 App，内置表只到 2026）。
+- **第 17 轮：调休映射要「看得见」，而且用的地方必须是同一个口径。** 上层统一按
+  `map[date] ?? date.weekday` 解析，`HolidayService.shiftMap({from, to})` 一次 `LIKE` 把区间内**所有**已确认的调休日
+  读回来（`map` = `"YYYY-MM-DD" → 实际执行 weekday`，**只收 `makeupWorkday` + 老师选过的**；总开关关掉直接返回空表）。
+  它存在只为性能：考勤页圆环一次算 42 天，逐天 `shiftOf` 就是 42 次 query。底层
+  `SettingsRepository.readByPrefix(prefix)` 的 SQL 是 `key LIKE ? ESCAPE '\'` 且参数经 `_escapeLike` 转义 ——
+  **`holiday_shift_` 里的 `_` 在 LIKE 中是「任意单字符」通配符，不转义会误命中 `holidayXshiftY...`**。
+- **三处必须吃这个映射，漏一处就是「界面显示当天没课」**：① 考勤页取当日课程（`_loadDayLessons`，原来裸用
+  `DateUtils.isoWeekday(_selectedDate)`）；② 圆环的应点名（`AttendanceRepository.dayStats(weekdayOverrides:)`，
+  原来按 `day.weekday` 查 `expectedByWeekday`，调休日会查到一个空圈）；③ 课表页表头「今天」落列
+  （`ClassGridView.todayWeekday`，缺省才回落 `DateTime.now().weekday`）。**新增第四处前先回来读这一条。**
+- **考勤日历的调休标记**：`_buildDayTile` 顶部一个 5px 小圆点（`holiday → scheme.error`、`makeupWorkday →
+  scheme.tertiary`，与工具箱日历同一套配色）。周视图并进「周X」那一行（不占高度），月视图在顶部留 **6px 固定**
+  标记带（固定高度是为了有/无标记的格子一样高，网格不参差）。总开关关掉时不标。长按 Tooltip 走 `_dayHint(day, stat)`
+  ——**先日历安排后点名情况**（原来的 `_ringHint` 已被它取代，别再退回单段文案）。
+- **考勤页回切要刷新**（`IndexedStack` 切回来既不 `initState` 也不重读库）：`_lastTabIndex` + `_reloadIfReturned()`
+  照抄课表页的做法，只 `setState` 重算「开关 + 圆环 + 当日课程」（`_refreshHolidayContext`），**不置整页 `_loading`**。
+  `_consumePendingAttendance()` 改成**同步返回 bool**（是否消费了「去点名」请求），有请求时跳过回切刷新，免得
+  `_locateTo` 与本方法各加载一遍、`_selectedDate` 交错。
+- **课表表头的两个角标**（都在星期文字**右边**一个 5px 圆点，不占列宽）：今天 → `scheme.primary` 点 +
+  `primaryContainer` 胶囊底；本周调休落在这一列 → `scheme.tertiary` 点 + 淡 `tertiaryContainer` 底 + 长按 Tooltip。
+  优先级 `今天 > 调休 > 展开列`。数据由 `schedule_page` 在 `_load()` 里算好（`_todayLabelWeekday` +
+  `_makeupColumns`，后者只收 `shiftOverridden` 的调休日，落点写成 `labelWeekday: HolidayDay`），文案在 build 里用
+  `gridMakeupHint(date, weekday)` 拼（`date` 用 `_monthDayLabel` 的 `MM-DD` 短格式）。
+- **`HolidayName` → 文案只有一份**：`core/l10n/l10n_extensions.dart` 的 `AppLocalizations.holidayName(name)` 扩展
+  （原 toolbox_page / calendar_page 各抄了一份 switch，已删）。同类先例是 `weekdayShort`，**新增枚举文案一律加到这里**，
+  不要在页面里再写 switch。`core/` import `data/models/china_holiday.dart` 是既有分层惯例（`theme_controller` 也 import
+  `data/repositories`），不算越界。
 
 ## 日程与统计
 - **日程重复周期只有一个判定入口**：`ScheduleEvent.occursOnWeek(weekStart)`（纯函数）：单次只在自己那周、每周都

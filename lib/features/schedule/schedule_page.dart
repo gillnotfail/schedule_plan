@@ -121,6 +121,19 @@ class _SchedulePageState extends State<SchedulePage> {
   HolidayDay? _makeupToday;
   final HolidayService _holidays = HolidayService();
 
+  /// 今天**实际照着上哪一天的课表**（调休上班日按老师确认的映射走）。
+  ///
+  /// 表头的「今天」圆点画在这一列上：今天周六上周三的课，圆点就落在
+  /// 「周三」列 —— 那才是今天要上的内容，周六列通常压根没排课。
+  int _todayLabelWeekday = DateTime.now().weekday;
+
+  /// 本周调休落点：**列（weekday）→ 那一列的调休日**。
+  ///
+  /// 本周有调休上班日时，把它记在「它实际上课的那一天」上，
+  /// 表头于是在那一列画角标（周六补周三的课 → 标在周三列）。
+  /// 只收「老师确认过映射」的调休日：没确认等于不调整，没什么可提前说的。
+  Map<int, HolidayDay> _makeupColumns = const <int, HolidayDay>{};
+
   /// 分享截图用的两块 `RepaintBoundary`：
   /// 一块是**屏幕上真实显示的课表正文**（错峰 / 常规以当前为准），
   /// 一块是**离屏的底部信息带**（app 名 + 二维码位，见 [ScheduleShareFooter]）。
@@ -245,8 +258,7 @@ class _SchedulePageState extends State<SchedulePage> {
       final storedTemplateId = await settingsRepo.readInt(
         SettingKeys.scheduleDisplayTemplateId,
       );
-      bool templateExists(int id) =>
-          templates.any((item) => item.id == id);
+      bool templateExists(int id) => templates.any((item) => item.id == id);
 
       int? templateId;
       if (templateExists(storedTemplateId)) {
@@ -257,11 +269,11 @@ class _SchedulePageState extends State<SchedulePage> {
         templateId = templates.isEmpty
             ? null
             : templates
-                .firstWhere(
-                  (item) => item.isDefault,
-                  orElse: () => templates.first,
-                )
-                .id;
+                  .firstWhere(
+                    (item) => item.isDefault,
+                    orElse: () => templates.first,
+                  )
+                  .id;
       }
 
       // 骨架不能是空的：老版本建库没写过出厂作息、旧版「一键清空课表」
@@ -275,7 +287,10 @@ class _SchedulePageState extends State<SchedulePage> {
       if (templateId != null) {
         // 节次数按 (template_id, weekday) 单独取 —— 一周内各天不一定相同
         for (var day = 1; day <= AppConstants.weekdayCount; day++) {
-          final periods = await templatesRepo.periodsForWeekday(templateId, day);
+          final periods = await templatesRepo.periodsForWeekday(
+            templateId,
+            day,
+          );
           if (periods.isEmpty) {
             continue;
           }
@@ -330,10 +345,25 @@ class _SchedulePageState extends State<SchedulePage> {
       if (!mounted) {
         return;
       }
+      // 表头要的两件事都看「这一周」：今天实际执行星期几 + 本周调休落在哪一列
+      final now = DateTime.now();
+      final week = await _holidays.weekOf(now);
+      if (!mounted) {
+        return;
+      }
+      // weekOf 的 days 恒为「周一起的七天」，所以今天就在它自己的 weekday 位置上
+      final todayDay = week.days[now.weekday - DateTime.monday];
       setState(() {
         _data = result;
         _events = events;
         _makeupToday = makeup;
+        _todayLabelWeekday = todayDay.labelWeekday;
+        _makeupColumns = <int, HolidayDay>{
+          for (final item in week.days)
+            if (item.kind == CalendarDayKind.makeupWorkday &&
+                item.shiftOverridden)
+              item.labelWeekday: item,
+        };
         _loading = false;
       });
       // 把「这次真正展示的」记下来，下次启动直接复原（冷存储）
@@ -404,9 +434,9 @@ class _SchedulePageState extends State<SchedulePage> {
       if (classInfo.templateId == templateId) {
         return;
       }
-      await context
-          .read<ClassRepository>()
-          .updateClass(classInfo.copyWith(templateId: templateId));
+      await context.read<ClassRepository>().updateClass(
+        classInfo.copyWith(templateId: templateId),
+      );
       await settingsRepo.writeInt(
         SettingKeys.scheduleDisplayTemplateId,
         templateId,
@@ -430,13 +460,14 @@ class _SchedulePageState extends State<SchedulePage> {
   /// 既然如此，表单必须能反映现状——第二次打开时要看到"现在是 5 天"，
   /// 而不是每次都退回出厂值让人以为改动丢了。
   ({String start, int lessonMinutes, int gapMinutes, List<int> weekdays})
-      _generateDefaults(_ScheduleData data) {
+  _generateDefaults(_ScheduleData data) {
     final weekdays = data.periodsByWeekday.keys.toList()..sort();
     var start = AppConstants.defaultDayStartTime;
     var lesson = AppConstants.defaultLessonMinutes;
     var gap = AppConstants.defaultBreakMinutes;
     if (weekdays.isNotEmpty) {
-      final periods = data.periodsByWeekday[weekdays.first] ?? const <TemplatePeriod>[];
+      final periods =
+          data.periodsByWeekday[weekdays.first] ?? const <TemplatePeriod>[];
       if (periods.isNotEmpty) {
         start = periods.first.startTime;
         final duration = periods.first.endMinutes - periods.first.startMinutes;
@@ -444,8 +475,7 @@ class _SchedulePageState extends State<SchedulePage> {
           lesson = duration;
         }
         if (periods.length > 1) {
-          final spacing =
-              periods[1].startMinutes - periods.first.endMinutes;
+          final spacing = periods[1].startMinutes - periods.first.endMinutes;
           if (spacing >= 0) {
             gap = spacing;
           }
@@ -477,22 +507,23 @@ class _SchedulePageState extends State<SchedulePage> {
       initialStartTime: defaults.start,
       initialLessonMinutes: defaults.lessonMinutes,
       initialBreakMinutes: defaults.gapMinutes,
-      onGenerate: ({
-        required String startTime,
-        required int lessonMinutes,
-        required int breakMinutes,
-        required int count,
-        required List<int> weekdays,
-      }) {
-        pendingGenerate = _generatePeriods(
-          templateId: templateId,
-          startTime: startTime,
-          lessonMinutes: lessonMinutes,
-          breakMinutes: breakMinutes,
-          periodCount: count,
-          weekdays: weekdays,
-        );
-      },
+      onGenerate:
+          ({
+            required String startTime,
+            required int lessonMinutes,
+            required int breakMinutes,
+            required int count,
+            required List<int> weekdays,
+          }) {
+            pendingGenerate = _generatePeriods(
+              templateId: templateId,
+              startTime: startTime,
+              lessonMinutes: lessonMinutes,
+              breakMinutes: breakMinutes,
+              periodCount: count,
+              weekdays: weekdays,
+            );
+          },
       onEditDefault: () async {
         await pushAppPage<void>(
           context,
@@ -523,16 +554,16 @@ class _SchedulePageState extends State<SchedulePage> {
   }) async {
     try {
       await context.read<TemplateRepository>().generatePeriods(
-            templateId: templateId,
-            weekdays: weekdays,
-            startTime: startTime,
-            lessonMinutes: lessonMinutes,
-            breakMinutes: breakMinutes,
-            periodCount: periodCount,
-            // 一键生成是最高权限：没勾的星期要一并清掉，
-            // 否则"先选 7 天再改回 5 天"永远停在 7 列
-            clearUnselected: true,
-          );
+        templateId: templateId,
+        weekdays: weekdays,
+        startTime: startTime,
+        lessonMinutes: lessonMinutes,
+        breakMinutes: breakMinutes,
+        periodCount: periodCount,
+        // 一键生成是最高权限：没勾的星期要一并清掉，
+        // 否则"先选 7 天再改回 5 天"永远停在 7 列
+        clearUnselected: true,
+      );
       if (!mounted) {
         return;
       }
@@ -837,23 +868,23 @@ class _SchedulePageState extends State<SchedulePage> {
       lesson.lesson.weekday,
     );
     context.read<AppNavigationState>().openAttendance(
-          AttendanceRequest(
-            lessonId: lessonId,
-            classId: lesson.lesson.classId,
-            weekday: lesson.lesson.weekday,
-            date: app_dates.DateUtils.formatDate(date),
-          ),
-        );
+      AttendanceRequest(
+        lessonId: lessonId,
+        classId: lesson.lesson.classId,
+        weekday: lesson.lesson.weekday,
+        date: app_dates.DateUtils.formatDate(date),
+      ),
+    );
   }
 
   Future<void> _removeLesson(LessonWithTime lesson) async {
     final l10n = context.l10n;
     try {
       await context.read<LessonRepository>().clearSlot(
-            classId: lesson.lesson.classId,
-            weekday: lesson.lesson.weekday,
-            periodIndex: lesson.lesson.periodIndex,
-          );
+        classId: lesson.lesson.classId,
+        weekday: lesson.lesson.weekday,
+        periodIndex: lesson.lesson.periodIndex,
+      );
       if (!mounted) {
         return;
       }
@@ -904,9 +935,9 @@ class _SchedulePageState extends State<SchedulePage> {
   ) async {
     try {
       await context.read<LessonRepository>().swapLessons(
-            source: source,
-            target: target,
-          );
+        source: source,
+        target: target,
+      );
       await _load();
     } catch (error, stack) {
       AppLogger.e('交换课表失败', error: error, stack: stack);
@@ -985,7 +1016,10 @@ class _SchedulePageState extends State<SchedulePage> {
       body: Stack(
         children: <Widget>[
           Positioned.fill(
-            child: RepaintBoundary(key: _captureBodyKey, child: _buildBody(l10n)),
+            child: RepaintBoundary(
+              key: _captureBodyKey,
+              child: _buildBody(l10n),
+            ),
           ),
           Positioned(
             left: -10000,
@@ -1232,8 +1266,9 @@ class _SchedulePageState extends State<SchedulePage> {
                       Text(
                         shift,
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: scheme.onTertiaryContainer
-                              .withValues(alpha: 0.85),
+                          color: scheme.onTertiaryContainer.withValues(
+                            alpha: 0.85,
+                          ),
                         ),
                       ),
                     ],
@@ -1258,6 +1293,29 @@ class _SchedulePageState extends State<SchedulePage> {
       ),
     );
   }
+
+  /// 表头角标文案：本周的调休日补的是哪一天的课。
+  ///
+  /// 例：`{3: "10-10 调休上班，上本周三的课"}` → 角标画在「周三」那一列，
+  /// 老师一扫就知道这周要多上一天、而且照着周三的课表上。
+  Map<int, String> _makeupHeaderHints() {
+    if (_makeupColumns.isEmpty) {
+      return const <int, String>{};
+    }
+    final l10n = context.l10n;
+    return <int, String>{
+      for (final entry in _makeupColumns.entries)
+        entry.key: l10n.gridMakeupHint(
+          _monthDayLabel(entry.value.date),
+          l10n.weekdayShort(entry.value.labelWeekday),
+        ),
+    };
+  }
+
+  /// 「10-10」这种短日期：表头提示里空间紧，不带年份。
+  static String _monthDayLabel(DateTime date) =>
+      '${date.month.toString().padLeft(2, '0')}-'
+      '${date.day.toString().padLeft(2, '0')}';
 
   Future<void> _editMakeupShift(HolidayDay day) async {
     // 先把"上次选过的星期几"读出来再弹层：如果把它写进弹层参数里
@@ -1304,6 +1362,9 @@ class _SchedulePageState extends State<SchedulePage> {
       courseStudentCounts: data.courseCounts,
       events: _events,
       weekStart: app_dates.DateUtils.startOfWeek(DateTime.now()),
+      // 「今天」按调休映射落列，并把本周的调休安排提前标在对应列上
+      todayWeekday: _todayLabelWeekday,
+      makeupHints: _makeupHeaderHints(),
       // 课程自己挑过的颜色优先（**与课程管理里锁定的是同一个来源**），
       // 没挑过才回落成班级色（LessonWithTime.classColor）。
       // 这里用全量课程构建，避免"课在别的班 → 取不到课程色 → 颜色对不上"。
@@ -1346,8 +1407,7 @@ class _SchedulePageState extends State<SchedulePage> {
       for (final entry in data.periodsByWeekday.entries)
         if (entry.value.isNotEmpty) entry.key,
       for (final lesson in data.lessons) lesson.lesson.weekday,
-    }.toList()
-      ..sort();
+    }.toList()..sort();
     return days.isEmpty ? TimelineView.defaultWeekdays : days;
   }
 
@@ -1372,7 +1432,9 @@ class _TemplateSwitcher extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final current = templates.where((item) => item.id == currentTemplateId);
-    final name = current.isEmpty ? context.l10n.templateTitle : current.first.name;
+    final name = current.isEmpty
+        ? context.l10n.templateTitle
+        : current.first.name;
 
     return PopupMenuButton<int>(
       tooltip: context.l10n.switchTemplate,
@@ -1396,10 +1458,7 @@ class _TemplateSwitcher extends StatelessWidget {
                 ),
                 const SizedBox(width: AppConstants.spaceS),
                 Expanded(
-                  child: Text(
-                    template.name,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  child: Text(template.name, overflow: TextOverflow.ellipsis),
                 ),
               ],
             ),

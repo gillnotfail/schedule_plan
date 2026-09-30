@@ -2215,4 +2215,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attendanceResumeConfirm => '复学';
+
+  @override
+  String attendanceMakeupHint(String weekday) {
+    return '调休上班 · 按$weekday的课表';
+  }
+
+  @override
+  String get attendanceMakeupPending => '调休上班 · 还没确认上周几的课';
+
+  @override
+  String attendanceHolidayHint(String name) {
+    return '$name · 放假';
+  }
+
+  @override
+  String gridMakeupHint(String date, String weekday) {
+    return '$date 调休上班，上$weekday的课';
+  }
 }

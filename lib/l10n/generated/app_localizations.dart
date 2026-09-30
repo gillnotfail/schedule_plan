@@ -4189,6 +4189,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resume'**
   String get attendanceResumeConfirm;
+
+  /// No description provided for @attendanceMakeupHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Make-up workday · {weekday} schedule'**
+  String attendanceMakeupHint(String weekday);
+
+  /// No description provided for @attendanceMakeupPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Make-up workday · weekday not set yet'**
+  String get attendanceMakeupPending;
+
+  /// No description provided for @attendanceHolidayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · Holiday'**
+  String attendanceHolidayHint(String name);
+
+  /// No description provided for @gridMakeupHint.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} make-up workday · {weekday} schedule'**
+  String gridMakeupHint(String date, String weekday);
 }
 
 class _AppLocalizationsDelegate
