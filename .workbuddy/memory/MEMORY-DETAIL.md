@@ -272,3 +272,18 @@
 - **已发生的事故（供查）**：仓库曾为 private → 应用内检查更新必然失败且**无任何报错**（2026-09-30 转 public 修复）。
   历史提交 `8b20383`~`2ffe4c2` 的 `.workbuddy/memory/*.md` 里残留两个**截断到 31 字符的 PAT 字面量**（从未生效，别当
   有效凭据）；当前 HEAD 已清除，要彻底清需重写历史 + force push。
+- **`tool/release.py` 已修的两个缺陷（v1.0.1 首发才暴露）**：
+  ① `run(["flutter", ...])` 在 Windows 报 `FileNotFoundError [WinError 2]`——`CreateProcess` 只自动补 `.exe`
+  （`PATHEXT` 是 cmd.exe 的规则），新增 `flutter_command()` 走 `shutil.which` 拿到 `flutter.BAT`；
+  ② `write_version` 的 `\s*$` 正则里 **`\s` 会吃掉行尾换行** → **每次发版都悄悄删掉 `version:` 与 `environment:`
+  之间的空行**，产生无意义的 pubspec diff；已改用 `[ \t]*$`（`read_version` 同步改）。
+- **跑 release.py 必须给足超时**：`run()` 是 `capture_output=True`，**构建期间日志一个字都不输出**，外层工具
+  120s 一掐，日志就永远停在 `$ ... flutter.BAT build apk --release` 那一行（看起来像卡住，其实是超时被杀）。
+  实测 `flutter build apk --release` ~1m56s。三个选项：显式 `timeout: 600000`；或拆两步——
+  先 `flutter build apk --release`，再 `release.py --no-bump --no-build --push`（`--no-build` 复用
+  `build/app/outputs/flutter-apk/`，但**版本号必须先用 `release.write_version` 改好**，否则 APK 里是旧 versionCode）。
+- **别拿 APK 体积判断有没有重建**：v1.0.1 的两个包与 v1.0.0 **逐字节同大小**（`libapp.so` 刚好对齐），
+  但 sha256 不同。要比就比 **zip 内部条目的 CRC**：`AndroidManifest.xml` 与 `lib/<abi>/libapp.so` 都应变。
+- **真实发版的复用率远低于合成用例**：v1.0.0 → v1.0.1（改 2 个 widget + 3 个 l10n 键）实测 arm64 复用 **59.3%**
+  → 补丁 3.81 MB = 整包 **16.5%**；armeabi-v7a 复用 **50.7%** → 补丁 4.22 MB = **20.0%**。
+  即「真实功能更新下，手机端只需下 1/6~1/5」。（合成用例「改 1 字节」的 99.9% 只说明算法正确，不代表真实场景。）

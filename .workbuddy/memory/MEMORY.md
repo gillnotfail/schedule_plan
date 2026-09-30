@@ -23,6 +23,11 @@
   `NativeCommandError`）——**只信日志最后一行**（`No issues found!` / `All tests passed!`）。
 - **同一时刻只跑一个 flutter 命令**：并发让 native assets 拷贝撞车报 `PathExistsException ... sqlite3.dll`；
   真撞了删 `build/native_assets` 重跑。改源码时不同时构建。
+- **长命令必须显式给 `timeout`**：工具默认 **120s 就掐，`run_in_background` 也不豁免**。症状 = `Status: failed` +
+  `Duration: 2m 1s` + **日志停在中间某行**（输出先缓存、结束才落盘）。`flutter build apk --release` 实测 ~1m56s。
+- **Python 脚本里调 flutter 必须解析出 `.bat`**：`subprocess` 走 `CreateProcess`，只自动补 `.exe`（`PATHEXT` 是
+  cmd.exe 的规则）→ `["flutter", ...]` 报 `FileNotFoundError [WinError 2]`。用 `shutil.which("flutter")`。
+  （手敲 `flutter` 能跑 ≠ 脚本里能跑，别怀疑 PATH。）
 - **命名管道耗尽（`CreateFile failed 231`）：Dart 无法 spawn 任何子进程** → analyze/test/`dart format` 全线失败，
   报错五花八门。杀 dart/cmd/conhost 无效（内核级句柄泄漏），**只能重启电脑**。别误判成代码错误。
 - **同一文件多处改动要一条条 Edit**（并行写会互相覆盖：日志 success 但没落盘），改完复核。
