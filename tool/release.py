@@ -128,6 +128,25 @@ def read_file_bytes(path: str) -> bytes:
         return handle.read()
 
 
+def flutter_command(*args: str) -> list[str]:
+    """组装 flutter 命令，并解决 Windows 上的可执行文件解析问题。
+
+    Flutter 在 Windows 上装的是 `flutter.bat`，而 `subprocess` 走的是
+    `CreateProcess`：它在找不到文件时只会自动补 **`.exe`**（`PATHEXT` 是
+    cmd.exe 的规则，`CreateProcess` 不认）。所以直接传 `"flutter"` 会报
+    `FileNotFoundError: [WinError 2] 系统找不到指定的文件`。
+
+    `shutil.which` 按完整 `PATHEXT` 解析，能拿到 `flutter.bat` 的真实路径。
+    解析不到时原样返回，交给 PATH 处理（Linux/macOS 上本来就是 `flutter`）。
+    """
+    executable = (
+        os.environ.get("FLUTTER_BIN")
+        or shutil.which("flutter")
+        or "flutter"
+    )
+    return [executable, *args]
+
+
 def run(command: list[str], *, cwd: str = ROOT, env: dict | None = None,
         check: bool = True) -> subprocess.CompletedProcess:
     log("  $ %s" % " ".join(command))
@@ -157,7 +176,7 @@ def run(command: list[str], *, cwd: str = ROOT, env: dict | None = None,
 def read_version() -> tuple[str, int]:
     with open(PUBSPEC, encoding="utf-8") as handle:
         content = handle.read()
-    match = re.search(r"^version:\s*([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)\s*$",
+    match = re.search(r"^version:[ \t]*([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)[ \t]*$",
                       content, re.MULTILINE)
     if not match:
         die("pubspec.yaml 里的 version 不是 `x.y.z+N` 形式，无法解析")
@@ -167,8 +186,12 @@ def read_version() -> tuple[str, int]:
 def write_version(name: str, code: int) -> None:
     with open(PUBSPEC, encoding="utf-8") as handle:
         content = handle.read()
+    # 注意用 `[ \t]*$` 而不是 `\s*$`：`$` 在 MULTILINE 下匹配行尾，
+    # 但 `\s` 能吃掉换行，`\s*$` 会把版本行末尾的 `\n` 一起吞掉，
+    # 于是 `version:` 与下一行之间的空行会被悄悄删掉（每次发版都产生一条
+    # 无意义的 pubspec diff）。
     content = re.sub(
-        r"^version:\s*[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+\s*$",
+        r"^version:[ \t]*[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+[ \t]*$",
         "version: %s+%d" % (name, code),
         content,
         count=1,
@@ -230,7 +253,7 @@ def build_apks() -> None:
     env = dict(os.environ)
     # 本机挂了 HTTP 代理，flutter 连 localhost 的观测端口会被代理拦掉。
     env.setdefault("NO_PROXY", "localhost,127.0.0.1,::1")
-    run(["flutter", "build", "apk", "--release"], env=env)
+    run(flutter_command("build", "apk", "--release"), env=env)
 
 
 def apk_path(abi: str) -> str:

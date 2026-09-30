@@ -3,6 +3,52 @@
   "assetsBase": "https://github.com/gillnotfail/schedule_plan/releases/download",
   "releases": [
     {
+      "versionCode": 2,
+      "versionName": "1.0.1",
+      "tag": "v1.0.1",
+      "publishedAt": "2026-09-30T23:32:18+08:00",
+      "notes": [
+        "修好了「学生一旦被标成休学或免修，就再也改不回来」的问题",
+        "**休学**和**免修**现在是两回事，别再用混了：",
+        "**休学**：这位同学确实不来了。名单里照旧排到最后；再点一下他的状态，会问「是否复学」，确认后立刻恢复正常",
+        "**免修**：只是免修这门课，人还是会来上课的。不再锁住其他状态 —— 迟到、早退照样能标，也照常计入考勤统计"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24134964,
+          "sha256": "1e4cbb54696a14848fa3aa4799445234bc838af6a630ddd9a1ea59b9ad4d495f"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22133884,
+          "sha256": "4d1918de37de2d9d3abbac9613b7f85a76f69068621d2930c67022c03220e1fb"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 1,
+          "abi": "arm64-v8a",
+          "file": "patch-1-2-arm64-v8a.spdp",
+          "size": 3990958,
+          "targetSize": 24134964,
+          "sha256": "eae9a99a9dbaed72f419866c37a686aeea39c8254d7b75e9ccb399f0968b94e1",
+          "baseSha256": "fb6419a6e92666d8ae561ee952b4658f529ba0f5158fb62b59fd1769279d7bb5"
+        },
+        {
+          "fromVersionCode": 1,
+          "abi": "armeabi-v7a",
+          "file": "patch-1-2-armeabi-v7a.spdp",
+          "size": 4422731,
+          "targetSize": 22133884,
+          "sha256": "42b9ecfa9dcda06f230119af0087ce09da296623ac3b914c06483fe577955d9c",
+          "baseSha256": "5ad2be954140cbe5da5aed662812bde118cbc636ffed84fd18df92e23cad08a0"
+        }
+      ]
+    },
+    {
       "versionCode": 1,
       "versionName": "1.0.0",
       "tag": "v1.0.0",
@@ -54,5 +100,5 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-09-27T00:18:51+08:00"
+  "generatedAt": "2026-09-30T23:32:18+08:00"
 }
