@@ -236,10 +236,14 @@
 - **客户端清单地址**：raw.githubusercontent（第一）+ jsDelivr（第二、国内可达）+ 用户可配镜像前缀。自动检查一天一次
   （`updateLastCheckAt` 节流）。`UpdateService` 是独立 `ChangeNotifier`，`AppDependencies` 里
   `unawaited(autoCheckIfDue())`（不阻塞启动、不弹窗打断）。清单默认下载地址指向 `github.com`。
-- **本机网络（实测）**：`github.com` 解析出的 IP **TCP 直连不通**（DNS 给 `20.205.243.166`，而 `140.82.112.4:443`
-  是通的 → **特定 IP 被封，不是域名**）；`api.github.com`/`uploads.github.com`/`objects.githubusercontent.com`/
-  `raw.githubusercontent.com`/jsDelivr **都通**。→ 发布不受影响；手机侧若同样封这组 IP 必须配镜像前缀，且**这台机器
-  验证不了下载地址**。系统代理配了 `127.0.0.1:7890` 但 **`ProxyEnable=0` 且端口没监听**。
+- **本机网络（实测，别信旧结论）**：**按 IP 封，不是按域名**——DNS 解析正常但 TCP 连不上。
+  - **2026-09-30 复测**：`github.com`（`20.205.243.166`）**000 不通**；`raw.githubusercontent.com`
+    （`185.199.108/109/110/111.133`）**也 000 不通**（连测 4 次；**上一条「raw 都通」的结论已失效**）；
+    `api.github.com`（`20.205.243.168`）**200 通**；`cdn.jsdelivr.net`（`151.101.x.229`）**200 通**。
+  - 结论：**发布链路不受影响**（走 api.github.com + uploads）。客户端清单 `manifestUrls()` 是 **raw 第一、jsDelivr
+    第二**（raw 永远最新，jsDelivr 对分支有最长 12h 缓存，故意排第二），raw 不通时**自动落到 jsDelivr**——本机正好
+    是这个状态。手机侧若同样封这组 IP，必须配镜像前缀；且**这台机器验证不了真实下载地址**，只验证得了 jsDelivr。
+  - 系统代理配了 `127.0.0.1:7890` 但 **`ProxyEnable=0` 且端口没监听**（所以 curl 是直连，才有上面的现象）。
 - **`tool/release.py`**：`--bump` 自增版本号并写回 pubspec；**推送必须显式 `--push`**（标签一次性，试探性的本地跑
   不该造出不可回收的标签）；`--no-commit` 真空跑；`--skip-upload` 只产本地产物。分差基准取**严格小于当前
   versionCode 里最大的那个**，不能取「清单里第一个不是自己的」（清单降序，补发旧版本时会拿更新的版本当基准，方向反了）。
