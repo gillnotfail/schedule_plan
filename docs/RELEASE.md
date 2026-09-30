@@ -276,11 +276,21 @@ jsDelivr 对**分支引用**（`@main`）的缓存最长 **12 小时**；同一�
 
   ```bash
   curl -s "https://purge.jsdelivr.net/gh/gillnotfail/schedule_plan@main/updates/latest.json"
-  # {"status":"finished", "paths": {...}} → 已清；随后 @main 立刻返回最新内容
+  # {"status":"finished","paths":{"/gh/.../latest.json":{"throttled":false}}}
+  #   → 已清；随后 @main 立刻返回最新内容
   ```
 
 - 判断"是不是缓存在作怪"：同一个文件用两种引用各取一次，对比 `generatedAt`
   与首个版本号 —— `@main` 旧、`@<sha>` 新就一定是缓存。
+
+> **看 `throttled`，不要只看 `status`。** 被限流时返回的也是
+> `{"status":"finished", "paths": {…: {"throttled": true, "throttlingReset": 406}}}` ——
+> 状态是"完成"，但**这个路径根本没清**。连续发两个版本必然中招（限流窗口实测
+> 约 6 分钟），所以 `release.py` 会等到点自动重试一轮（最多 10 分钟），超时才告警。
+> 手工执行时看到 `throttled: true`，就按 `throttlingReset` 的秒数等一下再清。
+
+> **清完要回读验证**：`curl @main` 拿到的内容与本地 `updates/latest.json` 做 sha256
+> 对比，一致才算真的生效（只看 purge 的返回会被上面的限流骗过去）。
 
 ---
 
@@ -371,7 +381,7 @@ python tool/delta_patch.py apply old.apk patch.spdp out.apk
 | Release 建好了但没有附件 | 没设 `GITHUB_TOKEN`，脚本跳过上传（日志里会说明具体是哪种情况） |
 | 日志说"没有可用的 GITHUB_TOKEN"但文件明明在 | 看紧跟的「原因」一行：多半是等号右边是空的（编辑器没保存/粘贴没落盘） |
 | `401 Bad credentials` | 先用日志里的字符数判断：细粒度 PAT 只有 93 字符才是完整的，不够就是复制时被截断了 |
-| 应用内看不到新版本 | ①**仓库是私有的**（最常见，见 §2.1）；②`updates/latest.json` 没推到 `main` 分支；③**jsDelivr 上的清单缓存还没过期**（raw 不通时客户端只能读它，最长 12 小时）——手工 purge 一次即可，见 §4「清单的 12 小时缓存」 |
+| 应用内看不到新版本 | ①**仓库是私有的**（最常见，见 §2.1）；②`updates/latest.json` 没推到 `main` 分支；③**jsDelivr 上的清单缓存还没过期**（raw 不通时客户端只能读它，最长 12 小时）——手工 purge 一次即可，见 §4「清单的 12 小时缓存」；purge 返回里 `throttled` 为 `true` 表示被限流（要按 `throttlingReset` 秒数再等），**`status` 是 `finished` 也照样没清** |
 | 应用内看到新版但走整包 | 本机 APK 指纹和 `deltas[].baseSha256` 对不上（装过第三方渠道包）；或补丁没省到九折以下 |
 | 安装失败 `INSTALL_FAILED_VERSION_DOWNGRADE` | `pubspec.yaml` 的 `+N` 没递增 |
 | 安装被拦下 | 缺「安装未知应用」授权，或 Manifest 少了 `REQUEST_INSTALL_PACKAGES` |

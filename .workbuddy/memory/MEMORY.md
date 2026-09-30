@@ -81,6 +81,11 @@
   国内 raw 不通时客户端只能读它 → **手机端最多晚半天才看到更新**。手工补清 =
   `curl https://purge.jsdelivr.net/gh/<owner>/<repo>@main/updates/latest.json`（公开端点，无需凭据）；
   判断"是不是缓存在作怪"：同一个 commit 用 `@<sha>` 取是实时的，`@main` 旧 + `@<sha>` 新 = 缓存。
+  **清完必须回读 `@main` 的 sha256 与本地比**：purge 响应里 `status == "finished"` **不代表清成功**，
+  要看 `paths[...].throttled` —— 它为 `true` 时说明被限流（返回 `finished` 但**没清**）。连续发两个版本
+  必然被限流，实测 `throttlingReset` **约 6 分钟**，脚本会等到点自动重试一轮（上限 10 分钟）。
+  `release.py` 请求这个端点**走 curl 而不是 urllib**：本机 urllib 会被远程重置（`WinError 10054`），
+  同一地址 curl 正常（`api.github.com` 的 urllib 请求是好的，所以只有这一条会挂）。
 - **`GITHUB_TOKEN` 只放 `~/.schedule_plan-release.env`**（家目录，**绝不进仓库**——仓库里任何文件都可能被
   `git add -A` 带上去，PAT 泄露不可逆）；`verify_token()` 在**打包之前**先验。**别让用户把 token 贴进对话**（实测两次
   都被截到 31 字符）。`--bump` 自增版本号并写回 pubspec；**CHANGELOG 没有对应版本节时直接拒绝发布**（设计如此）。

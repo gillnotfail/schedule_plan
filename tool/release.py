@@ -427,7 +427,7 @@ def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
     return run(["git", *args], check=check)
 
 
-def purge_cdn_cache() -> None:
+def purge_cdn_cache(max_wait_seconds: int = 600) -> None:
     """清掉 jsDelivr 上清单文件的边缘缓存。
 
     **这条不能省。** jsDelivr 对分支引用（`@main`）的缓存最长 12 小时，而
@@ -440,25 +440,81 @@ def purge_cdn_cache() -> None:
     但我们没法在客户端拼 sha，所以只能在发布侧主动清。
 
     失败**不中止发布**——缓存自己会过期，顶多晚 12 小时看到更新。
+
+    **被限流会等着重试一轮**：jsDelivr 按路径限流，`throttlingReset` 实测 6~7 分钟
+    （2026-10-01 连发 v1.0.3 / v1.0.4 时第二次必然被打回）。既然"发布后立刻清"正是
+    最需要成功的时刻（老师下一秒就要在手机上点「检查更新」），就等这一轮再试；
+    剩余时间超过 [max_wait_seconds] 才放弃。**注意限流时返回的 `status` 仍是
+    `finished`** —— 只看 `status` 会把"没清掉"误判成"已清理"。
     """
+    deadline = time.monotonic() + max_wait_seconds
+    while True:
+        payload = _request_purge()
+        if payload is None:
+            return
+        entry = (payload.get("paths") or {}).get("/" + MANIFEST_CDN_PATH) or {}
+        finished = str(payload.get("status")) == "finished"
+        if finished and not entry.get("throttled"):
+            log("  jsDelivr 清单缓存已清理")
+            return
+        reset = entry.get("throttlingReset")
+        if (
+            finished
+            and isinstance(reset, (int, float))
+            and 0 < reset <= deadline - time.monotonic()
+        ):
+            log("  jsDelivr 限流中，等 %.0f 秒后重试…" % reset)
+            time.sleep(reset + 2)
+            continue
+        log("  ! jsDelivr 清单缓存没清掉：%s"
+            % json.dumps(payload, ensure_ascii=False)[:160])
+        if isinstance(reset, (int, float)) and reset > 0:
+            log("    %.0f 秒后可手工补清：%s" % (reset, MANIFEST_PURGE_URL))
+        else:
+            log("    最长 12 小时后自动过期；必要时手工补清：%s" % MANIFEST_PURGE_URL)
+        return
+
+
+def _request_purge() -> dict | None:
+    """请求一次 purge 端点，拿回解析后的 JSON；网络层失败返回 None（告警已在此打过）。
+
+    **优先走 curl。** 本机的 Python `urllib` 访问 `purge.jsdelivr.net` 会被远程
+    直接重置（`WinError 10054`，直连与走系统代理都一样），而同一个地址换成 curl
+    就能正常拿到 JSON —— 是这台机器的环境差异，不是端点的问题（`api.github.com`
+    的 urllib 请求是好的，所以发布本身没受影响，只有这一条会挂）。
+    找不到 curl 才回落 urllib。
+    """
+    curl = shutil.which("curl")
+    if curl:
+        result = subprocess.run(
+            [curl, "-s", "--max-time", "30", "-A", "schedule_plan-release",
+             MANIFEST_PURGE_URL],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        body = (result.stdout or "").strip()
+        if result.returncode == 0 and body:
+            try:
+                return json.loads(body)
+            except json.JSONDecodeError as error:
+                log("  ! 清理 jsDelivr 缓存失败（返回不是 JSON）：%s" % error)
+                return None
+        log("  ! 清理 jsDelivr 缓存失败（curl 退出码 %s）：%s"
+            % (result.returncode, (result.stderr or "").strip()[:120]))
+        return None
     request = urllib.request.Request(
         MANIFEST_PURGE_URL,
         headers={"User-Agent": "schedule_plan-release"},
     )
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
-            payload = json.loads(response.read().decode("utf-8") or "{}")
+            return json.loads(response.read().decode("utf-8") or "{}")
     except Exception as error:  # 网络问题一律只告警
         log("  ! 清理 jsDelivr 缓存失败（不影响发布，最长 12 小时后自动过期）：%s"
             % error)
-        return
-    entry = (payload.get("paths") or {}).get("/" + MANIFEST_CDN_PATH) or {}
-    if str(payload.get("status")) == "finished" and not entry.get("throttled"):
-        log("  jsDelivr 清单缓存已清理")
-    else:
-        # 有响应但状态不是 finished（偶发限流）：同样不阻断
-        log("  ! jsDelivr 返回异常：%s"
-            % json.dumps(payload, ensure_ascii=False)[:160])
+        return None
 
 
 def commit_and_tag(version_name: str, tag: str, push: bool) -> str:

@@ -296,6 +296,14 @@
     （`generatedAt` 停在 09-27）。`release.py` 现已在推送后自动调 `purge.jsdelivr.net/<path>`（公开端点、无需凭据、
     失败只告警不阻断发布），对应流程第 9 步。**同一个 commit 用 `@<sha>` 取是实时的**——判断"是不是缓存在作怪"
     就用这个对比（`@main` 旧、`@<sha>` 新 = 缓存）。
+  - **purge 的两个坑（2026-10-01 发 v1.0.4 时补齐）**：① `status == "finished"` **不等于清成功** ——
+    真正要读的是 `paths["/<owner>/<repo>@main/updates/latest.json"].throttled`；被限流时它返回
+    `{"status":"finished", "throttled":true, "throttlingReset":<秒>}`，只看 `status` 会把"没清掉"当成"已清理"。
+    ② 限流窗口实测 ~6 分钟（连续发两个版本必中），所以 `purge_cdn_cache()` 改成**等到点自动重试一轮**
+    （`max_wait_seconds=600`，超时才告警放弃），并在告警里打出剩余秒数与手工补清命令。
+  - **purge 端点必须用 curl 调**：本机 Python `urllib` 访问 `purge.jsdelivr.net` 一律
+    `WinError 10054`（直连和走代理都一样，不是代理问题），同一地址 `curl` 正常 200 ——
+    `_request_purge()` 因此 curl 优先、urllib 回落。`api.github.com` 的 urllib 请求没问题，别扩大化。
   - 系统代理配了 `127.0.0.1:7890` 但 **`ProxyEnable=0` 且端口没监听**（所以 curl 是直连，才有上面的现象）。
 - **`tool/release.py`**：`--bump` 自增版本号并写回 pubspec；**推送必须显式 `--push`**（标签一次性，试探性的本地跑
   不该造出不可回收的标签）；`--no-commit` 真空跑；`--skip-upload` 只产本地产物。分差基准取**严格小于当前
