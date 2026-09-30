@@ -8,13 +8,14 @@ import 'package:schedule_plan/features/attendance/day_attendance_ring.dart';
 
 /// 日历「考勤进度圆环」测试。
 ///
-/// 用户规格（本轮第 3 点）：红点换成圆圈，用进度表示当天考勤的百分比 ——
-/// 1. 当天无课 → 什么都不画；
-/// 2. 有课但没考勤记录 → 只有一圈透明描边；
-/// 3. 有记录 → 红色圆弧按百分比填充。
+/// 用户规格（第 18 轮定稿）：日历格子上有四样标记 —— 放假红点、调休紫点、
+/// **有课未点名的淡圈**（就是这里的圆环）、**已点名的出勤红弧**。圆环：
+/// 1. 当天没课、也没记录 → 一个像素都不画；
+/// 2. 当天有课但没点名 → 只画一圈**淡圈**（表示"还没点名"）；
+/// 3. 点过名 → 红色圆弧按**出勤率**填充（全勤 = 整圈，缺一半 = 半圈）。
 ///
 /// 这里不靠"看截图"判断，而是**真的把圆环画进一张位图**再数像素：
-/// 透明、淡描边、红色圆弧三种状态在位图上是可区分的。
+/// 全透明 / 淡圈 / 红色圆弧三种结果在位图上是可区分的。
 void main() {
   group('AttendanceDayStat 口径', () {
     test('没课 / 没有应点名人数时出勤率为 0', () {
@@ -52,34 +53,81 @@ void main() {
     });
   });
 
-  group('圆环绘制', () {
-    test('无课时不画任何东西', () {
-      final painter = _painter(progress: null, hasLesson: false, hasRecord: false);
-      expect(painter.visible, isFalse);
+  group('圆环可见性', () {
+    test('没课也没记录 → 一个像素都不画', () {
+      expect(
+        _painter(
+          progress: AttendanceDayStat.none.rate,
+          hasLesson: AttendanceDayStat.none.hasLesson,
+          hasRecord: AttendanceDayStat.none.hasRecord,
+        ).visible,
+        isFalse,
+      );
     });
 
-    testWidgets('三种状态在位图上可区分：全透明 / 淡描边 / 红色圆弧', (tester) async {
+    test('有课但没点名 → 画一圈淡圈', () {
+      const scheduledButNotMarked = AttendanceDayStat(
+        hasLesson: true,
+        expected: 40,
+        marked: 0,
+        present: 0,
+      );
+      expect(
+        _painter(
+          progress: scheduledButNotMarked.rate,
+          hasLesson: scheduledButNotMarked.hasLesson,
+          hasRecord: scheduledButNotMarked.hasRecord,
+        ).visible,
+        isTrue,
+      );
+    });
+
+    test('点过名就画 —— 哪怕当天已经没课了（记录保留）', () {
+      // 考勤记录不随课表变动删除：课被删掉后留下的记录仍然算"点过名"
+      const orphanRecord = AttendanceDayStat(
+        hasLesson: false,
+        expected: 0,
+        marked: 2,
+        present: 1,
+      );
+      expect(
+        _painter(
+          progress: orphanRecord.rate,
+          hasLesson: orphanRecord.hasLesson,
+          hasRecord: orphanRecord.hasRecord,
+        ).visible,
+        isTrue,
+      );
+    });
+  });
+
+  group('圆环绘制', () {
+    testWidgets('四种结果在位图上可区分：全透明 / 淡圈 / 半弧 / 整圈', (tester) async {
       // 位图必须走 runAsync：`Picture.toImage` 依赖真正的光栅化，
       // 在默认的伪异步时钟下会一直挂着（表现为测试 10 分钟超时）。
       final none = await tester.runAsync(
-        () => _paint(_painter(progress: null, hasLesson: false, hasRecord: false)),
+        () => _paint(_painter(progress: 0, hasLesson: false, hasRecord: false)),
       );
-      expect(none!.opaquePixels, 0, reason: '没课的日子不该有任何标记');
+      expect(none!.opaquePixels, 0, reason: '没课也没点名的日子不该有任何标记');
 
-      // 2) 有课没记录：只有一圈淡淡的描边，没有红色
-      final unmarked = await tester.runAsync(
+      // 有课没点名：只有一圈淡描边，没有红弧
+      final scheduled = await tester.runAsync(
         () => _paint(_painter(progress: 0, hasLesson: true, hasRecord: false)),
       );
-      expect(unmarked!.opaquePixels, greaterThan(0), reason: '要看得见"今天有课"');
-      expect(unmarked.redPixels, 0, reason: '没点名不该出现红色进度');
+      expect(
+        scheduled!.opaquePixels,
+        greaterThan(0),
+        reason: '有课但没点名的日子要留一圈淡圈',
+      );
+      expect(scheduled.redPixels, 0, reason: '还没点名，不该出现红色进度');
 
-      // 3) 点过名、全勤：整圈红色
+      // 点过名、全勤：整圈红色
       final full = await tester.runAsync(
         () => _paint(_painter(progress: 1, hasLesson: true, hasRecord: true)),
       );
-      expect(full!.redPixels, greaterThan(unmarked.redPixels));
+      expect(full!.redPixels, greaterThan(0));
 
-      // 4) 半勤：红色像素明显少于全勤
+      // 半勤：红色像素明显少于全勤
       final half = await tester.runAsync(
         () => _paint(_painter(progress: 0.5, hasLesson: true, hasRecord: true)),
       );
@@ -89,14 +137,41 @@ void main() {
         lessThan(full.redPixels * 0.75),
         reason: '50% 的弧长必须明显短于整圈',
       );
+
+      // 点过名但一个都没出勤：只剩淡色轨道托底，不该有红色进度
+      final blank = await tester.runAsync(
+        () => _paint(_painter(progress: 0, hasLesson: true, hasRecord: true)),
+      );
+      expect(
+        blank!.opaquePixels,
+        greaterThan(0),
+        reason: '点过名就该有环，哪怕出勤率是 0',
+      );
+      expect(blank.redPixels, 0, reason: '出勤率 0 不该出现红色进度');
     });
 
     test('参数不变时不重绘', () {
-      final painter = _painter(progress: 0.5, hasLesson: true, hasRecord: true);
+      final painter = _painter(
+        progress: 0.5,
+        hasLesson: true,
+        hasRecord: true,
+      );
       expect(painter.shouldRepaint(painter), isFalse);
       expect(
         painter.shouldRepaint(
           _painter(progress: 0.6, hasLesson: true, hasRecord: true),
+        ),
+        isTrue,
+      );
+      expect(
+        painter.shouldRepaint(
+          _painter(progress: 0.5, hasLesson: true, hasRecord: false),
+        ),
+        isTrue,
+      );
+      expect(
+        painter.shouldRepaint(
+          _painter(progress: 0.5, hasLesson: false, hasRecord: true),
         ),
         isTrue,
       );

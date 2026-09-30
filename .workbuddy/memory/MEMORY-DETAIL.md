@@ -81,10 +81,11 @@
   `compareRosterStudents(a, b, {mode, direction, isLongTerm, statusIndexOf})`（单测
   `test/unit/attendance_roster_sort_test.dart`）。排序状态**所有班共用一份**。有效状态 `_effectiveStatus`：长期状态 >
   当天记录 > 默认。
-- 日历标记是**进度圆环**（`day_attendance_ring.dart`）：无课不画；有课没记录 = 透明描边圈；有记录 = 红色圆弧按
-  `AttendanceDayStat.rate`（**出勤率 = 出勤人次 ÷ 应点名人次**，应点名含合班课全部班级的人）填充。数据源
-  `dayStats({from, to, teacherId})`，考勤页用 `_statsFrom/_statsTo` 缓存 + `_refreshRingStatsQuietly()`（**统计失败
-  只记日志**，不能把成功保存报成失败）。
+- 日历标记是**进度圆环**（`day_attendance_ring.dart`）：`visible = hasLesson || hasRecord` —— **没课也没记录才
+  不画**。① 有课没点名：只有一圈**淡圈**（轨道色 `alpha 0.55`）；② 点过名：红色圆弧按 `AttendanceDayStat.rate`
+  （**出勤率 = 出勤人次 ÷ 应点名人次**，应点名含合班课全部班级的人）填充，底下一条实色淡轨道托底。数据源
+  `dayStats({from, to, teacherId, weekdayOverrides})`，考勤页用 `_statsFrom/_statsTo` 缓存 +
+  `_refreshRingStatsQuietly()`（**统计失败只记日志**，不能把成功保存报成失败）。
 - 设置页「课表与名单」分组顺序 = **实际使用顺序**：Excel 导入名单 → 学生名单 → 班级管理 → 课程管理 → 级联开关。
   「作息模板」入口在课表页 `showScheduleSettingsSheet` 的 `onManageTemplates`（保留是为还能建「错峰课表」第二套
   作息，别让 `TemplateListPage` 变死代码）。设置页默认状态下拉只用**日常五态 + 未标记**。
@@ -172,10 +173,21 @@
   `DateUtils.isoWeekday(_selectedDate)`）；② 圆环的应点名（`AttendanceRepository.dayStats(weekdayOverrides:)`，
   原来按 `day.weekday` 查 `expectedByWeekday`，调休日会查到一个空圈）；③ 课表页表头「今天」落列
   （`ClassGridView.todayWeekday`，缺省才回落 `DateTime.now().weekday`）。**新增第四处前先回来读这一条。**
-- **考勤日历的调休标记**：`_buildDayTile` 顶部一个 5px 小圆点（`holiday → scheme.error`、`makeupWorkday →
-  scheme.tertiary`，与工具箱日历同一套配色）。周视图并进「周X」那一行（不占高度），月视图在顶部留 **6px 固定**
-  标记带（固定高度是为了有/无标记的格子一样高，网格不参差）。总开关关掉时不标。长按 Tooltip 走 `_dayHint(day, stat)`
-  ——**先日历安排后点名情况**（原来的 `_ringHint` 已被它取代，别再退回单段文案）。
+- **考勤日历的标记共四样（第 18 轮定稿）**：① `CalendarMark.colorOf(kind, scheme)` 决定的小圆点 —— **放假 =
+  红（`scheme.error`）、调休上班 = 紫（`scheme.tertiary`），`weekend` / `workday` 一律 `null`**；② 上面那条进度圆环
+  （有课未点名 = 淡圈、点过名 = 红弧）。**四种标记都在日历下方那行图例里说明**。
+  实现集中在 `features/attendance/calendar_marks.dart`（`CalendarMark` + 公开的可测组件 `AttendanceCalendarLegend`），
+  `_buildDayTile` 只负责摆位置：周视图并进「周X」那一行（不占高度），月视图在顶部留 **6px 固定**标记带
+  （固定高度是为了有/无标记的格子一样高，网格不参差）。总开关关掉时传 `null` 进去 → 一律不标。
+  **工具箱日历的红/橙配色与这里不同是有意的**（那页格子有「休 / 班」文字兜底），不要"统一"掉。
+- **考勤日历不再有长按提示（第 18 轮删）**：老师反馈长按命中率低，而且标记语义自解释。`_dayHint(day, stat)`、
+  `_shifts` 字段（`shiftMap` 仍然要为 `dayStats(weekdayOverrides:)` 保留，只是不再存进 state），以及
+  `attendanceHolidayHint` / `attendanceMakeupHint` / `attendanceMakeupPending` / `attendanceRingRate` /
+  `attendanceRingNoRecord` 五个键**一并作废**——走 `add_l10n_keys.py` 的 `DROP_KEYS`；脚本现在会把 `@key`
+  占位符元数据一起 pop，免得 arb 里留下孤立的 `@xyz`（gen-l10n 会当成"有元数据却没文案"）。标记的含义改由
+  日历下方那行图例承担 —— 四项，按顺序对应 `CalendarLegendGlyph.dot`（放假）/`.dot`（调休上班）/`.ring`
+  （有课未点名）/`.arc`（出勤率），文案键 `attendanceLegendHoliday` / `attendanceLegendMakeup` /
+  `attendanceLegendNoRecord` / `attendanceLegendRate`。**改标记颜色/可见条件时必须同步改图例**。
 - **考勤页回切要刷新**（`IndexedStack` 切回来既不 `initState` 也不重读库）：`_lastTabIndex` + `_reloadIfReturned()`
   照抄课表页的做法，只 `setState` 重算「开关 + 圆环 + 当日课程」（`_refreshHolidayContext`），**不置整页 `_loading`**。
   `_consumePendingAttendance()` 改成**同步返回 bool**（是否消费了「去点名」请求），有请求时跳过回切刷新，免得

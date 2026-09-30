@@ -1540,14 +1540,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusShortUnmarked => '—';
 
   @override
-  String get attendanceRingNoRecord => 'Scheduled · not marked';
-
-  @override
-  String attendanceRingRate(int present, int expected) {
-    return 'Present $present/$expected';
-  }
-
-  @override
   String get statusSuspended => 'Suspended';
 
   @override
@@ -2288,20 +2280,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attendanceResumeConfirm => 'Resume';
 
   @override
-  String attendanceMakeupHint(String weekday) {
-    return 'Make-up workday · $weekday schedule';
-  }
-
-  @override
-  String get attendanceMakeupPending => 'Make-up workday · weekday not set yet';
-
-  @override
-  String attendanceHolidayHint(String name) {
-    return '$name · Holiday';
-  }
-
-  @override
   String gridMakeupHint(String date, String weekday) {
     return '$date make-up workday · $weekday schedule';
   }
+
+  @override
+  String get attendanceLegendMakeup => 'Make-up workday';
+
+  @override
+  String get attendanceLegendHoliday => 'Holiday';
+
+  @override
+  String get attendanceLegendNoRecord => 'Not marked';
+
+  @override
+  String get attendanceLegendRate => 'Attendance';
 }

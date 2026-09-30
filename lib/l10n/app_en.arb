@@ -743,18 +743,6 @@
   "statusShortAbsent": "A",
   "statusShortLeave": "Lv",
   "statusShortUnmarked": "—",
-  "attendanceRingNoRecord": "Scheduled · not marked",
-  "attendanceRingRate": "Present {present}/{expected}",
-  "@attendanceRingRate": {
-    "placeholders": {
-      "present": {
-        "type": "int"
-      },
-      "expected": {
-        "type": "int"
-      }
-    }
-  },
   "statusSuspended": "Suspended",
   "statusExempt": "Exempt",
   "statusShortSuspended": "Sus",
@@ -1295,24 +1283,7 @@
       }
     }
   },
-  "attendanceMakeupHint": "Make-up workday · {weekday} schedule",
-  "attendanceMakeupPending": "Make-up workday · weekday not set yet",
-  "attendanceHolidayHint": "{name} · Holiday",
   "gridMakeupHint": "{date} make-up workday · {weekday} schedule",
-  "@attendanceMakeupHint": {
-    "placeholders": {
-      "weekday": {
-        "type": "String"
-      }
-    }
-  },
-  "@attendanceHolidayHint": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "@gridMakeupHint": {
     "placeholders": {
       "date": {
@@ -1322,5 +1293,9 @@
         "type": "String"
       }
     }
-  }
+  },
+  "attendanceLegendMakeup": "Make-up workday",
+  "attendanceLegendHoliday": "Holiday",
+  "attendanceLegendNoRecord": "Not marked",
+  "attendanceLegendRate": "Attendance"
 }

@@ -1505,14 +1505,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statusShortUnmarked => '—';
 
   @override
-  String get attendanceRingNoRecord => '已排课 · 未点名';
-
-  @override
-  String attendanceRingRate(int present, int expected) {
-    return '出勤 $present/$expected';
-  }
-
-  @override
   String get statusSuspended => '休学';
 
   @override
@@ -2217,20 +2209,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attendanceResumeConfirm => '复学';
 
   @override
-  String attendanceMakeupHint(String weekday) {
-    return '调休上班 · 按$weekday的课表';
-  }
-
-  @override
-  String get attendanceMakeupPending => '调休上班 · 还没确认上周几的课';
-
-  @override
-  String attendanceHolidayHint(String name) {
-    return '$name · 放假';
-  }
-
-  @override
   String gridMakeupHint(String date, String weekday) {
     return '$date 调休上班，上$weekday的课';
   }
+
+  @override
+  String get attendanceLegendMakeup => '调休上班';
+
+  @override
+  String get attendanceLegendHoliday => '放假';
+
+  @override
+  String get attendanceLegendNoRecord => '有课未点名';
+
+  @override
+  String get attendanceLegendRate => '出勤率';
 }

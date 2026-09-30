@@ -3,6 +3,54 @@
   "assetsBase": "https://github.com/gillnotfail/schedule_plan/releases/download",
   "releases": [
     {
+      "versionCode": 4,
+      "versionName": "1.0.3",
+      "tag": "v1.0.3",
+      "publishedAt": "2026-10-01T00:35:15+08:00",
+      "notes": [
+        "**考勤页日历的标记，含义现在直接写在日历下面了**：日历上的标记一共四种，一眼就能对上，不用再猜",
+        "**红点** = 放假（国庆连放 7 天就标 7 个红点，表示这几天不用上课）",
+        "**紫点** = 调休上班（一年只有那么几天）",
+        "**淡圈** = 这天有课、但还没点名",
+        "**红弧** = 已经点过名，红色弧长就是当天的出勤率（全勤是整整一圈，缺一半就是半圈）",
+        "去掉了考勤日历的长按提示（不太好按出来，而且图例已经写明每种标记的意思）"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24134964,
+          "sha256": "4982f199cd4564eca6865b8a5e9fe49dce5563770b7f33a059441041419583ab"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22133884,
+          "sha256": "f0cd315570aecc644b9b47dc92aca7d23a4562f895981636ef12cc5ce0c06721"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 3,
+          "abi": "arm64-v8a",
+          "file": "patch-3-4-arm64-v8a.spdp",
+          "size": 3997405,
+          "targetSize": 24134964,
+          "sha256": "55b6e6c10a8a3318381bd6ff13560ee3c74159dd75f283fcd180d28d727fc9b4",
+          "baseSha256": "6e29a2d6ee9e97df016d5b7f72cacbaabd530cb5b7216b8f7d99b747282479f1"
+        },
+        {
+          "fromVersionCode": 3,
+          "abi": "armeabi-v7a",
+          "file": "patch-3-4-armeabi-v7a.spdp",
+          "size": 4433216,
+          "targetSize": 22133884,
+          "sha256": "d1c85d342bde03254e98ea7edac456622f0faaf11d8f02b4e8425fc75ff2276e",
+          "baseSha256": "cd3544c8a08aa983a23521d66b30507c28a2326fe175b3e560b2b42ee35929f7"
+        }
+      ]
+    },
+    {
       "versionCode": 3,
       "versionName": "1.0.2",
       "tag": "v1.0.2",
@@ -145,5 +193,5 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-10-01T00:02:43+08:00"
+  "generatedAt": "2026-10-01T00:35:15+08:00"
 }

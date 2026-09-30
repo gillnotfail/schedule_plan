@@ -4,15 +4,19 @@ import 'package:flutter/material.dart';
 
 import 'package:schedule_plan/data/models/attendance.dart';
 
-/// 日历上围绕日期数字的「考勤进度圆环」（用户规格：红点换成圆环）。
+/// 日历上围绕日期数字的「考勤进度圆环」（用户规格，第 18 轮定稿）。
 ///
 /// 三种状态，一眼可辨：
 /// 1. **当天无课** → 完全不画（[stat] 为 null 或 `hasLesson == false` 且没记录）；
-/// 2. **有课但一条考勤记录都没有** → 只有一圈**透明描边**，表示"还没点名"；
-/// 3. **点过名** → 红色圆弧按**出勤率**填充：全勤=整圈，缺一半=半圈。
+/// 2. **有课但一条考勤记录都没有** → 只有一圈**淡圈**，表示"这天有课、还没点名"；
+/// 3. **点过名** → 红色圆弧按**出勤率**填充：全勤 = 整圈，缺一半 = 半圈。
+///
+/// 与日历格子上另外两样标记（放假红点、调休紫点，见 `CalendarMark`）互不干扰：
+/// 点表示"日历安排"，圈表示"点名进度"。四种标记的含义统一写在日历下方的
+/// `AttendanceCalendarLegend` 里，老师不用猜。
 ///
 /// 之所以是"出勤率"而不是"点名完成度"：老师扫月历想看的是"哪天班上出勤不正常"，
-/// "哪天没点名"从状态 2 的透明圈就已经能看出来（口径详见 [AttendanceDayStat]）。
+/// "哪天没点名"从状态 2 的淡圈就已经能看出来（口径详见 [AttendanceDayStat]）。
 ///
 /// 圆环**套在日期数字外面**（不是另起一行），所以不占额外高度，
 /// 周视图和月视图能共用同一套版式。
@@ -37,7 +41,7 @@ class DayAttendanceRing extends StatelessWidget {
   /// 进度色：用户指定用红色（异常醒目，与"今天"的强调色区分开）
   final Color progressColor;
 
-  /// 轨道色：未点名的透明圈 / 进度环的底
+  /// 轨道色：进度环的底 —— 缺的那一段露出它，一眼看出没出全勤
   final Color trackColor;
 
   /// 日期圆的直径
@@ -87,6 +91,8 @@ class AttendanceRingPainter extends CustomPainter {
 
   /// 0~1；为 null 表示当天无课（不画环）
   final double? progress;
+
+  /// 当天排了课 —— 决定"有课没点名"那天画不画淡圈
   final bool hasLesson;
   final bool hasRecord;
   final Color progressColor;
@@ -105,7 +111,7 @@ class AttendanceRingPainter extends CustomPainter {
     final radius = (math.min(size.width, size.height) - strokeWidth) / 2;
     final rect = Rect.fromCircle(center: center, radius: radius);
 
-    // 底：一条淡淡的整圈。没点过名时它就是"透明圆圈"的全部内容；
+    // 底：一条淡淡的整圈。没点过名时它就是"淡圈"的全部内容；
     // 点过名时它托住进度弧，缺的那一段才看得出来。
     final track = Paint()
       ..style = PaintingStyle.stroke

@@ -14,12 +14,6 @@ import os
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 NEW_KEYS = {
-    # ---- 第 6 轮：日历圆环：有课但没点名 / 点过名后的出勤率 ----
-    "attendanceRingNoRecord": {"zh": "已排课 · 未点名", "en": "Scheduled · not marked"},
-    "attendanceRingRate": {
-        "zh": "出勤 {present}/{expected}",
-        "en": "Present {present}/{expected}",
-    },
     # ---- 第 7 轮：休学 / 免修（课程级长期状态，180 天）----
     "statusSuspended": {"zh": "休学", "en": "Suspended"},
     "statusExempt": {"zh": "免修", "en": "Exempt"},
@@ -499,23 +493,24 @@ NEW_KEYS = {
         "en": "Version {version} available",
     },
     # ---- 第 17 轮：调休在考勤日历与课表表头上的呈现 ----
-    # 背景：工具箱日历里已经能确认「调休那天上周几的课」，但考勤日历看不到
+    # 背景：工具箱日历里已经能确认「调休那天上周几的课」，考勤日历却看不到
     # 哪几天是调休、课表页也不知道"今天该照着哪一天的课表上"。于是：
-    # 考勤日历 → 放假/调休各一个小圆点 + 长按说明；
-    # 课表表头 → 「今天」圆点落列改按调休映射，并把本周调休提前标在对应列。
-    "attendanceMakeupHint": {
-        "zh": "调休上班 · 按{weekday}的课表",
-        "en": "Make-up workday · {weekday} schedule",
-    },
-    "attendanceMakeupPending": {
-        "zh": "调休上班 · 还没确认上周几的课",
-        "en": "Make-up workday · weekday not set yet",
-    },
-    "attendanceHolidayHint": {"zh": "{name} · 放假", "en": "{name} · Holiday"},
+    # 考勤日历 → 调休一个小圆点；课表表头 → 「今天」圆点落列改按调休映射，
+    # 并把本周调休提前标在对应列。
+    # （考勤日历的长按说明在第 18 轮已去掉，见下面的 DROP_KEYS。）
     "gridMakeupHint": {
         "zh": "{date} 调休上班，上{weekday}的课",
         "en": "{date} make-up workday · {weekday} schedule",
     },
+    # ---- 第 18 轮：考勤日历底部的四项图例 ----
+    # 背景：日历格子上共四种标记 —— 放假红点、调休紫点、有课未点名的淡圈、
+    # 已点名的出勤红弧。老师反馈"放假的红点也看不清""紫点是什么意思我不懂"，
+    # 于是保留这套标记，只在日历下面写一行图例把四种一次讲清楚；
+    # 靠不住的长按提示（命中率低）一并去掉。
+    "attendanceLegendHoliday": {"zh": "放假", "en": "Holiday"},
+    "attendanceLegendMakeup": {"zh": "调休上班", "en": "Make-up workday"},
+    "attendanceLegendNoRecord": {"zh": "有课未点名", "en": "Not marked"},
+    "attendanceLegendRate": {"zh": "出勤率", "en": "Attendance"},
 }
 
 # 需要改口径的旧键（用户规格变了，文案必须跟着走，否则和界面行为对不上）
@@ -543,20 +538,19 @@ UPDATE_KEYS = {
 # 老师只需要点异常的那几个。
 DROP_KEYS = ["attendanceMarkAllPresent", "attendanceStatusHint",
              # 第 10 轮：工具箱去掉了「工具 / 教学成果」两个文字 Tab，改用滑动 + 圆点
-             "toolboxToolsTab", "toolboxAchievementsTab"]
+             "toolboxToolsTab", "toolboxAchievementsTab",
+             # 第 18 轮：考勤日历不再有长按提示（命中率低），这几条只服务于
+             # 旧长按提示的文案随之作废；图例那一版也从"已点名"改成四项（见 NEW_KEYS）
+             "attendanceRingNoRecord", "attendanceRingRate",
+             "attendanceMakeupHint", "attendanceMakeupPending",
+             "attendanceHolidayHint",
+             "attendanceLegendMarked"]
 
 PLACEHOLDERS = {
-    "attendanceMakeupHint": {"placeholders": {"weekday": {"type": "String"}}},
-    "attendanceHolidayHint": {"placeholders": {"name": {"type": "String"}}},
     "gridMakeupHint": {
         "placeholders": {
             "date": {"type": "String"},
             "weekday": {"type": "String"},
-        },
-    },
-    "attendanceRingRate": {
-        "placeholders": {            "present": {"type": "int"},
-            "expected": {"type": "int"},
         },
     },
     "attendanceLongTermUntil": {
@@ -688,6 +682,9 @@ def main():
         data = load(path)
         for key in DROP_KEYS:
             data.pop(key, None)
+            # 占位符元数据也要一起删：留下孤立的 "@xyz" 会被 gen-l10n 当成
+            # "有元数据却没有对应文案"的异常
+            data.pop("@" + key, None)
         for key, values in UPDATE_KEYS.items():
             assert key in data, "%s 里没有 %s，不能凭空 create" % (locale, key)
             data[key] = values[locale]

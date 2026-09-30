@@ -2954,18 +2954,6 @@ abstract class AppLocalizations {
   /// **'—'**
   String get statusShortUnmarked;
 
-  /// No description provided for @attendanceRingNoRecord.
-  ///
-  /// In en, this message translates to:
-  /// **'Scheduled · not marked'**
-  String get attendanceRingNoRecord;
-
-  /// No description provided for @attendanceRingRate.
-  ///
-  /// In en, this message translates to:
-  /// **'Present {present}/{expected}'**
-  String attendanceRingRate(int present, int expected);
-
   /// No description provided for @statusSuspended.
   ///
   /// In en, this message translates to:
@@ -4190,29 +4178,35 @@ abstract class AppLocalizations {
   /// **'Resume'**
   String get attendanceResumeConfirm;
 
-  /// No description provided for @attendanceMakeupHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Make-up workday · {weekday} schedule'**
-  String attendanceMakeupHint(String weekday);
-
-  /// No description provided for @attendanceMakeupPending.
-  ///
-  /// In en, this message translates to:
-  /// **'Make-up workday · weekday not set yet'**
-  String get attendanceMakeupPending;
-
-  /// No description provided for @attendanceHolidayHint.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} · Holiday'**
-  String attendanceHolidayHint(String name);
-
   /// No description provided for @gridMakeupHint.
   ///
   /// In en, this message translates to:
   /// **'{date} make-up workday · {weekday} schedule'**
   String gridMakeupHint(String date, String weekday);
+
+  /// No description provided for @attendanceLegendMakeup.
+  ///
+  /// In en, this message translates to:
+  /// **'Make-up workday'**
+  String get attendanceLegendMakeup;
+
+  /// No description provided for @attendanceLegendHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday'**
+  String get attendanceLegendHoliday;
+
+  /// No description provided for @attendanceLegendNoRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Not marked'**
+  String get attendanceLegendNoRecord;
+
+  /// No description provided for @attendanceLegendRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get attendanceLegendRate;
 }
 
 class _AppLocalizationsDelegate

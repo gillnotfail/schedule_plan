@@ -31,6 +31,7 @@ import 'package:schedule_plan/data/repositories/student_repository.dart';
 import 'package:schedule_plan/data/services/holiday_service.dart';
 import 'package:schedule_plan/data/settings_state.dart';
 import 'package:schedule_plan/features/attendance/attendance_status_strip.dart';
+import 'package:schedule_plan/features/attendance/calendar_marks.dart';
 import 'package:schedule_plan/features/attendance/class_group_band.dart';
 import 'package:schedule_plan/features/attendance/day_attendance_ring.dart';
 import 'package:schedule_plan/features/attendance/roll_call_dialog.dart';
@@ -63,11 +64,6 @@ class _AttendancePageState extends State<AttendancePage> {
   /// 节假日 / 调休服务。`kindOf` / `infoOf` 是纯静态查表（判断这天是放假
   /// 还是调休上班），`shiftMap` 一次取回整段区间的「调休日上周几的课」。
   final HolidayService _holidays = HolidayService();
-
-  /// [_dayStats] 覆盖区间内，老师确认过的调休映射（key = "YYYY-MM-DD"，
-  /// value = 这天实际执行的星期几）。日历的标记与说明文案读它 ——
-  /// 放 state 里是为了让 `build` 能同步取到（否则每格都得 await 一次查库）。
-  Map<String, int> _shifts = const <String, int>{};
 
   /// 节假日与调休总开关。关掉之后一律按「周六周日休息」看，日历不再标调休。
   bool _holidayAware = true;
@@ -324,7 +320,6 @@ class _AttendancePageState extends State<AttendancePage> {
     }
     setState(() {
       _dayStats = stats;
-      _shifts = shifts;
       _statsFrom = from;
       _statsTo = to;
     });
@@ -845,6 +840,7 @@ class _AttendancePageState extends State<AttendancePage> {
   // ---------------------------------------------------------------------------
   Widget _buildCalendar(AppColorTokens tokens) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final l10n = context.l10n;
     final weekStart = app_dates.DateUtils.startOfWeek(_selectedDate);
     final days = _monthView
@@ -925,6 +921,33 @@ class _AttendancePageState extends State<AttendancePage> {
               _buildMonthGrid(days, theme, tokens)
             else
               _buildWeekStrip(days, theme, tokens),
+            const SizedBox(height: AppConstants.spaceS),
+            // 图例：把日历上的四样标记一次讲清楚 —— 放假红点、调休紫点、
+            // 未点名淡圈、出勤红弧。写在下面老师不用猜，也就不用再长按试探。
+            AttendanceCalendarLegend(
+              items: <CalendarLegendItem>[
+                CalendarLegendItem(
+                  glyph: CalendarLegendGlyph.dot,
+                  color: CalendarMark.holidayColor(scheme),
+                  label: l10n.attendanceLegendHoliday,
+                ),
+                CalendarLegendItem(
+                  glyph: CalendarLegendGlyph.dot,
+                  color: CalendarMark.makeupColor(scheme),
+                  label: l10n.attendanceLegendMakeup,
+                ),
+                CalendarLegendItem(
+                  glyph: CalendarLegendGlyph.ring,
+                  color: scheme.outlineVariant,
+                  label: l10n.attendanceLegendNoRecord,
+                ),
+                CalendarLegendItem(
+                  glyph: CalendarLegendGlyph.arc,
+                  color: tokens.nowLine,
+                  label: l10n.attendanceLegendRate,
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -1001,7 +1024,7 @@ class _AttendancePageState extends State<AttendancePage> {
     final isToday = app_dates.DateUtils.isSameDay(day, DateTime.now());
     final inMonth = !monthGrid || day.month == _selectedDate.month;
     final stat = _dayStats[app_dates.DateUtils.formatDate(day)];
-    // 放假 / 调休上班的标记。总开关关掉时不标（与工具箱日历同一个条件）
+    // 放假 / 调休上班的标记。总开关关掉时一律不标。
     final mark = _dayMark(
       _holidayAware ? HolidayService.kindOf(day) : null,
       scheme,
@@ -1042,47 +1065,43 @@ class _AttendancePageState extends State<AttendancePage> {
                 ],
               ),
             const SizedBox(height: 3),
-            // 日期数字外面套一圈考勤进度环（用户规格：红点换成圆圈，
-            // 有课没点名 = 透明圈；点过名 = 红色圆弧按出勤率填充）
-            Tooltip(
-              message: _dayHint(day, stat),
-              waitDuration: const Duration(milliseconds: 400),
-              child: DayAttendanceRing(
-                stat: stat,
-                progressColor: tokens.nowLine,
-                trackColor: scheme.outlineVariant,
-                child: AnimatedContainer(
-                  duration: AppMotion.standard,
-                  curve: AppMotion.expressive,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
+            // 日期数字外面套一圈考勤进度环：**有课的日子才有环**
+            // （有课没点名 = 淡圈；点过名 = 红弧按出勤率填充）。
+            DayAttendanceRing(
+              stat: stat,
+              progressColor: tokens.nowLine,
+              trackColor: scheme.outlineVariant,
+              child: AnimatedContainer(
+                duration: AppMotion.standard,
+                curve: AppMotion.expressive,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? scheme.primary
+                      : (isToday
+                            ? scheme.primaryContainer.withValues(alpha: 0.55)
+                            : Colors.transparent),
+                  shape: BoxShape.circle,
+                  border: isToday && !isSelected
+                      ? Border.all(
+                          color: scheme.primary.withValues(alpha: 0.6),
+                          width: 1.5,
+                        )
+                      : null,
+                ),
+                child: Text(
+                  '${day.day}',
+                  style: theme.textTheme.bodySmall?.copyWith(
                     color: isSelected
-                        ? scheme.primary
-                        : (isToday
-                              ? scheme.primaryContainer.withValues(alpha: 0.55)
-                              : Colors.transparent),
-                    shape: BoxShape.circle,
-                    border: isToday && !isSelected
-                        ? Border.all(
-                            color: scheme.primary.withValues(alpha: 0.6),
-                            width: 1.5,
-                          )
-                        : null,
-                  ),
-                  child: Text(
-                    '${day.day}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: isSelected
-                          ? scheme.onPrimary
-                          : (inMonth
-                                ? scheme.onSurface
-                                : scheme.onSurfaceVariant.withValues(
-                                    alpha: 0.4,
-                                  )),
-                      fontWeight: isSelected || isToday
-                          ? FontWeight.w800
-                          : FontWeight.w500,
-                    ),
+                        ? scheme.onPrimary
+                        : (inMonth
+                              ? scheme.onSurface
+                              : scheme.onSurfaceVariant.withValues(
+                                  alpha: 0.4,
+                                )),
+                    fontWeight: isSelected || isToday
+                        ? FontWeight.w800
+                        : FontWeight.w500,
                   ),
                 ),
               ),
@@ -1093,16 +1112,12 @@ class _AttendancePageState extends State<AttendancePage> {
     );
   }
 
-  /// 日历格子上表示「放假 / 调休上班」的小圆点。
+  /// 日历格子上表示「放假 / 调休上班」的小圆点 —— 语义见 [CalendarMark]。
   ///
-  /// 颜色口径与工具箱日历**一致**（放假红、调休上班橙）：老师在那页认过的
-  /// 颜色，到考勤页不用重新学。没有安排的日子返回 null，一个像素都不占。
+  /// 放假 = 红点、调休上班 = 紫点。没有安排的日子返回 null，
+  /// 连那条占位的高度条里都不落点。
   Widget? _dayMark(CalendarDayKind? kind, ColorScheme scheme) {
-    final color = switch (kind) {
-      CalendarDayKind.holiday => scheme.error,
-      CalendarDayKind.makeupWorkday => scheme.tertiary,
-      _ => null,
-    };
+    final color = CalendarMark.colorOf(kind, scheme);
     if (color == null) {
       return null;
     }
@@ -1111,38 +1126,6 @@ class _AttendancePageState extends State<AttendancePage> {
       height: 5,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
-  }
-
-  /// 日历格子的说明文案（长按日期可见）：先说日历安排（放假 / 调休上班上周几的课），
-  /// 再说这一天的点名情况，两行都是给老师"不用去猜"用的。
-  String _dayHint(DateTime day, AttendanceDayStat? stat) {
-    final l10n = context.l10n;
-    final parts = <String>[];
-    if (_holidayAware) {
-      final kind = HolidayService.kindOf(day);
-      if (kind == CalendarDayKind.holiday) {
-        parts.add(
-          l10n.attendanceHolidayHint(
-            l10n.holidayName(HolidayService.infoOf(day)?.name),
-          ),
-        );
-      } else if (kind == CalendarDayKind.makeupWorkday) {
-        final shift = _shifts[app_dates.DateUtils.formatDate(day)];
-        parts.add(
-          shift == null
-              ? l10n.attendanceMakeupPending
-              : l10n.attendanceMakeupHint(l10n.weekdayShort(shift)),
-        );
-      }
-    }
-    if (stat != null && stat.hasLesson) {
-      parts.add(
-        stat.hasRecord
-            ? l10n.attendanceRingRate(stat.present, stat.expected)
-            : l10n.attendanceRingNoRecord,
-      );
-    }
-    return parts.isEmpty ? l10n.noData : parts.join('\n');
   }
 
   List<DateTime> _monthDays(DateTime month) {

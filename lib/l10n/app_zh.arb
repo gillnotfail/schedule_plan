@@ -743,18 +743,6 @@
   "statusShortAbsent": "缺",
   "statusShortLeave": "假",
   "statusShortUnmarked": "—",
-  "attendanceRingNoRecord": "已排课 · 未点名",
-  "attendanceRingRate": "出勤 {present}/{expected}",
-  "@attendanceRingRate": {
-    "placeholders": {
-      "present": {
-        "type": "int"
-      },
-      "expected": {
-        "type": "int"
-      }
-    }
-  },
   "statusSuspended": "休学",
   "statusExempt": "免修",
   "statusShortSuspended": "休",
@@ -1295,24 +1283,7 @@
       }
     }
   },
-  "attendanceMakeupHint": "调休上班 · 按{weekday}的课表",
-  "attendanceMakeupPending": "调休上班 · 还没确认上周几的课",
-  "attendanceHolidayHint": "{name} · 放假",
   "gridMakeupHint": "{date} 调休上班，上{weekday}的课",
-  "@attendanceMakeupHint": {
-    "placeholders": {
-      "weekday": {
-        "type": "String"
-      }
-    }
-  },
-  "@attendanceHolidayHint": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "@gridMakeupHint": {
     "placeholders": {
       "date": {
@@ -1322,5 +1293,9 @@
         "type": "String"
       }
     }
-  }
+  },
+  "attendanceLegendMakeup": "调休上班",
+  "attendanceLegendHoliday": "放假",
+  "attendanceLegendNoRecord": "有课未点名",
+  "attendanceLegendRate": "出勤率"
 }
