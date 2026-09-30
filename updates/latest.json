@@ -3,6 +3,51 @@
   "assetsBase": "https://github.com/gillnotfail/schedule_plan/releases/download",
   "releases": [
     {
+      "versionCode": 3,
+      "versionName": "1.0.2",
+      "tag": "v1.0.2",
+      "publishedAt": "2026-10-01T00:02:43+08:00",
+      "notes": [
+        "**考勤页的日历也能看到放假和调休了**：法定假日标一个红点、调休上班日标一个橙点，和工具箱日历是同一套颜色；长按某一天，还会告诉你那天是「调休上班 · 按星期三的课表」还是「国庆节 · 放假」",
+        "**课表页知道\"今天该上哪一天的课\"了**：碰上调休上班的日子（比如周六补周三的课），表头的「今天」小圆点会落在**周三**那一列，而不是指着周六那列空表格；这一周的调休安排也会提前标在对应的那一列上，长按可以看到「10-10 调休上班，上周三的课」",
+        "修好了「调休日照常要上课，考勤页却显示今天没有课」的问题：以前调休日是按那天**天然的星期几**去找课的，现在统一按学校通知的「上周几的课」来找，课程列表和日历圆环上的应点人数都跟着对上了"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24134968,
+          "sha256": "6e29a2d6ee9e97df016d5b7f72cacbaabd530cb5b7216b8f7d99b747282479f1"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22133888,
+          "sha256": "cd3544c8a08aa983a23521d66b30507c28a2326fe175b3e560b2b42ee35929f7"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 2,
+          "abi": "arm64-v8a",
+          "file": "patch-2-3-arm64-v8a.spdp",
+          "size": 3993017,
+          "targetSize": 24134968,
+          "sha256": "7a608c4f1c612add95246464594e4767fa619c1f6c2b210a2d0099a63314be3a",
+          "baseSha256": "1e4cbb54696a14848fa3aa4799445234bc838af6a630ddd9a1ea59b9ad4d495f"
+        },
+        {
+          "fromVersionCode": 2,
+          "abi": "armeabi-v7a",
+          "file": "patch-2-3-armeabi-v7a.spdp",
+          "size": 4420289,
+          "targetSize": 22133888,
+          "sha256": "8b1d1f2bc08f006d3e01308840f9cba22ee589448ec9051ee009f8a5fb0c4fa8",
+          "baseSha256": "4d1918de37de2d9d3abbac9613b7f85a76f69068621d2930c67022c03220e1fb"
+        }
+      ]
+    },
+    {
       "versionCode": 2,
       "versionName": "1.0.1",
       "tag": "v1.0.1",
@@ -100,5 +145,5 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-09-30T23:32:18+08:00"
+  "generatedAt": "2026-10-01T00:02:43+08:00"
 }
