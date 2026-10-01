@@ -334,8 +334,9 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-10-01T14:30:28+08:00",
+  "generatedAt": "2026-10-01T14:33:38+08:00",
   "assetsBases": [
-    "https://gitee.com/jeo-xie/schedule_plan/releases/download"
+    "https://gitee.com/jeo-xie/schedule_plan/releases/download",
+    "https://github.com/gillnotfail/schedule_plan/releases/download"
   ]
 }
