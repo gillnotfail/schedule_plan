@@ -82,7 +82,8 @@
   且带 `--push`**（脚本会拦）。已发错的修法：`git push origin +refs/tags/vX:refs/tags/vX`。
 - 仓库 `gillnotfail/schedule_plan`（GitHub，主）+ **`jeo-xie/schedule_plan`（Gitee，国内首选）**。
   `README.md` 面向 GitHub，规格 `docs/SPEC.md`，更新说明 `CHANGELOG.md`
-  （**必须写用户能看懂的话**：`release.py` 原样抽最新一节进 `updates/latest.json` 给应用内展示）。
+  （**必须写用户能看懂的话**：`release.py` 原样抽最新一节进 `updates/latest.json` 给应用内展示。
+  条目**可以折行**，缩进续行会接回同一条；但**别用空行续写同一条**，那会被当成下一条）。
   `updates/latest.json` **入库**；APK 与补丁挂 Releases **不入库**。
 - `pubspec.yaml` 的 `version: x.y.z+N`，**`N` 是 versionCode，每次发版必须递增**，否则拒绝覆盖安装。
 - **双仓库分发（第 22 轮）**：每次发布**往 Gitee 与 GitHub 各发一份**同一批 APK/补丁（Gitee 附件地址与 GitHub

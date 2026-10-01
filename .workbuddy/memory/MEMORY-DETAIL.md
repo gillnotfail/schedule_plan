@@ -401,6 +401,19 @@ __HTTP_STATUS__%{http_code}"` 切出状态码；文本字段一律 `--form-strin
   versionCode 里最大的那个**，不能取「清单里第一个不是自己的」（清单降序，补发旧版本时会拿更新的版本当基准，方向反了）。
   **基准包缓存 `dist/releases/<code>/` 是分差的地基**——动过里面的 APK 就必须删掉整个 `dist/` 重跑。
   **CHANGELOG 里没有对应版本节时直接拒绝发布**（设计如此，不是 bug）。
+  - **更新说明的折行必须接回上一条**（v1.0.7 修）：`notes_from_changelog` 原来只认 `- ` 开头的行，
+    CHANGELOG 里为了好读折出的缩进续行**整个被丢掉** → 手机上每条只剩半句话（v1.0.6 也中招）。
+    现按「中文直连 / 英文词间与 `——` 前补空格」拼接。**别用空行续写同一条**（会被当成下一条），要拆就再写一个 `- `。
+    Gitee/GitHub 发行版 body 与清单 `notes` 共用这份抽取结果，改一处两边都要重发。
+    清单要单独修时**不用重新发版**：改 CHANGELOG → 重写 `releases[].notes` → 推 main → 重新 purge jsDelivr
+    （版本号、APK、标签全不动）。
+  - **Gitee 发行版 PATCH 必须带 `tag_name` 与 `name`**：只传 `body` 会 400 `tag_name is missing`
+    （Gitee 把未传字段当清空，不是「只改这一项」）。另 `GET /releases/tags/{tag}` 偶发 `405 Not Allowed`（限流），
+    查附件换 `GET /releases?per_page=N` 列表接口更稳。
+  - **curl 的 `-w` 会污染正文**：`-w '\n__HTTP__%{http_code}'` 的那个换行跟在 body 后面，
+    `rpartition('__HTTP__')` 切出的 head **末尾多一个 `\n`** → 与本地文件比 sha256 永远不一致，
+    极易误判成「源上的文件坏了」。要比指纹就**别带 `-w`**。另：Gitee raw 必须 `-L`（302 跳到
+    `raw.giteeusercontent.com`），不跟随会把跳转页当正文。
 - **`GITHUB_TOKEN` 探测**：环境变量优先，其次 `~/.schedule_plan-release.env`（dotenv）。`verify_token()` 在**打包之前**
   先验（`GET /user` + `GET /repos/...` 的 `permissions.push`）。`token_looks_truncated()` 专拦「复制了一半」：
   **细粒度 PAT 共 93 字符、中间还有一个下划线**，截断后服务端只回一句 `401 Bad credentials`。`commit_and_tag` **幂等**

@@ -219,6 +219,18 @@ python tool/release.py --bump patch --skip-upload
 python tool/release.py --bump patch --push
 ```
 
+> **一条说明可以折成几行写**：`- ` 开头之后的**缩进行**会被接在同一条里
+> （中文直接相接，英文词之间与「——」前补空格）。写长条目时尽管折行，别为了
+> 迁就脚本把一行写得老长。
+>
+> 但**别用空行 + 新的一段来续写同一条** —— 那会被当成下一条独立的说明。
+> 想分成两条就各写一个 `- `。
+>
+> 反过来说，**抽出来的说明要自己看一眼**：`--skip-upload` 那一步之后
+> `grep -A2 '"notes"' updates/latest.json`，确认没有句子被拦腰砍断。
+> 早先的抽取器只认 `- ` 开头的行，续行整个被丢掉，手机上看到的是半句话
+> （v1.0.6、v1.0.7 都中招过，1.0.7 发现后已修）。
+
 第 3 步依次做了：
 
 1. 自增 `versionName` / `versionCode` 并写回 `pubspec.yaml`；
@@ -490,6 +502,7 @@ python tool/delta_patch.py apply old.apk patch.spdp out.apk
 | 装完没收到结果回执 | 系统安装会重启进程，回执可能送不到 → 回前台时靠比对版本号兜底（`markInstalledExternally()`） |
 | 正式版永远连不上网 | Manifest 少了 `INTERNET` 权限（debug 包由 Flutter 自动补，release 不会） |
 | 补丁自校验失败 | 生成时就会中止发布，不会发出去；查 `delta_patch.py selftest` |
+| 手机上「更新内容」每条只剩半句话 | CHANGELOG 里的长条目折了行，而抽取器只认 `- ` 开头的行，续行被整个丢掉（v1.0.6 及更早的脚本都有这个毛病）。已修：续行会接回上一条。若清单里已经是断句，**不用重新发版** —— 改好 CHANGELOG 后按新口径重写 `releases[].notes`，推 `main` 再清一次 jsDelivr 缓存即可（版本号与安装包都不用动） |
 | 上传成功了，但 `git push` 标签报 `already exists` | Release 建在了打标签之前 → GitHub 自造了一个同名标签。脚本现在会拦住这种参数组合；已踩到的按下面修 |
 | Release 挂在不含本次发布的提交上 | 同上。修：`git push origin +refs/tags/v1.0.0:refs/tags/v1.0.0` 把标签硬挪到发布提交 |
 
