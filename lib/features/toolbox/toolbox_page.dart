@@ -17,6 +17,7 @@ import 'package:schedule_plan/data/models/attendance.dart';
 import 'package:schedule_plan/data/models/china_holiday.dart';
 import 'package:schedule_plan/data/models/schedule_event.dart';
 import 'package:schedule_plan/data/services/teaching_insight_service.dart';
+import 'package:schedule_plan/features/settings/statistics_settings_page.dart';
 import 'package:schedule_plan/features/statistics/statistics_page.dart';
 import 'package:schedule_plan/features/toolbox/calendar_page.dart';
 import 'package:schedule_plan/features/toolbox/focus_timer_page.dart';
@@ -329,6 +330,20 @@ class _ToolboxPageState extends State<ToolboxPage> {
                     _formatMonthDay(insight.weekStart),
                     _formatMonthDay(insight.weekEnd),
                   ),
+            // 第 22 轮（用户规格）：统计设置从「设置」页挪进统计卡片，
+            // 入口做成标题右侧的齿轮，点开就是原来的统计设置页。
+            trailing: IconButton(
+              onPressed: () =>
+                  pushAppPage(context, const StatisticsSettingsPage()),
+              icon: const Icon(Icons.tune_rounded, size: 20),
+              tooltip: l10n.statisticsSettings,
+              visualDensity: VisualDensity.compact,
+              style: IconButton.styleFrom(
+                minimumSize: const Size(36, 36),
+                padding: EdgeInsets.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
           ),
           if (_loadingInsight && insight == null)
             const _InsightSkeleton()

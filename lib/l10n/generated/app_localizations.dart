@@ -1883,7 +1883,7 @@ abstract class AppLocalizations {
   /// No description provided for @groupPermission.
   ///
   /// In en, this message translates to:
-  /// **'Permissions'**
+  /// **'Notifications'**
   String get groupPermission;
 
   /// No description provided for @groupDisplay.
@@ -1892,23 +1892,11 @@ abstract class AppLocalizations {
   /// **'Display & language'**
   String get groupDisplay;
 
-  /// No description provided for @groupData.
-  ///
-  /// In en, this message translates to:
-  /// **'Data'**
-  String get groupData;
-
   /// No description provided for @groupAbout.
   ///
   /// In en, this message translates to:
   /// **'About'**
   String get groupAbout;
-
-  /// No description provided for @groupTeaching.
-  ///
-  /// In en, this message translates to:
-  /// **'Teaching'**
-  String get groupTeaching;
 
   /// No description provided for @studentRoster.
   ///
@@ -2173,12 +2161,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Teaching Assistant Team'**
   String get aboutDeveloperName;
-
-  /// No description provided for @aboutTechStack.
-  ///
-  /// In en, this message translates to:
-  /// **'Tech stack'**
-  String get aboutTechStack;
 
   /// No description provided for @aboutAppName.
   ///
@@ -4087,6 +4069,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Each entry takes a text field (the line) and an optional from field (the source). Append entries to the file — they load when the app starts.'**
   String get quoteCardSourceFormat;
+
+  /// No description provided for @groupSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System settings'**
+  String get groupSystem;
+
+  /// No description provided for @systemSettingsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance defaults, holidays, notifications, data cleanup'**
+  String get systemSettingsDesc;
+
+  /// No description provided for @groupHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Holidays'**
+  String get groupHoliday;
+
+  /// No description provided for @groupClearData.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear data'**
+  String get groupClearData;
 }
 
 class _AppLocalizationsDelegate

@@ -468,11 +468,9 @@
     }
   },
   "groupScheduleData": "课表与名单",
-  "groupPermission": "权限",
+  "groupPermission": "通知权限",
   "groupDisplay": "显示与语言",
-  "groupData": "数据维护",
   "groupAbout": "关于",
-  "groupTeaching": "教学参数",
   "studentRoster": "学生名单",
   "studentRosterDesc": "添加、修改、删除学生，或从 Excel 批量导入",
   "classManagement": "班级管理",
@@ -531,7 +529,6 @@
   "aboutChangelogBody": "1.0.0 首个正式版本：课表 / 考勤 / 统计 / 待办 / 工具箱全面上线，支持六套主题与中英文。",
   "aboutDeveloper": "开发者",
   "aboutDeveloperName": "教学助手团队",
-  "aboutTechStack": "技术栈",
   "aboutAppName": "全面课表计划",
   "sortAscending": "升序",
   "sortDescending": "降序",
@@ -1298,5 +1295,9 @@
         "type": "String"
       }
     }
-  }
+  },
+  "groupSystem": "系统设置",
+  "systemSettingsDesc": "考勤默认状态、调休、通知与数据清理",
+  "groupHoliday": "调休",
+  "groupClearData": "清空数据"
 }

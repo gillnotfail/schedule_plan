@@ -3,6 +3,55 @@
   "assetsBase": "https://gitee.com/jeo-xie/schedule_plan/releases/download",
   "releases": [
     {
+      "versionCode": 8,
+      "versionName": "1.0.7",
+      "tag": "v1.0.7",
+      "publishedAt": "2026-10-01T15:30:24+08:00",
+      "notes": [
+        "**设置页重新分了组，一进来先看到的是常用设置**：现在从上到下是「课表与名单」「系统设置」「显示与语言」「关于」四块。",
+        "**所有和上课没直接关系的开关，收进了新的一页「系统设置」**：点一下进新页面，里面依次是",
+        "**设置页里去掉了「拍照生成课表」**：课表页本来就有这个按钮，同一个功能不用留两个入口",
+        "**设置页里去掉了「统计设置」**：它挪到工具箱的「本周教学成果」那一页了，点标题右边的齿轮就能打开",
+        "**「课表与名单」里调了顺序**：学生名单排在最前，然后是 Excel 批量导入、班级管理、课程管理",
+        "**从这一版起，检查更新会先走 Gitee**（国内直连）。上一版发的时候这条逻辑才刚加进去，所以你自己那次更新还得从 GitHub 取；",
+        "设置项都在，只是换了位置：通知提醒、节假日、清理数据这些一条没少，进「系统设置」就能找到"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24073031,
+          "sha256": "c95b74b285f4578fbd41808e420fcf52506b0ddff90289dea120c77cde18863a"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22104719,
+          "sha256": "3ae1874964f34418bac5b72bcc7e9deffcfefd5bb75f231b51cefee497556c22"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 7,
+          "abi": "arm64-v8a",
+          "file": "patch-7-8-arm64-v8a.spdp",
+          "size": 4013113,
+          "targetSize": 24073031,
+          "sha256": "4b94833556dce3b610bfd583bb46f082e1aea3b3cd50d4dff3d817e123a112fc",
+          "baseSha256": "17566f24a3fde01532a0c06c37d59edbe08e8a3bb4f53497c63314f0e17b9aa1"
+        },
+        {
+          "fromVersionCode": 7,
+          "abi": "armeabi-v7a",
+          "file": "patch-7-8-armeabi-v7a.spdp",
+          "size": 4436037,
+          "targetSize": 22104719,
+          "sha256": "28fadb10470b5facdb18654e19c56d8058fc04e0b2ced89bdbdd8b07a7f38406",
+          "baseSha256": "7d393a95788207ed645537fea080785a9ca0eb779593eb135b133aaf177d3137"
+        }
+      ]
+    },
+    {
       "versionCode": 7,
       "versionName": "1.0.6",
       "tag": "v1.0.6",
@@ -334,7 +383,7 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-10-01T14:33:38+08:00",
+  "generatedAt": "2026-10-01T15:30:24+08:00",
   "assetsBases": [
     "https://gitee.com/jeo-xie/schedule_plan/releases/download",
     "https://github.com/gillnotfail/schedule_plan/releases/download"

@@ -532,6 +532,18 @@ NEW_KEYS = {
         "zh": "每条写 text（句子）与 from（出处，可省略）两个字段；想加句子就往文件里追加，打开 App 时自动读取。",
         "en": "Each entry takes a text field (the line) and an optional from field (the source). Append entries to the file — they load when the app starts.",
     },
+    # ---- 第 22 轮：设置页重排（第一页只留四块，系统设置进独立页）----
+    # 用户规格：设置第一页 = 课表与名单 / 系统设置（一条入口）/ 显示与语言 /
+    # 关于；彩色标题卡沉到最底部。原来平铺的「教学参数」「权限」「数据维护」
+    # 三组整体搬进新的「系统设置」页，里面再按调休 / 通知权限 / 清空数据分组。
+    # 下面四条就是这一轮新出现的"分组名"。
+    "groupSystem": {"zh": "系统设置", "en": "System settings"},
+    "systemSettingsDesc": {
+        "zh": "考勤默认状态、调休、通知与数据清理",
+        "en": "Attendance defaults, holidays, notifications, data cleanup",
+    },
+    "groupHoliday": {"zh": "调休", "en": "Holidays"},
+    "groupClearData": {"zh": "清空数据", "en": "Clear data"},
 }
 
 # 需要改口径的旧键（用户规格变了，文案必须跟着走，否则和界面行为对不上）
@@ -559,6 +571,9 @@ UPDATE_KEYS = {
         "zh": "智能待办与通用清单",
         "en": "Smart todos and general lists",
     },
+    # 第 22 轮：「权限」这一组搬进系统设置页后只装通知相关那几项，
+    # 组名跟着收窄成「通知权限」，跟组内第一行的标题对齐。
+    "groupPermission": {"zh": "通知权限", "en": "Notifications"},
 }
 
 # 本轮不需要的键（避免留下没人用的文案）。默认状态就是"出勤"，
@@ -585,7 +600,11 @@ DROP_KEYS = ["attendanceMarkAllPresent", "attendanceStatusHint",
              "llmModelName", "llmSetDefault",
              "toolNote", "toolNoteDesc",
              "toolPrivateTodo", "toolPrivateTodoDesc",
-             "groupAssistant"]
+             "groupAssistant",
+             # 第 22 轮：设置页重排 —— 「教学参数」「数据维护」两个组已并进
+             # 系统设置页（数据清理那组改用新增的 groupClearData），
+             # 「技术栈」一行按规格删除；这三条文案全库已无引用。
+             "groupTeaching", "groupData", "aboutTechStack"]
 
 PLACEHOLDERS = {
     "gridMakeupHint": {

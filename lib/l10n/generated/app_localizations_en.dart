@@ -955,19 +955,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get groupScheduleData => 'Schedule & roster';
 
   @override
-  String get groupPermission => 'Permissions';
+  String get groupPermission => 'Notifications';
 
   @override
   String get groupDisplay => 'Display & language';
 
   @override
-  String get groupData => 'Data';
-
-  @override
   String get groupAbout => 'About';
-
-  @override
-  String get groupTeaching => 'Teaching';
 
   @override
   String get studentRoster => 'Student roster';
@@ -1111,9 +1105,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutDeveloperName => 'Teaching Assistant Team';
-
-  @override
-  String get aboutTechStack => 'Tech stack';
 
   @override
   String get aboutAppName => 'Schedule Plan';
@@ -2242,4 +2233,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get quoteCardSourceFormat =>
       'Each entry takes a text field (the line) and an optional from field (the source). Append entries to the file — they load when the app starts.';
+
+  @override
+  String get groupSystem => 'System settings';
+
+  @override
+  String get systemSettingsDesc =>
+      'Attendance defaults, holidays, notifications, data cleanup';
+
+  @override
+  String get groupHoliday => 'Holidays';
+
+  @override
+  String get groupClearData => 'Clear data';
 }

@@ -68,7 +68,7 @@
 - 禁止硬编码，全走 `lib/l10n/app_zh.arb`/`app_en.arb` + `context.l10n`，zh/en 严格对齐。
 - **加键一律走 `.workbuddy/tools/add_l10n_keys.py`**（幂等）：`NEW_KEYS` 加键、`UPDATE_KEYS` 改已存在键口径（脚本内
   `assert key in data`，不许凭空 create）、`PLACEHOLDERS` 加 `@key`；末尾自带对齐断言。跑完 `flutter gen-l10n`
-  （有 `l10n.yaml` 时命令行参数被忽略，属预期）再 analyze。当前 zh/en 各 **665** 键。
+  （有 `l10n.yaml` 时命令行参数被忽略，属预期）再 analyze。当前 zh/en 各 **666** 键。
   **改这个脚本别拿 `"...元数据",\n}` 当尾部锚点**：`NEW_KEYS` / `PLACEHOLDERS` / `UPDATE_KEYS` 三个 dict 都以它结尾，
   会串到另一个 dict 里去（踩过：文案进了 PLACEHOLDERS、占位符元数据进了 NEW_KEYS）。锚点带上前一条**完整的键名**。
 
@@ -91,6 +91,10 @@
   **`schemaVersion` 绝不许因为加字段而 +1**（老客户端见到更高版本会判"清单不可用"，把已装机用户锁死）。
   Gitee API `GET /releases/tags/{tag}` 在 tag 不存在时**也返回 200 + `null`**，只能按"含 `id` 的 dict"判；
   `--no-gitee` / `--gitee-only` 是仅有的两个逃生开关。
+- **回验里「本机连不上」≠「源坏了」（v1.0.6 踩过，别改回去）**：发布机在国内时 `github.com` 时通时断
+  （`api.github.com` 常通，所以建 Release/传附件一直成功），回验会把 GitHub 误判成"源坏了"剔掉 →
+  用户的手机（可能挂代理）本来能取 GitHub，清单却只剩一个源、彻底没退路。**只有服务器明确回 4xx/5xx
+  才剔源**；超时 / 连接重置 / 状态码 `000` 一律**保留为兜底**。Gitee raw 密集请求会偶发 `451`，探测已重试 1 次。
 - **发布最后一步是清 jsDelivr 缓存**（`release.py` 已自动做，别绕过）：`@main` 对分支缓存**最长 12h**，
   国内 raw 不通时客户端只能读它 → **手机端最多晚半天才看到更新**。手工补清 =
   `curl https://purge.jsdelivr.net/gh/<owner>/<repo>@main/updates/latest.json`（公开端点，无需凭据）；
@@ -155,3 +159,8 @@
 - **`FilledButton`/`ElevatedButton`/`OutlinedButton` 不能直接放进 `Row`**（全局 `minimumSize: Size.fromHeight(52)`
   → `BoxConstraints forces an infinite width`）。**所有 SnackBar 一律 2 秒**。
 - **Android `INTERNET` 权限必须写在 `AndroidManifest.xml`**：debug/profile 由 Flutter 自动补，**release 不会**。
+- **设置页第一页只有四块**（第 22 轮用户规格，`test/widget/settings_page_test.dart` 盯着）：课表与名单 /
+  **系统设置（一条入口）** / 显示与语言 / 关于；**彩色标题卡在最底部**，不是顶部。原来平铺的
+  「教学参数 / 权限 / 数据维护」三块整体搬进 `features/settings/system_settings_page.dart`，页内顺序 =
+  未记录日期的默认状态 → 调休(3) → 通知权限(4) → 时间列级联更新 → 清空数据(2)。
+  **「拍照生成课表」与「统计设置」不允许再回设置页**（前者与课表页重复，后者在工具箱「教学成果」标题右侧齿轮）。

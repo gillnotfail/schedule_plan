@@ -468,11 +468,9 @@
     }
   },
   "groupScheduleData": "Schedule & roster",
-  "groupPermission": "Permissions",
+  "groupPermission": "Notifications",
   "groupDisplay": "Display & language",
-  "groupData": "Data",
   "groupAbout": "About",
-  "groupTeaching": "Teaching",
   "studentRoster": "Student roster",
   "studentRosterDesc": "Add, edit, delete, or bulk import from Excel",
   "classManagement": "Classes",
@@ -531,7 +529,6 @@
   "aboutChangelogBody": "1.0.0 first release: schedule, attendance, statistics, todos and toolbox, with six themes and bilingual UI.",
   "aboutDeveloper": "Developer",
   "aboutDeveloperName": "Teaching Assistant Team",
-  "aboutTechStack": "Tech stack",
   "aboutAppName": "Schedule Plan",
   "sortAscending": "Ascending",
   "sortDescending": "Descending",
@@ -1298,5 +1295,9 @@
         "type": "String"
       }
     }
-  }
+  },
+  "groupSystem": "System settings",
+  "systemSettingsDesc": "Attendance defaults, holidays, notifications, data cleanup",
+  "groupHoliday": "Holidays",
+  "groupClearData": "Clear data"
 }

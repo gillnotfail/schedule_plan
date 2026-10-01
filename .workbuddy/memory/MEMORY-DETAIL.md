@@ -95,9 +95,19 @@
   （**出勤率 = 出勤人次 ÷ 应点名人次**，应点名含合班课全部班级的人）填充，底下一条实色淡轨道托底。数据源
   `dayStats({from, to, teacherId, weekdayOverrides})`，考勤页用 `_statsFrom/_statsTo` 缓存 +
   `_refreshRingStatsQuietly()`（**统计失败只记日志**，不能把成功保存报成失败）。
-- 设置页「课表与名单」分组顺序 = **实际使用顺序**：Excel 导入名单 → 学生名单 → 班级管理 → 课程管理 → 级联开关。
-  「作息模板」入口在课表页 `showScheduleSettingsSheet` 的 `onManageTemplates`（保留是为还能建「错峰课表」第二套
-  作息，别让 `TemplateListPage` 变死代码）。设置页默认状态下拉只用**日常五态 + 未标记**。
+- 设置页「课表与名单」分组顺序（第 22 轮起）= **学生名单 → Excel 批量导入学生名单 → 班级管理 → 课程管理**。
+  拐点：这一组**不再装**级联开关与节假日三条（都进系统设置页了）；「学生名单」被提到第一位（老师进设置页
+  多半是看名单，导入是低频动作）。「作息模板」入口仍在课表页 `showScheduleSettingsSheet` 的 `onManageTemplates`
+  （保留是为还能建「错峰课表」第二套作息，别让 `TemplateListPage` 变死代码）。设置页默认状态下拉只用
+  **日常五态 + 未标记**，现在这一条在 `system_settings_page.dart` 里。
+- **设置页第一页的结构**（`features/settings/settings_page.dart`）：课表与名单 → **系统设置（单条入口）** →
+  显示与语言 → 关于（全面课表计划 / 检查更新 / 更新说明 / 开发者；「技术栈」已删）→ **底部品牌彩色卡**
+  （`_buildHeader`，顶部间距从 `spaceL` 改成 `spaceXl`）。系统设置页是 `features/settings/system_settings_page.dart`，
+  顺序：未记录日期的默认状态（单行）→ 调休(节假日与调休 / 自动获取节假日安排 / 节假日数据) → 通知权限
+  (通知权限 / 前往系统设置开启 / 提前提醒分钟数 / 立即重算提醒) → 时间列级联更新（单行）→ 清空数据(2)。
+  该页 `_checkPermission` **必须 try/catch**：`NotificationService.checkPermission()` 内部先 `initialize()`，
+  插件不可用时**会抛**，不兜就把副标题永久卡在「加载中」。统计设置页入口挪到工具箱「教学成果」页
+  `SectionHeader.trailing` 的齿轮；拍照生成课表只在课表页 / 课程页出现。
 
 ## 表单与名单（单一实现）
 - 班主任一律取「所属班级」，**不往 `student` 加列**；表单里只读展示、随班级联动。班级删除按 `info.studentCount` 选
@@ -335,23 +345,40 @@
     `-w "
 __HTTP_STATUS__%{http_code}"` 切出状态码；文本字段一律 `--form-string`（`-F` 会把开头的 `@` 当文件名、
     `;type=` 当元数据，而发行说明是中英混排的用户文案）。顺带避开了本机 urllib 对某些域名的 `WinError 10054`。
-  - **上传后必须回验**（`verify_asset_urls`）：每个源抽一个文件（优先补丁）发一次 `curl -sSL --range 0-1023`，
-    只认 200/206 且 `size_download>0`。有不通过的源就**重写清单 + 补一次提交**（`amend_release_commit`：
-    `git add -A` → commit → `git tag -f -a` → `git push` + `git push --force <tag>`）——这是全脚本唯一允许强推
-    标签的地方，因为远端发行版挂的是标签，标签留在旧提交上等于更正没生效。
+  - **上传后必须回验**（`verify_asset_urls` + `probe_asset_url`）：每个源抽一个文件（优先补丁）发一次
+    `curl -sSL --range 0-1023`，只认 200/206 且 `size_download>0`。**失败必须分两类，处置相反**（v1.0.6 踩过）：
+    · `http` —— 服务器明确回 4xx/5xx → 源本身的问题（私有 / 附件缺失 / 路径写错），**剔除**；
+    · `network` —— curl 非 0 退出、状态码 `000` → **本机网络问题，保留为兜底**。
+    发布机在国内时 `github.com` 时通时断而 `api.github.com` 常通，回验会把 GitHub 误判成"源坏了"；v1.0.6
+    首次发布就把清单降级成只剩 Gitee 一个源，用户于是没了退路（已手工改回双源）。探测默认**重试 1 次**
+    （Gitee 的 WAF 会偶发 451）。剔源后要**重写清单 + 补一次提交**（`amend_release_commit`：`git add -A`
+    → commit → `git tag -f -a` → `git push` + `git push --force <tag>`）——唯一允许强推标签的地方，
+    因为远端发行版挂的是标签，标签留在旧提交上等于更正没生效。
+  - **令牌脱敏**（`mask_secrets`）：`curl_request` 走命令行，会把 `access_token=<32位>` 原样打进日志。
+    三个打印出口（`run` 的正常日志与失败分支、`curl_request` 的超时分支）统一过一遍，覆盖
+    `?access_token=`、`--form-string access_token=`、`user:pass@host` 三种形态。发布日志经常被整段
+    贴出来排障，不做这层等于把令牌送进聊天窗口。
   - **两个开关**：`--no-gitee`（完全不碰 Gitee，清单只写 GitHub，老行为）、`--gitee-only`（只发 Gitee，
     GitHub 连不通时用；此时也不清 jsDelivr 缓存）。
   - **`git push` 顺序**：`remotes = (gitee, origin)`，逐个 `push HEAD` + `push <tag>` 并各自 `ls-remote` 复核。
-- **Gitee 侧一次性设置（用户手工做，脚本做不了）**：① 仓库公开；② **SSH 公钥**（与 GitHub 共用
-  `~/.ssh/id_ed25519.pub`，贴到 设置 → 安全设置 → SSH 公钥。**本机 2026-10-01 还没加，`ssh -T git@gitee.com`
-  报 `Permission denied (publickey)`**）；③ **私人令牌**写进 `~/.schedule_plan-release.env` 的 `GITEE_TOKEN=`
-  那一行（文件里已留空位）；④ `git remote add gitee git@gitee.com:jeo-xie/schedule_plan.git`（已配）。
+- **Gitee 侧一次性设置（用户手工做，脚本做不了）——2026-10-01 已全部完成**：① 仓库公开（匿名
+  `GET /api/v5/repos/jeo-xie/schedule_plan` → 200）；② SSH 公钥（与 GitHub 共用 `~/.ssh/id_ed25519.pub`，
+  贴到 设置 → 安全设置 → SSH 公钥，`ssh -T git@gitee.com` → `Hi Jeo Xie(@jeo-xie)!`）；③ 私人令牌
+  写进 `~/.schedule_plan-release.env` 的 `GITEE_TOKEN=`（32 位十六进制，权限只勾 `projects`，已验通过）；
+  ④ `git remote add gitee git@gitee.com:jeo-xie/schedule_plan.git`（已配）。**换机器时这四件都要重做。**
   首次推完如果网页显示"master 分支不存在"，把 仓库设置 → 基本信息 → 默认分支 改成 `main`
   （`ensure_gitee_default_branch()` 每次也会**尽力**调 `PATCH /repos/{o}/{r}` 自动改，失败只记日志）。
 - **本机网络（实测，别信旧结论）**：**按 IP 封，不是按域名**——DNS 解析正常但 TCP 连不上。
   - **2026-09-30 复测**：`github.com`（`20.205.243.166`）**000 不通**；`raw.githubusercontent.com`
     （`185.199.108/109/110/111.133`）**也 000 不通**（连测 4 次；**上一条「raw 都通」的结论已失效**）；
     `api.github.com`（`20.205.243.168`）**200 通**；`cdn.jsdelivr.net`（`151.101.x.229`）**200 通**。
+  - **2026-10-01 复测（关键，别把本机问题当成源坏了）**：`github.com` **时通时断**——同一小时内先连续
+    超时（`curl: (28) Failed to connect to github.com:443 after 21067 ms`），隔十几分钟又 200；
+    `raw.githubusercontent.com` 报 `curl: (35) Recv failure: Connection was reset`。**`api.github.com`
+    始终 200**（所以建 Release / 传附件那几步一直成功）。Gitee 侧：raw 全通（curl 默认 / Dart /
+    Mozilla / 空 UA 各 20 次，0 失败），但**短时间密集请求会偶发 451**，响应体是
+    `The content may contain violation information`，隔几秒重发即恢复，**与查询参数、UA 都无关**
+    （带与不带 `?t=` 各连发 20 次均 0 失败）；Gitee raw 只缓存 **60 秒**（两跳都是 `max-age=60`）。
   - 结论：**发布链路不受影响**（走 api.github.com + uploads）。客户端清单 `manifestUrls()` 是 **raw 第一、jsDelivr
     第二**（raw 永远最新，jsDelivr 对分支有最长 12h 缓存，故意排第二），raw 不通时**自动落到 jsDelivr**——本机正好
     是这个状态。手机侧若同样封这组 IP，必须配镜像前缀；且**这台机器验证不了真实下载地址**，只验证得了 jsDelivr。

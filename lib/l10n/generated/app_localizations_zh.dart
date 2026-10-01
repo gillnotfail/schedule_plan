@@ -942,19 +942,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get groupScheduleData => '课表与名单';
 
   @override
-  String get groupPermission => '权限';
+  String get groupPermission => '通知权限';
 
   @override
   String get groupDisplay => '显示与语言';
 
   @override
-  String get groupData => '数据维护';
-
-  @override
   String get groupAbout => '关于';
-
-  @override
-  String get groupTeaching => '教学参数';
 
   @override
   String get studentRoster => '学生名单';
@@ -1092,9 +1086,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get aboutDeveloperName => '教学助手团队';
-
-  @override
-  String get aboutTechStack => '技术栈';
 
   @override
   String get aboutAppName => '全面课表计划';
@@ -2171,4 +2162,16 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get quoteCardSourceFormat =>
       '每条写 text（句子）与 from（出处，可省略）两个字段；想加句子就往文件里追加，打开 App 时自动读取。';
+
+  @override
+  String get groupSystem => '系统设置';
+
+  @override
+  String get systemSettingsDesc => '考勤默认状态、调休、通知与数据清理';
+
+  @override
+  String get groupHoliday => '调休';
+
+  @override
+  String get groupClearData => '清空数据';
 }
