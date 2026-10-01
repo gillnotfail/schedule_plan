@@ -1001,40 +1001,83 @@ def upload_release_gitee(tag: str, version_name: str, notes: list[str],
         % (GITEE_REPOSITORY, tag))
 
 
-def url_is_downloadable(url: str) -> bool:
-    """这个地址**不登录、不带头**能不能下到东西。
+def _probe_asset_url_once(url: str) -> tuple[bool, str]:
+    """发一次 Range 请求，返回 `(是否可用, 失败类型)`。
 
-    这是整条链路里最值钱的一次检查：仓库一旦转成私有、附件权限被收紧、
-    或者文件名拼错了，脚本这边一切"成功"，而老师手机上永远看不到更新——
-    症状要等用户报上来才发现。用 Range 只取前 1 KB，二十多兆的包也只是
-    一次很轻的请求。
+    失败类型只有两种值，因为它们的处置**相反**（见 [probe_asset_url]）：
+      · `"http"`——服务器回了一个明确的错误码（403/404/451…）；
+      · `"network"`——本机根本连不上（curl 退出码非 0，状态码 `000`）。
     """
     result = run(["curl", "-sSL", "--max-time", "60", "--range", "0-1023",
                   "-o", os.devnull, "-w", "%{http_code} %{size_download}", url],
                  check=False)
     parts = (result.stdout or "").split()
-    if len(parts) != 2:
-        return False
-    code, size = parts
-    return code in ("200", "206") and int(size) > 0
+    code = parts[0] if parts else "000"
+    size = parts[1] if len(parts) > 1 else "0"
+    if code in ("200", "206") and size.isdigit() and int(size) > 0:
+        return True, "ok"
+    if code == "000" or result.returncode != 0:
+        return False, "network"
+    return False, "http"
 
 
-def verify_asset_urls(bases: list[str], entry: dict) -> list[str]:
-    """逐个下载源挑一个文件试下，返回**验证通过**的源（保持原顺序）。
+def probe_asset_url(url: str, *, attempts: int = 2) -> tuple[bool, str]:
+    """这个地址**不登录、不带头**能不能下到东西，返回 `(是否可用, 失败类型)`。
+
+    这是整条链路里最值钱的一次检查：仓库一旦转成私有、附件权限被收紧、
+    或者文件名拼错了，脚本这边一切"成功"，而老师手机上永远看不到更新——
+    症状要等用户报上来才发现。用 Range 只取前 1 KB，二十多兆的包也只是
+    一次很轻的请求。
+
+    **"连不上"不等于"源坏了"**，这两件事必须分开，v1.0.6 那次就吃过亏：
+    发布机在国内，`github.com:443` 直接超时（而 `api.github.com` 通，所以建
+    Release 是成功的），脚本把它当成"源不可用"剔掉，清单于是只剩 Gitee 一个
+    源——Gitee 一出问题用户就彻底没有退路。而事实上用户的手机（可能挂着代理）
+    是能取 GitHub 的，发布机的网络环境与用户的手机根本不是一回事。所以：
+      · 服务器**明确拒绝**（HTTP 4xx/5xx）→ 源本身的问题，剔；
+      · 本机**连不上**（超时 / 连接被拒）→ 保留为兜底，只记一条日志。
+
+    `attempts` 默认 2 次：Gitee 的 WAF 实测会偶发回 451（同一地址连发两次
+    就好），一次抖动不该决定清单里有没有这个源。
+    """
+    last: tuple[bool, str] = (False, "network")
+    for index in range(max(1, attempts)):
+        ok, kind = _probe_asset_url_once(url)
+        if ok:
+            return True, "ok"
+        last = (ok, kind)
+        if kind == "http" and index + 1 < attempts:
+            time.sleep(2)
+    return last
+
+
+def verify_asset_urls(bases: list[str], entry: dict) -> tuple[list[str], list[str]]:
+    """逐个下载源挑一个文件试下，返回 `(要写进清单的源, 被剔掉的源)`。
 
     每个源只抽一个文件（优先补丁，它最小），够判断"这条路通不通"了。
+    **只有服务器明确拒绝的源才会被剔掉**；本机连不上的源原样保留（理由见
+    [probe_asset_url]，这是 1.0.6 那次误剔 GitHub 的修正）。
     """
     probe = (entry.get("deltas") or [{}])[0].get("file") \
         or entry["assets"][0]["file"]
-    ok: list[str] = []
+    kept: list[str] = []
+    dropped: list[str] = []
     for base in bases:
         url = "%s/%s/%s" % (base, entry["tag"], probe)
-        if url_is_downloadable(url):
+        ok, kind = probe_asset_url(url)
+        if ok:
             log("  %s 可匿名下载 ✓（抽查 %s）" % (base, probe))
-            ok.append(base)
+            kept.append(base)
+        elif kind == "network":
+            log("  %s 本机连不上 —— 保留为兜底（抽查 %s）" % (base, probe))
+            log("      发布机的网络与用户的手机不是一回事，不据此剔除；"
+                "真取不到时客户端会自己跳到下一个源。")
+            kept.append(base)
         else:
-            log("  %s **下不动** ✗（抽查 %s）" % (base, probe))
-    return ok
+            log("  %s 服务器拒绝 ✗（抽查 %s）" % (base, probe))
+            log("      这是源本身的问题（私有 / 附件缺失 / 路径写错），从清单里剔除。")
+            dropped.append(base)
+    return kept, dropped
 
 
 # ---------------------------------------------------------------------------
@@ -1245,16 +1288,17 @@ def main(argv: list[str]) -> int:
         # 下不动，得**再提交推送一次**把源去掉——宁可多一个提交，也不能让
         # 清单指着一个下不动的地址。
         log("回验附件地址能否匿名下载…")
-        verified = verify_asset_urls(asset_bases, entry)
+        verified, rejected = verify_asset_urls(asset_bases, entry)
         if not verified:
             die(
-                "两个源都验证失败，清单可能已指向不可用的地址。\n"
+                "所有下载源都被服务器拒绝，清单可能已指向不可用的地址。\n"
                 "    请确认 Gitee 仓库是**公开**的（私有仓库匿名取不到 raw 与附件），\n"
-                "    以及 GitHub 上的附件确实上传完成。\n"
+                "    以及附件确实上传完成。\n"
                 "    修好后用 --no-build --no-bump 重跑一次即可。"
             )
-        if verified != asset_bases:
-            log("  有源不可用，清单改为只写：%s" % " → ".join(verified))
+        if rejected:
+            log("  剔除被服务器拒绝的源：%s" % " → ".join(rejected))
+            log("  清单改为：%s" % " → ".join(verified))
             save_manifest(manifest, verified)
             if not args.no_commit:
                 amend_release_commit(name, tag, remotes)
