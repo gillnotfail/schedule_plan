@@ -273,6 +273,20 @@ def bump(name: str, kind: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+def joins_without_space(prev: str, head: str) -> bool:
+    """续行拼接时要不要补一个空格。
+
+    中文句子折行后直接接上；英文条目折行处断在词与词之间，必须补空格，
+    否则两个单词会粘成一个。另外续行以破折号、括号、引号起头时要隔开
+    （「……就能打开」+「—— 在哪儿调」不能挤成「打开—— 在哪儿调」）。
+    """
+    if not prev or not head:
+        return True
+    if head[0] in "—-–([{<'\"“（【":
+        return False
+    return ord(prev[-1]) > 0x2000
+
+
 def notes_from_changelog(version_name: str) -> list[str]:
     """从 CHANGELOG.md 里抽出某个版本那一节的条目。
 
@@ -295,9 +309,19 @@ def notes_from_changelog(version_name: str) -> list[str]:
         if not inside:
             continue
         stripped = line.strip()
-        # 只收二级标题下的 `-` 条目；### 小标题本身略过（它只是分类）
+        # 二级标题下的 `-` 条目；### 小标题本身略过（它只是分类）
         if stripped.startswith("- "):
             collected.append(stripped[2:].strip())
+        elif (
+            stripped
+            and collected
+            and not stripped.startswith(("#", "-", "|", "```"))
+        ):
+            # 续行：Markdown 里为了好读会把长条目折成几行，
+            # 它们是同一条说明的一部分，丢掉等于把句子拦腰砍断
+            # （v1.0.7 就漏过：手机上只看到半句话）。
+            joiner = "" if joins_without_space(collected[-1], stripped) else " "
+            collected[-1] = "%s%s%s" % (collected[-1], joiner, stripped)
     return collected
 
 
