@@ -1,7 +1,55 @@
 {
   "schemaVersion": 1,
-  "assetsBase": "https://github.com/gillnotfail/schedule_plan/releases/download",
+  "assetsBase": "https://gitee.com/jeo-xie/schedule_plan/releases/download",
   "releases": [
+    {
+      "versionCode": 7,
+      "versionName": "1.0.6",
+      "tag": "v1.0.6",
+      "publishedAt": "2026-10-01T14:28:29+08:00",
+      "notes": [
+        "**工具箱下面多了一张「每日一句」卡片**：四张工具卡片下面以前空着一块，现在放了一首诗或一句话，",
+        "**里面的句子你可以自己加**：句库放在 `assets/data/quotes.json`（内置 87 条），",
+        "**从这一版起，\"检查更新\"和下载安装包会优先走 Gitee（国内直连，一般不用挂代理）**，",
+        "卡片的颜色跟着主题走：换成「晨曦暖橙」「樱花粉」或深夜模式，它都会自动配成同一色调的浅底，",
+        "句子和出处都是**居中**排的，读起来松一点，不像表格那样一条条靠左",
+        "只有工具箱第 1 页有这张卡，「本周教学成果」那一页不动"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24073143,
+          "sha256": "17566f24a3fde01532a0c06c37d59edbe08e8a3bb4f53497c63314f0e17b9aa1"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22104831,
+          "sha256": "7d393a95788207ed645537fea080785a9ca0eb779593eb135b133aaf177d3137"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 6,
+          "abi": "arm64-v8a",
+          "file": "patch-6-7-arm64-v8a.spdp",
+          "size": 4014774,
+          "targetSize": 24073143,
+          "sha256": "5151fd1b1d7f82c5c5047234f90d09e0a25d1b25f41e79a2e2c18bec9c569345",
+          "baseSha256": "74994bf7c6f2645212f750a70996fcb3121e6e5223e0f5d7fd359c0d17fe2d78"
+        },
+        {
+          "fromVersionCode": 6,
+          "abi": "armeabi-v7a",
+          "file": "patch-6-7-armeabi-v7a.spdp",
+          "size": 4463332,
+          "targetSize": 22104831,
+          "sha256": "725885f3f7c7248dba65074491b86b443114eeeef795c30b5dfe1709fc4bdea2",
+          "baseSha256": "ca53e260e9f7a49e08e16656a9bb4a513648b006ceca1b5a1f9d8bccb4202306"
+        }
+      ]
+    },
     {
       "versionCode": 6,
       "versionName": "1.0.5",
@@ -286,5 +334,9 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-10-01T01:27:05+08:00"
+  "generatedAt": "2026-10-01T14:28:29+08:00",
+  "assetsBases": [
+    "https://gitee.com/jeo-xie/schedule_plan/releases/download",
+    "https://github.com/gillnotfail/schedule_plan/releases/download"
+  ]
 }
