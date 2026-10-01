@@ -36,6 +36,8 @@
 | `cdn.jsdelivr.net/gh/.../updates/latest.json` | **404**（jsDelivr 完全不服务私有仓库） | 200 |
 | `github.com/<repo>/releases/download/...`（安装包） | 404 | 200 |
 | `api.github.com/repos/<repo>` | 404 | 200 |
+| `gitee.com/<owner>/<repo>/raw/main/updates/latest.json` | 404 | 200 |
+| `gitee.com/<owner>/<repo>/releases/download/...`（安装包） | 404 | 200 |
 
 判断方法（匿名探测，就是手机的视角）：
 
@@ -55,7 +57,54 @@ git log --all --name-only --pretty=format: | sort -u \
 # 期望：无输出
 ```
 
-### 2. SSH 密钥（推送代码用）
+### 2. Gitee 仓库（国内直连的那一份，必需）
+
+GitHub 在部分网络下**完全连不通**，而"检查更新"必须有一条不用代理就能走的
+来路。所以每次发布都同时往 Gitee 传一份同样的清单与安装包：清单里
+`assetsBases` 写 `[Gitee, GitHub]`，客户端从上往下试，Gitee 通就不走 GitHub。
+
+要做的只有四件事：
+
+**① 仓库是公开的**（理由与上一条相同，私有仓库匿名取不到 raw 与附件）：
+
+```bash
+curl -s -o /dev/null -w '%{http_code}
+' https://gitee.com/api/v5/repos/jeo-xie/schedule_plan
+# 200 = 公开（匿名读得到）；404 = 私有
+```
+
+**② 加 SSH 公钥**：Gitee 右上角头像 → 设置 → 安全设置 → **SSH 公钥** →
+增加公钥，把本机 `~/.ssh/id_ed25519.pub` 的内容整行粘进去（与 GitHub 用的是
+同一个密钥，不用另生成）。
+
+```bash
+ssh -T git@gitee.com
+# 期望：Hi xxx! You've successfully authenticated...
+# 报 Permission denied (publickey) 就是公钥还没加（或加到了别的账号）
+```
+
+**③ 建私人令牌 `GITEE_TOKEN`**：头像 → 设置 → 安全设置 → **私人令牌** →
+生成新令牌，权限只勾 **projects** 一项就够（仓库存取、发行版、附件都归它管）。
+拿到的是 **32 位十六进制串，只在生成的那一瞬间显示一次**。
+
+写进家目录那个文件（与 `GITHUB_TOKEN` 同一个文件，一行一个）：
+
+```
+GITHUB_TOKEN=github_pat_xxx
+GITEE_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+**④ 配远端**（本机已经配好；换机器时要重做）：
+
+```bash
+git remote add gitee git@gitee.com:jeo-xie/schedule_plan.git
+```
+
+> 首次推送后如果 Gitee 网页上显示"master 分支不存在"，去 仓库设置 → 基本信息 →
+> **默认分支** 改成 `main`（发版脚本每次也会尽力自动改一次）。
+> 只是网页观感问题：客户端读 raw 时地址里写死了 `main`，不受默认分支影响。
+
+### 3. SSH 密钥（推送代码用）
 
 ```bash
 ssh-keygen -t ed25519 -C "gillnotfail@github" -f ~/.ssh/id_ed25519 -N ""
@@ -80,7 +129,7 @@ Host github.com
 ssh -T git@github.com      # 期望：Hi gillnotfail! You've successfully authenticated...
 ```
 
-### 3. `GITHUB_TOKEN`（建 Release 与上传附件用）
+### 4. `GITHUB_TOKEN`（建 Release 与上传附件用）
 
 GitHub → Settings → Developer settings → **Personal access tokens**。
 
@@ -132,7 +181,7 @@ export GITHUB_TOKEN=github_pat_xxx
   等号右边是空的 / 有值但读不出来。这四种情况的处置完全不同，混成一句
   "没有可用的 GITHUB_TOKEN" 会让人对着一个明明存在的文件反复怀疑路径。
 
-### 4. 下载地址要不要配镜像
+### 5. 下载地址要不要配镜像
 
 `updates/latest.json` 里的下载地址默认为
 `https://github.com/<repo>/releases/download/<tag>/<file>`。
@@ -145,7 +194,7 @@ export GITHUB_TOKEN=github_pat_xxx
 - 手机侧会下不动包，需要在 设置 → 检查更新 → 下载镜像 里填一个前缀
   （如 `https://ghproxy.net/https://github.com`），应用会自动把它套在直连地址前面试。
 
-### 5. 签名文件
+### 6. 签名文件
 
 - `android/key.properties` → 指向 `android/keystore.jks`（两者都在 `.gitignore` 里）。
 - **`keystore.jks` 必须另存备份**。丢了就再也无法给已安装的 App 发升级包，
@@ -178,9 +227,13 @@ python tool/release.py --bump patch --push
 4. 用上一版 APK 当基准生成分差补丁，并**当场自校验**（合不出来就中止发布）；
 5. 写 `updates/latest.json`；
 6. 把本次 APK 缓存到 `dist/releases/<versionCode>/`（下次当基准用）；
-7. `git commit` + `git tag vX.Y.Z`，再 `git push`（只有加 `--push` 才推）；
-8. 建 GitHub Release 并上传 APK 与补丁附件；
-9. **清掉 jsDelivr 上清单文件的 CDN 缓存**（见下面「清单的 12 小时缓存」）。
+7. `git commit` + `git tag vX.Y.Z`，再把分支与标签推到 **gitee 与 origin 两个远端**
+   （只有加 `--push` 才推）；
+8. 在 **Gitee 和 GitHub 各建一份发行版**，各上传同一批 APK 与补丁附件；
+9. **回验附件地址能否匿名下载**：每个源抽一个文件（优先补丁）发一次 Range 请求，
+   发现哪个源下不动就把它从清单里去掉、补一次提交推送。这一步专治"脚本全绿、
+   手机端永远看不到更新"——仓库被转成私有、附件权限被收紧都是这个症状；
+10. **清掉 jsDelivr 上清单文件的 CDN 缓存**（见下面「清单的 12 小时缓存」）。
 
 > **第 9 步不能省**：jsDelivr 对 `@main` 这种分支引用最长缓存 12 小时，
 > 而国内 `raw.githubusercontent.com` 经常直接不通 —— 客户端是 raw 优先、
@@ -197,7 +250,9 @@ python tool/release.py --bump patch --push
 | `--notes "一;二"` | 直接用这段文字当更新说明，跳过 CHANGELOG |
 | `--no-build` | 复用已有 APK（补传附件时用，省几分钟） |
 | `--skip-upload` | 不建 Release，只产本地文件与清单 |
-| `--push` | 提交后推送到 origin |
+| `--push` | 提交后推送到 gitee 与 origin |
+| `--no-gitee` | 完全不碰 Gitee（不推 gitee、不建 Gitee 发行版，清单里只写 GitHub） |
+| `--gitee-only` | 只发 Gitee（GitHub 连不通时用；清单里也只写 Gitee） |
 | `--previous-apk-dir <目录>` | 手动指定基准 APK 目录 |
 | `--include-emulator` | 同时发布 x86_64（只有模拟器需要） |
 
@@ -216,7 +271,11 @@ python tool/release.py --bump patch --push
   "schemaVersion": 1,
   "generatedAt": "2026-10-01T10:00:00+08:00",
   "minSupportedVersionCode": 1,
-  "assetsBase": "https://github.com/gillnotfail/schedule_plan/releases/download",
+  "assetsBase": "https://gitee.com/jeo-xie/schedule_plan/releases/download",
+  "assetsBases": [
+    "https://gitee.com/jeo-xie/schedule_plan/releases/download",
+    "https://github.com/gillnotfail/schedule_plan/releases/download"
+  ],
   "releases": [
     {
       "versionCode": 2,
@@ -249,6 +308,11 @@ python tool/release.py --bump patch --push
 ```
 
 - `releases` 按 `versionCode` **从新到旧**排列；脚本只保留最近 20 个版本。
+- `assetsBases` 是**多下载源**（按优先级），`assetsBase` 是它的第一个。
+  单数字段不能删：已经装在老师手机上的旧版本**只读这一个**，所以发布脚本会
+  先把它指到一个**当场验证过能下**的源上。反过来说，**`schemaVersion` 不能
+  因为加了字段就往上加** —— 旧客户端见到更高的结构版本会直接判"清单不可用"，
+  等于把已装机用户全锁死在旧版本。
 - `deltas[].baseSha256` 是**基准包**（上一版整包）的指纹。设备端拿本机 APK 算指纹，
   对不上就说明补丁不适用（比如装的是第三方渠道包）→ 直接走整包。
 - `assets[].sha256` 是**目标整包**的指纹。设备端合成完补丁后会拿它**交叉校验**
@@ -258,9 +322,15 @@ python tool/release.py --bump patch --push
 
 `UpdateService.manifestUrls` 依次尝试：
 
-1. `https://raw.githubusercontent.com/gillnotfail/schedule_plan/main/updates/latest.json`
-2. `https://cdn.jsdelivr.net/gh/gillnotfail/schedule_plan@main/updates/latest.json`（国内通常更快）
-3. 用户自己配的镜像前缀（设置 → 检查更新 → 下载镜像）套在前两个前面
+1. `https://gitee.com/jeo-xie/schedule_plan/raw/main/updates/latest.json?t=<时间戳>`
+2. `https://raw.githubusercontent.com/gillnotfail/schedule_plan/main/updates/latest.json`
+3. `https://cdn.jsdelivr.net/gh/gillnotfail/schedule_plan@main/updates/latest.json`
+4. 用户自己配的镜像前缀（设置 → 检查更新 → 下载镜像）套在以上三条后面
+
+**Gitee 排第一**是因为它是唯一一条通常不需要代理就能走的来路；它那条会带一个
+`?t=` 时间戳（Gitee 的 raw 自己也有 CDN 缓存，加一个每次都变的查询串才能
+"发完立刻可见"，清单只有几 KB，这点缓存收益不值得拿"晚半天看到更新"去换）。
+安装包与补丁的选取顺序与清单一致：先 Gitee，Gitee 下不动或指纹不符才换 GitHub。
 
 因此**清单推送到 `main` 分支是发布生效的最后一步**。只建了 Release 而没推
 `latest.json`，应用内是看不到新版本的。
@@ -377,7 +447,10 @@ python tool/delta_patch.py apply old.apk patch.spdp out.apk
 
 | 现象 | 原因 |
 | --- | --- |
-| `git push` 提示 Permission denied | 公钥没加到 GitHub，或没走 443（见 §2.2） |
+| `git push` 提示 Permission denied | 公钥没加到 GitHub，或没走 443（见 §2.3）；推 gitee 时同理见 §2.2 |
+| Gitee API 报 `401` / `403`，说令牌被拒绝 | `GITEE_TOKEN` 没建、过期，或者权限没勾 `projects`（见 §2.2） |
+| 发布日志里 `https://gitee.com/... 下不动 ✗` | 仓库被改成私有了，或附件的下载权限被收紧。脚本会把该源从清单里去掉，只留 GitHub —— 但这意味着国内手机又回到"要靠代理"的状态，优先去查仓库可见性 |
+| Gitee 网页上显示"master 分支不存在" | 默认分支还是建仓时的 `master`。改 仓库设置 → 基本信息 → 默认分支 为 `main`；不影响客户端（地址里写死 `main`） |
 | Release 建好了但没有附件 | 没设 `GITHUB_TOKEN`，脚本跳过上传（日志里会说明具体是哪种情况） |
 | 日志说"没有可用的 GITHUB_TOKEN"但文件明明在 | 看紧跟的「原因」一行：多半是等号右边是空的（编辑器没保存/粘贴没落盘） |
 | `401 Bad credentials` | 先用日志里的字符数判断：细粒度 PAT 只有 93 字符才是完整的，不够就是复制时被截断了 |
@@ -400,6 +473,8 @@ python tool/delta_patch.py apply old.apk patch.spdp out.apk
 - [ ] `flutter analyze --no-pub` → `No issues found!`
 - [ ] `flutter test` → `All tests passed!`
 - [ ] `python tool/delta_patch.py selftest` 通过
+- [ ] **Gitee 仓库也是公开的**（`curl -s -o /dev/null -w '%{http_code}' https://gitee.com/api/v5/repos/jeo-xie/schedule_plan` → 200）
+- [ ] `GITEE_TOKEN` 可用（脚本会在打包前验一次）
 - [ ] `keystore.jks` 有备份
 - [ ] `git status` 干净，没有误提交 `*.jks` / `key.properties` / APK
 - [ ] 命令里带了 `--push`（否则脚本会拒绝建 Release，因为标签没进远端）

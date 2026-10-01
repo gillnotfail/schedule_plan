@@ -230,6 +230,28 @@
   的重复入口，功能没删**，手动待办仍在 `TodoPage` 第二个 Tab 里。顺带把卡片文案改准了：`toolTodo` → 「待办」、
   `toolTodoDesc` → 「智能待办与通用清单」。删表走 v8 迁移（见 `schema.dart` 的 `_migrateV7ToV8`）。
 
+## 工具箱「每日一句」大卡片（第 21 轮）
+- 位置：工具箱**第 1 页四张工具卡下面**（`toolbox_page._buildTools` 末尾 → `quote_card.dart`）。只在这一页，
+  成果页没有。
+- **语料两份，叠加**：内置 `assets/data/quotes.json`（87 条，已在 `pubspec.yaml` 的 `assets: assets/data/` 注册；
+  改句子只改这个文件）+ 应用文档目录下同名 `quotes.json`（可选，存在就追加）。两者都读不到 → 卡片整块 `SizedBox.shrink`
+  **不留空壳**；单条 JSON 写坏只跳过那一条（`Quote.tryParse` / `Quote.parseAll` 是宽容解析，别改成抛异常）。
+  测试 `test/unit/quote_service_test.dart` 里有一条会**直接读磁盘上那份 JSON**，改路径要同步 pubspec。
+- **抽句不许连着重复**：`QuoteService.pickIndex(length, last, random)` 在"剩下的 n-1 条"里抽再映射回原下标，
+  别退回"抽到一样就重抽"的循环。`QuoteService.shared` 是全局唯一实例（缓存 + `_lastIndex` 都挂它身上），
+  **别在 widget 里 new 一个新的**，否则每换一个页面就重置"上一句"。
+- **换句时机三处**：点卡片（`QuoteCard._roll`）、切回工具箱 Tab（`_onNavigationChanged` → `_quoteSeed++`）、
+  从第 2 页滑回第 1 页（`onPageChanged` 里 `index == 0 && _page != 0`）。信号走 `rerollToken` 自增整数，
+  不要改成回调 / GlobalKey。
+- **配色不许写死**：底色 = `Color.lerp(surface, primary, 0.10|0.20)` → `Color.lerp(surface, tertiary, 0.07|0.16)`
+  的斜向渐变（暗色主题取大的那个比例），六套主题自动对上。正文用 `onSurface`、出处用 `onSurfaceVariant`，
+  **对比度不受染色影响**。
+- **排版整条居中**（用户第 21 轮追加要求："字体居中吧，轻松一点，不要太刻板"）：引号封面 → 正文 → 出处 →
+  「轻触换一句」四行都居中；正文块 `minHeight = 84`（≈两行半），换句时卡片高度基本不动。有一条 widget 测试
+  守着 `TextAlign.center` 和"卡片高度 180~215"这两条口径，**别改回左对齐**。
+- 长按卡片 = 「语录来源」弹窗（条数 + 自定义文件路径 + 复制路径）。这是"我想再往里加句子"的唯一出口，
+  别删。
+
 ## 全局 UI / 动效
 - **动效时长/曲线只有 `AppMotion` 一个来源**。按下缩放 = `instant`(100ms) + `softSpring`；位移用 `expressive`，
   颜色/透明度用 `effects`。可用时长：`instant 100 / quick 180 / wheelSnap 200 / scrollSettle 120 / standard 300 /
@@ -291,9 +313,41 @@
   「唤起 + 预填」，不要一上来做端内 ASR。**
 
 ## 发布与更新链路（细则）
-- **客户端清单地址**：raw.githubusercontent（第一）+ jsDelivr（第二、国内可达）+ 用户可配镜像前缀。自动检查一天一次
+- **客户端清单地址（第 22 轮起 Gitee 第一）**：**Gitee raw（第一，带 `?t=` 时间戳）** → raw.githubusercontent
+  （第二）→ jsDelivr（第三、国内可达）→ 用户可配镜像前缀（套在这三条**后面**）。自动检查一天一次
   （`updateLastCheckAt` 节流）。`UpdateService` 是独立 `ChangeNotifier`，`AppDependencies` 里
-  `unawaited(autoCheckIfDue())`（不阻塞启动、不弹窗打断）。清单默认下载地址指向 `github.com`。
+  `unawaited(autoCheckIfDue())`（不阻塞启动、不弹窗打断）。`sourceLabelOf(url)` 把地址压成
+  `Gitee`/`GitHub`/`jsDelivr`/域名，日志里才有"是哪条路不通"可看。
+- **双仓库分发（第 22 轮，GitHub 在国内不可用的正面解法）**：Gitee `jeo-xie/schedule_plan`（公开）+ GitHub
+  `gillnotfail/schedule_plan`。两边各建一份发行版、各传同一批 APK/补丁。Gitee 附件地址与 GitHub
+  **完全同构**：`https://gitee.com/<owner>/<repo>/releases/download/<tag>/<file>`（已用 oschina/mcp-gitee
+  的真实发行版核实过），所以客户端拼地址的代码一套就够。
+  - **清单元数据**：`assetsBases`（可选数组，按优先级，Gitee 在前）+ 保留的单数 `assetsBase`（写 `assetsBases[0]`）。
+    **`schemaVersion` 绝对不能跟着加**：`tryParse` 见到更高的结构版本会直接判"清单不可用"，等于把已装机用户全
+    锁死在旧版本上；新增字段必须可选、老解析器忽略得了。单数字段是给 **≤1.0.5 的旧客户端**留的（它们只读它），
+    所以发布脚本必须把它指到一个**当场回验过能匿名下载**的源。
+  - **Gitee API v5**：`POST /repos/{o}/{r}/releases`（formData：`access_token`/`tag_name`/`name`/`body`/
+    `target_commitish`）→ `POST /releases/{id}/attach_files`（multipart，字段名 `file`）。单文件上限 **100MB**
+    （本项目 APK ~24MB）。**`GET /releases/tags/{tag}` 在 tag 不存在时也返回 200，body 是光秃秃一个 `null`**
+    ——只看状态码会把"没有"当"有"（已按"必须是含 `id` 的 dict"判）。重跑发布时要**沿用**已有发行版并按附件名跳过，
+    否则会凭空多出第二个同名发行版。令牌只勾 **projects** 就够。
+  - **发布脚本的 Gitee 部分全部走 curl**（不引 `requests`）：`curl_request()` 用
+    `-w "
+__HTTP_STATUS__%{http_code}"` 切出状态码；文本字段一律 `--form-string`（`-F` 会把开头的 `@` 当文件名、
+    `;type=` 当元数据，而发行说明是中英混排的用户文案）。顺带避开了本机 urllib 对某些域名的 `WinError 10054`。
+  - **上传后必须回验**（`verify_asset_urls`）：每个源抽一个文件（优先补丁）发一次 `curl -sSL --range 0-1023`，
+    只认 200/206 且 `size_download>0`。有不通过的源就**重写清单 + 补一次提交**（`amend_release_commit`：
+    `git add -A` → commit → `git tag -f -a` → `git push` + `git push --force <tag>`）——这是全脚本唯一允许强推
+    标签的地方，因为远端发行版挂的是标签，标签留在旧提交上等于更正没生效。
+  - **两个开关**：`--no-gitee`（完全不碰 Gitee，清单只写 GitHub，老行为）、`--gitee-only`（只发 Gitee，
+    GitHub 连不通时用；此时也不清 jsDelivr 缓存）。
+  - **`git push` 顺序**：`remotes = (gitee, origin)`，逐个 `push HEAD` + `push <tag>` 并各自 `ls-remote` 复核。
+- **Gitee 侧一次性设置（用户手工做，脚本做不了）**：① 仓库公开；② **SSH 公钥**（与 GitHub 共用
+  `~/.ssh/id_ed25519.pub`，贴到 设置 → 安全设置 → SSH 公钥。**本机 2026-10-01 还没加，`ssh -T git@gitee.com`
+  报 `Permission denied (publickey)`**）；③ **私人令牌**写进 `~/.schedule_plan-release.env` 的 `GITEE_TOKEN=`
+  那一行（文件里已留空位）；④ `git remote add gitee git@gitee.com:jeo-xie/schedule_plan.git`（已配）。
+  首次推完如果网页显示"master 分支不存在"，把 仓库设置 → 基本信息 → 默认分支 改成 `main`
+  （`ensure_gitee_default_branch()` 每次也会**尽力**调 `PATCH /repos/{o}/{r}` 自动改，失败只记日志）。
 - **本机网络（实测，别信旧结论）**：**按 IP 封，不是按域名**——DNS 解析正常但 TCP 连不上。
   - **2026-09-30 复测**：`github.com`（`20.205.243.166`）**000 不通**；`raw.githubusercontent.com`
     （`185.199.108/109/110/111.133`）**也 000 不通**（连测 4 次；**上一条「raw 都通」的结论已失效**）；

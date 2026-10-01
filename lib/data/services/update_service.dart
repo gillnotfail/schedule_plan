@@ -261,8 +261,15 @@ class UpdateService extends ChangeNotifier {
         _client = client ?? http.Client(),
         _preferences = preferences ?? SettingsUpdatePreferences();
 
-  /// 清单与发布附件所在仓库。
-  static const String repositorySlug = 'gillnotfail/schedule_plan';
+  /// GitHub 上的仓库（发布链路的主体，也是最权威的一份）。
+  static const String githubRepositorySlug = 'gillnotfail/schedule_plan';
+
+  /// Gitee 上的镜像仓库。老师的手机大多在国内，Gitee 是唯一一条
+  /// **通常不需要代理就能连上**的来路，所以清单与安装包都让它排第一。
+  static const String giteeRepositorySlug = 'jeo-xie/schedule_plan';
+
+  /// 兼容旧调用：过去只有一个仓库，指的是 GitHub 那份。
+  static const String repositorySlug = githubRepositorySlug;
 
   /// 清单文件在仓库里的路径。
   static const String manifestPath = 'updates/latest.json';
@@ -573,15 +580,29 @@ class UpdateService extends ChangeNotifier {
   // 内部实现
   // -------------------------------------------------------------------------
 
-  /// 清单地址列表。直连优先，镜像前缀依次兜底。
+  /// 清单地址列表，**Gitee 优先、GitHub 兜底、jsDelivr 最后**。
   ///
-  /// raw.githubusercontent 排第一是因为它**永远是最新的**（jsDelivr 对分支
-  /// 有最长 12 小时的缓存），而清单只有几 KB，慢一点也无所谓。
-  /// 国内 raw 常常不通，所以 jsDelivr 立刻跟上做第二选择。
-  static List<String> manifestUrls(List<String> mirrorPrefixes) {
+  /// 三条来路各有用处，顺序不是随手排的：
+  ///   · Gitee raw：国内直连，是老师手机上唯一一条通常不需要代理的来路；
+  ///   · GitHub raw：内容最权威（补丁与安装包的原产地），但国内常常连不上；
+  ///   · jsDelivr：GitHub 的 CDN 兜底，代价是对分支有最长 12 小时缓存
+  ///     （所以发布脚本里那步清缓存不能省，见 `tool/release.py`）。
+  ///
+  /// Gitee 那条会带一个 `?t=` 时间戳：它自己的 raw 也会被 CDN 缓存，
+  /// 加一个每次都变的查询串才能"发完立刻可见"。清单只有几 KB，
+  /// 这点缓存收益不值得拿"晚半天才看到更新"去换。
+  ///
+  /// [epochSeconds] 只为测试可断言而存在，生产调用不传。
+  static List<String> manifestUrls(
+    List<String> mirrorPrefixes, {
+    int? epochSeconds,
+  }) {
+    final stamp =
+        epochSeconds ?? DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final direct = <String>[
-      'https://raw.githubusercontent.com/$repositorySlug/main/$manifestPath',
-      'https://cdn.jsdelivr.net/gh/$repositorySlug@main/$manifestPath',
+      'https://gitee.com/$giteeRepositorySlug/raw/main/$manifestPath?t=$stamp',
+      'https://raw.githubusercontent.com/$githubRepositorySlug/main/$manifestPath',
+      'https://cdn.jsdelivr.net/gh/$githubRepositorySlug@main/$manifestPath',
     ];
     return <String>[
       ...direct,
@@ -747,10 +768,11 @@ class UpdateService extends ChangeNotifier {
         if (actual == expectedSha256) {
           return target.path;
         }
-        AppLogger.w('下载内容指纹不符（$actual），换下一个地址');
+        AppLogger.w('${sourceLabelOf(urls[i])} 下载内容指纹不符（$actual），换下一个地址');
         await _quietlyDelete(target);
       } catch (error, stack) {
-        AppLogger.e('从 ${urls[i]} 下载失败', error: error, stack: stack);
+        AppLogger.e('从 ${sourceLabelOf(urls[i])} 下载失败：${urls[i]}',
+            error: error, stack: stack);
         if (_cancelled) {
           return null;
         }
@@ -838,4 +860,29 @@ class UpdateService extends ChangeNotifier {
     _state = next;
     notifyListeners();
   }
+}
+
+/// 给日志用的来源名：把一长串地址压成 `gitee` / `github` / 域名。
+///
+/// 更新失败时用户报回来的往往是"下载不动"，而真正要分辨的是**是哪一条来路
+/// 不通**——清单里同时有 Gitee 和 GitHub 两份地址，日志里全是原始 URL 时
+/// 根本看不出走的是哪条。域名是唯一可靠的判据（不能靠"包含 gitee"这种
+/// 子串匹配，代理前缀会把别人的域名套在前面）。
+String sourceLabelOf(String url) {
+  final host = Uri.tryParse(url)?.host ?? '';
+  if (host.isEmpty) {
+    return url;
+  }
+  if (host == 'gitee.com' || host.endsWith('.gitee.com')) {
+    return 'Gitee';
+  }
+  if (host == 'github.com' ||
+      host.endsWith('.github.com') ||
+      host.endsWith('.githubusercontent.com')) {
+    return 'GitHub';
+  }
+  if (host.endsWith('.jsdelivr.net') || host == 'jsdelivr.net') {
+    return 'jsDelivr';
+  }
+  return host;
 }

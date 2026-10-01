@@ -93,12 +93,16 @@ Map<String, Object?> releaseJson({
 String manifestBody({
   Object? schemaVersion = 1,
   Object? assetsBase = 'https://example.com/releases/download',
+  Object? assetsBases,
   Object? minSupportedVersionCode = 1,
   Object? releases,
 }) =>
     jsonEncode(<String, Object?>{
       'schemaVersion': schemaVersion,
       'assetsBase': assetsBase,
+      // 老清单没有这个字段，所以只有显式传了才写进去——默认那份必须是
+      // "只有单数 assetsBase"的形态，兼容性才真的被测到。
+      'assetsBases': ?assetsBases,
       'minSupportedVersionCode': minSupportedVersionCode,
       'releases': releases ?? <Object?>[releaseJson()],
     });
@@ -482,6 +486,99 @@ void main() {
         currentVersionCode: 1,
         currentVersionName: '1.0.0',
         abi: 'arm64-v8a',
+      )!;
+      expect(plan.candidateUrls(forDelta: false), <String>[
+        'https://cdn.example.com/custom.apk',
+      ]);
+    });
+  });
+
+  group('多下载源', () {
+    const gitee = 'https://gitee.com/jeo-xie/schedule_plan/releases/download';
+    const github =
+        'https://github.com/gillnotfail/schedule_plan/releases/download';
+
+    test('assetsBases 按清单顺序取用，Gitee 在前', () {
+      final manifest = UpdateManifest.tryParse(
+        manifestBody(assetsBases: <Object?>[gitee, github]),
+      )!;
+      expect(manifest.assetBaseList, <String>[gitee, github]);
+    });
+
+    test('没有 assetsBases 的老清单退回单数 assetsBase', () {
+      final manifest = UpdateManifest.tryParse(manifestBody())!;
+      expect(manifest.assetBaseList, <String>[
+        'https://example.com/releases/download',
+      ]);
+      // 单数字段本身仍要原样读出来：它服务的正是只会读它的老客户端。
+      expect(manifest.assetsBase, 'https://example.com/releases/download');
+    });
+
+    test('assetsBases 里的空串与非字符串被剔掉', () {
+      final manifest = UpdateManifest.tryParse(
+        manifestBody(assetsBases: <Object?>[gitee, '', '  ', 42, null, github]),
+      )!;
+      expect(manifest.assetBaseList, <String>[gitee, github]);
+    });
+
+    test('assetsBases 全部不可用时退回单数 assetsBase', () {
+      final manifest = UpdateManifest.tryParse(
+        manifestBody(assetsBases: <Object?>['', 42]),
+      )!;
+      expect(manifest.assetBaseList, <String>[
+        'https://example.com/releases/download',
+      ]);
+    });
+
+    test('候选地址按源顺序排列，镜像前缀排最后', () {
+      final manifest = UpdateManifest.tryParse(
+        manifestBody(assetsBases: <Object?>[gitee, github]),
+      )!;
+      final plan = manifest.plan(
+        currentVersionCode: 1,
+        currentVersionName: '1.0.0',
+        abi: 'arm64-v8a',
+        mirrorPrefixes: const <String>['https://ghproxy.example/'],
+      )!;
+      expect(plan.candidateUrls(forDelta: false), <String>[
+        '$gitee/v1.0.1/app-arm64-v8a-release.apk',
+        '$github/v1.0.1/app-arm64-v8a-release.apk',
+        'https://ghproxy.example/$gitee/v1.0.1/app-arm64-v8a-release.apk',
+        'https://ghproxy.example/$github/v1.0.1/app-arm64-v8a-release.apk',
+      ]);
+    });
+
+    test('分差补丁走同一套源顺序', () {
+      final manifest = UpdateManifest.tryParse(
+        manifestBody(assetsBases: <Object?>[gitee, github]),
+      )!;
+      final plan = manifest.plan(
+        currentVersionCode: 1,
+        currentVersionName: '1.0.0',
+        abi: 'arm64-v8a',
+        baseApkSha256: _shaBase,
+      )!;
+      expect(plan.usesDelta, isTrue);
+      expect(plan.candidateUrls(forDelta: true), <String>[
+        '$gitee/v1.0.1/patch-1-2-arm64-v8a.spdp',
+        '$github/v1.0.1/patch-1-2-arm64-v8a.spdp',
+      ]);
+    });
+
+    test('条目自带完整地址时唯一来路，不再套镜像前缀', () {
+      final manifest = UpdateManifest.tryParse(manifestBody(
+        assetsBases: <Object?>[gitee, github],
+        releases: <Object?>[
+          releaseJson(assets: <Object?>[
+            assetJson(url: 'https://cdn.example.com/custom.apk'),
+          ]),
+        ],
+      ))!;
+      final plan = manifest.plan(
+        currentVersionCode: 1,
+        currentVersionName: '1.0.0',
+        abi: 'arm64-v8a',
+        mirrorPrefixes: const <String>['https://ghproxy.example/'],
       )!;
       expect(plan.candidateUrls(forDelta: false), <String>[
         'https://cdn.example.com/custom.apk',

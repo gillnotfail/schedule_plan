@@ -95,11 +95,21 @@ flutter build apk --release
 
 ## 发布与应用内分差升级
 
-这个仓库同时充当**分发云**：APK 与分差补丁挂在 **GitHub Releases**，版本清单 `updates/latest.json` 跟着 `main` 分支走。
+这个仓库同时充当**分发云**：APK 与分差补丁挂在 Release 附件，版本清单 `updates/latest.json` 跟着 `main` 分支走。
 
-> **前提：仓库必须是公开的。** 应用里没有也不该有凭据，它只能匿名取清单和安装包。
+同一份内容会**发布到两个平台**，因为老师在教室里连不上 GitHub：
+
+| 平台 | 仓库 | 用途 |
+| --- | --- | --- |
+| Gitee | [jeo-xie/schedule_plan](https://gitee.com/jeo-xie/schedule_plan) | **首选**：国内直连，通常不需要代理 |
+| GitHub | [gillnotfail/schedule_plan](https://github.com/gillnotfail/schedule_plan) | 主仓库；Gitee 不通时自动回落 |
+
+应用内的「检查更新」按 **Gitee → GitHub → jsDelivr → 自配镜像** 的顺序取清单，安装包与补丁也走同一套顺序，任何一步失败就换下一条路。清单里的 `assetsBases` 就是这份顺序。
+
+> **前提：两个仓库都必须公开。** 应用里没有也不该有凭据，它只能匿名取清单和安装包。
 > 仓库设为私有（Private）时，**发布流程会全部成功，而手机端永远看不到更新**——
-> 见 [`docs/RELEASE.md` §2.1](docs/RELEASE.md)。
+> 见 [`docs/RELEASE.md` §2.1](docs/RELEASE.md)。发布脚本会在上传后**逐个源回验能否匿名下载**，
+> 下不动的源会被自动从清单里剔除。
 
 ### 为什么需要分差
 
@@ -124,7 +134,8 @@ APK 里最大的一块是 `lib/libapp.so`（Dart AOT 快照，约 10 MB）。改
 # 1) 先写更新说明（应用内会原样展示给用户）
 #    编辑 CHANGELOG.md，在最上面加一条 ## [1.0.1] - 2026-10-01
 
-# 2) 一条命令搞定：自增版本号 → 打包 → 生成补丁 → 写清单 → 提交打标签 → 建 Release 并上传
+# 2) 一条命令搞定：自增版本号 → 打包 → 生成补丁 → 写清单 → 提交打标签
+#    → 推 gitee 与 origin → 两边各建一份 Release 并上传附件 → 回验附件能匿名下载
 python tool/release.py --bump patch --push
 ```
 

@@ -14,7 +14,11 @@ import 'package:flutter/foundation.dart';
 ///   "schemaVersion": 1,
 ///   "generatedAt": "2026-09-27T10:00:00+08:00",
 ///   "minSupportedVersionCode": 1,
-///   "assetsBase": "https://github.com/<owner>/<repo>/releases/download",
+///   "assetsBase": "https://gitee.com/<owner>/<repo>/releases/download",
+///   "assetsBases": [
+///     "https://gitee.com/<owner>/<repo>/releases/download",
+///     "https://github.com/<owner>/<repo>/releases/download"
+///   ],
 ///   "releases": [
 ///     {
 ///       "versionCode": 2, "versionName": "1.0.1", "tag": "v1.0.1",
@@ -29,6 +33,8 @@ import 'package:flutter/foundation.dart';
 ///   ]
 /// }
 /// ```
+/// `assetsBases` 是**可选**的多源列表（Gitee 在前、GitHub 兜底），
+/// `assetsBase` 是给老客户端留的单数字段，两者都由 `tool/release.py` 写。
 /// `releases` 按 `versionCode` **从新到旧**排列，这样"展示从我这一版到最新
 /// 之间的全部更新说明"就是一次前缀扫描，不需要再排序。
 @immutable
@@ -37,6 +43,7 @@ class UpdateManifest {
     required this.schemaVersion,
     required this.assetsBase,
     required this.releases,
+    this.assetsBases = const <String>[],
     this.generatedAt,
     this.minSupportedVersionCode = 0,
   });
@@ -51,12 +58,41 @@ class UpdateManifest {
   static const double deltaWorthwhileRatio = 0.9;
 
   final int schemaVersion;
+
+  /// **单数**附件根地址，老版本客户端唯一认识的那个字段。
+  ///
+  /// 保留它不是为了自己用，而是因为已经装在老师手机上的旧版本只会读这一个
+  /// 字段。所以生成端必须继续写、而且必须写一个**发布时当场验证过能匿名下载**
+  /// 的地址（见 `tool/release.py` 的 `verify_asset_urls`）。
   final String assetsBase;
+
+  /// 附件根地址候选，**按优先级**排列。
+  ///
+  /// 本项目同时托管在 Gitee 与 GitHub：国内 Gitee 直连更稳，GitHub 更权威，
+  /// 两边都放一份安装包，客户端从上往下试第一个能下的。字段可缺省——
+  /// 缺省时退回单数的 [assetsBase]，于是老清单与手写的清单都还能用。
+  ///
+  /// **不能把 schemaVersion 提上去**：老客户端见到更高的结构版本会直接判
+  /// "这份清单不可用"，等于把已经装机的用户全锁死在旧版本上。新增字段必须
+  /// 是可选的、老解析器忽略得了的。
+  final List<String> assetsBases;
+
   final List<AppRelease> releases;
   final DateTime? generatedAt;
   final int minSupportedVersionCode;
 
   AppRelease? get latest => releases.isEmpty ? null : releases.first;
+
+  /// 实际可用的附件根地址（按优先级）。
+  ///
+  /// 新清单给 [assetsBases]，老清单只有 [assetsBase]；这里统一成一个口径，
+  /// 上层不必关心清单是哪个年代生成的。
+  List<String> get assetBaseList {
+    if (assetsBases.isNotEmpty) {
+      return assetsBases;
+    }
+    return assetsBase.isEmpty ? const <String>[] : <String>[assetsBase];
+  }
 
   /// 解析清单。[body] 是清单文件的原始文本。
   ///
@@ -103,6 +139,7 @@ class UpdateManifest {
     return UpdateManifest(
       schemaVersion: schema,
       assetsBase: _asString(decoded['assetsBase']) ?? '',
+      assetsBases: _asStringList(decoded['assetsBases']),
       releases: releases,
       generatedAt: _asDateTime(decoded['generatedAt']),
       minSupportedVersionCode: _asInt(decoded['minSupportedVersionCode']) ?? 0,
@@ -164,7 +201,7 @@ class UpdateManifest {
       delta: delta,
       currentVersionCode: currentVersionCode,
       currentVersionName: currentVersionName,
-      assetsBase: assetsBase,
+      assetsBases: assetBaseList,
       mirrorPrefixes: mirrorPrefixes,
       deltaBlockedByAge: !allowDelta,
     );
@@ -398,7 +435,7 @@ class UpdatePlan {
     required this.asset,
     required this.currentVersionCode,
     required this.currentVersionName,
-    required this.assetsBase,
+    this.assetsBases = const <String>[],
     this.delta,
     this.mirrorPrefixes = const <String>[],
     this.deltaBlockedByAge = false,
@@ -412,7 +449,9 @@ class UpdatePlan {
   final ReleaseDelta? delta;
   final int currentVersionCode;
   final String currentVersionName;
-  final String assetsBase;
+
+  /// 附件根地址候选，**按优先级**（见 [UpdateManifest.assetsBases]）。
+  final List<String> assetsBases;
   final List<String> mirrorPrefixes;
 
   /// 因为当前版本低于清单声明的最低支持版本，所以没给分差。
@@ -430,19 +469,46 @@ class UpdatePlan {
   double get savedRatio =>
       fullBytes == 0 ? 0 : 1 - (downloadBytes / fullBytes).clamp(0.0, 1.0);
 
-  /// 生成下载候选地址：直连优先，镜像前缀依次兜底。
+  /// 生成下载候选地址：**多源依次尝试，镜像前缀最后兜底**。
   ///
-  /// 顺序是刻意的——GitHub 的附件在国内经常慢甚至不通，
-  /// 但"直连能用就别绕路"，所以直连排第一，镜像只在失败后才试。
+  /// 顺序是刻意的——
+  ///   1. 清单里给的源，按清单的顺序（生成端把国内直连快的排前面）；
+  ///   2. 用户自己配的镜像前缀。这些前缀服务（ghproxy 之类）只对 GitHub
+  ///      地址有意义，排最后是因为它们多一跳、也更容易半路失效。
+  ///
+  /// 条目自带完整地址（清单里写了 `url`）时它就是唯一来路：这种地址的域名
+  /// 是生成端特意指定的，再往上套别的镜像前缀没有意义。
   List<String> candidateUrls({required bool forDelta}) {
-    final relative = forDelta ? delta!.urlFor(assetsBase, latest.tag)
-                              : asset.urlFor(assetsBase, latest.tag);
+    final delta = this.delta;
+    if (forDelta && delta != null) {
+      return _urlsFrom(delta.absoluteUrl,
+          (base) => delta.urlFor(base, latest.tag));
+    }
+    return _urlsFrom(asset.absoluteUrl,
+        (base) => asset.urlFor(base, latest.tag));
+  }
+
+  /// 把"清单里的源"与"用户配的镜像前缀"拼成最终候选列表。
+  ///
+  /// [absolute] 非空表示条目自带完整地址，这种地址的域名是生成端特意指定的，
+  /// 再往上套别的镜像前缀没有意义，直接当唯一来路。
+  List<String> _urlsFrom(String? absolute, String Function(String base) build) {
+    if (absolute != null) {
+      return <String>[absolute];
+    }
+    final direct = <String>[
+      for (final base in assetsBases) build(base),
+    ];
+    if (direct.isEmpty) {
+      return const <String>[];
+    }
     if (mirrorPrefixes.isEmpty) {
-      return <String>[relative];
+      return direct;
     }
     return <String>[
-      relative,
-      for (final prefix in mirrorPrefixes) '$prefix$relative',
+      ...direct,
+      for (final prefix in mirrorPrefixes)
+        for (final url in direct) '$prefix$url',
     ];
   }
 }
@@ -500,6 +566,24 @@ String? _asString(Object? value) {
     return value;
   }
   return null;
+}
+
+/// 收一个字符串数组，顺手把空串与非字符串条目剔掉。
+///
+/// 宽容是有意的：清单是生成脚本写的、但也会被人手工改（加个镜像、试个新源），
+/// 不该因为多写了一个空串就让整份清单作废。
+List<String> _asStringList(Object? value) {
+  if (value is! List) {
+    return const <String>[];
+  }
+  final result = <String>[];
+  for (final item in value) {
+    final text = _asString(item);
+    if (text != null) {
+      result.add(text.trim());
+    }
+  }
+  return result.where((item) => item.isNotEmpty).toList();
 }
 
 DateTime? _asDateTime(Object? value) {

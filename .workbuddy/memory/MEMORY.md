@@ -3,7 +3,7 @@
 > **只记「改错会出事」的硬约束**。**注入上限约 10k 字符**，超出的部分后续会话**看不到** → 本文件只留**红线**；
 > **细则、常量、文件清单在 `MEMORY-DETAIL.md`**；过程记录在 `YYYY-MM-DD.md`。
 > **动这些子系统之前必须先读 `MEMORY-DETAIL.md`**：课表格子与曲线布局、考勤名单与日历圆环、表单与名单、节假日与调休、
-> 日程与统计、全局动效与配色、机械表盘、拍照识别课表、**发布与差分升级**。
+> 日程与统计、**工具箱「每日一句」语录卡片**、全局动效与配色、机械表盘、拍照识别课表、**发布与差分升级**。
 > 需求唯一来源 `docs/SPEC.md`；发布手册 `docs/RELEASE.md`。
 
 ## 平台 / 需求
@@ -68,7 +68,9 @@
 - 禁止硬编码，全走 `lib/l10n/app_zh.arb`/`app_en.arb` + `context.l10n`，zh/en 严格对齐。
 - **加键一律走 `.workbuddy/tools/add_l10n_keys.py`**（幂等）：`NEW_KEYS` 加键、`UPDATE_KEYS` 改已存在键口径（脚本内
   `assert key in data`，不许凭空 create）、`PLACEHOLDERS` 加 `@key`；末尾自带对齐断言。跑完 `flutter gen-l10n`
-  （有 `l10n.yaml` 时命令行参数被忽略，属预期）再 analyze。当前 zh/en 各 **682** 键。
+  （有 `l10n.yaml` 时命令行参数被忽略，属预期）再 analyze。当前 zh/en 各 **665** 键。
+  **改这个脚本别拿 `"...元数据",\n}` 当尾部锚点**：`NEW_KEYS` / `PLACEHOLDERS` / `UPDATE_KEYS` 三个 dict 都以它结尾，
+  会串到另一个 dict 里去（踩过：文案进了 PLACEHOLDERS、占位符元数据进了 NEW_KEYS）。锚点带上前一条**完整的键名**。
 
 ## 发布与更新链路（细则见 `MEMORY-DETAIL.md`）
 - **仓库必须公开**（2026-09-30 已转 public）：应用里没有也不该有凭据，只能匿名取清单与安装包。私有仓库下**发布全绿、
@@ -78,10 +80,17 @@
   （默认远端默认分支 HEAD）**自造同名标签** → Release 挂在旧提交上、随后 `git push` 标签被 `already exists` 拒绝。
   故 `upload_release` 必须显式传本次提交 SHA，推送后再 `ls-remote` 复核。**要建 Release 就必须去掉 `--no-commit`
   且带 `--push`**（脚本会拦）。已发错的修法：`git push origin +refs/tags/vX:refs/tags/vX`。
-- 仓库 `gillnotfail/schedule_plan`。`README.md` 面向 GitHub，规格 `docs/SPEC.md`，更新说明 `CHANGELOG.md`
+- 仓库 `gillnotfail/schedule_plan`（GitHub，主）+ **`jeo-xie/schedule_plan`（Gitee，国内首选）**。
+  `README.md` 面向 GitHub，规格 `docs/SPEC.md`，更新说明 `CHANGELOG.md`
   （**必须写用户能看懂的话**：`release.py` 原样抽最新一节进 `updates/latest.json` 给应用内展示）。
   `updates/latest.json` **入库**；APK 与补丁挂 Releases **不入库**。
 - `pubspec.yaml` 的 `version: x.y.z+N`，**`N` 是 versionCode，每次发版必须递增**，否则拒绝覆盖安装。
+- **双仓库分发（第 22 轮）**：每次发布**往 Gitee 与 GitHub 各发一份**同一批 APK/补丁（Gitee 附件地址与 GitHub
+  同构），清单 `assetsBases` 按 `[Gitee, GitHub]` 排；客户端取清单 **Gitee raw 第一**（带 `?t=` 破缓存）→ GitHub raw
+  → jsDelivr → 自配镜像。**单数 `assetsBase` 必须保留且必须指向"当场回验过能下"的源**（≤1.0.5 的旧客户端只读它），
+  **`schemaVersion` 绝不许因为加字段而 +1**（老客户端见到更高版本会判"清单不可用"，把已装机用户锁死）。
+  Gitee API `GET /releases/tags/{tag}` 在 tag 不存在时**也返回 200 + `null`**，只能按"含 `id` 的 dict"判；
+  `--no-gitee` / `--gitee-only` 是仅有的两个逃生开关。
 - **发布最后一步是清 jsDelivr 缓存**（`release.py` 已自动做，别绕过）：`@main` 对分支缓存**最长 12h**，
   国内 raw 不通时客户端只能读它 → **手机端最多晚半天才看到更新**。手工补清 =
   `curl https://purge.jsdelivr.net/gh/<owner>/<repo>@main/updates/latest.json`（公开端点，无需凭据）；
