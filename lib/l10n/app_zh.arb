@@ -1271,5 +1271,32 @@
   "attendanceLegendMakeup": "调休上班",
   "attendanceLegendHoliday": "放假",
   "attendanceLegendNoRecord": "有课未点名",
-  "attendanceLegendRate": "出勤率"
+  "attendanceLegendRate": "出勤率",
+  "quoteCardTapHint": "轻触换一句",
+  "quoteCardSourceTitle": "语录来源",
+  "quoteCardSourceBuiltIn": "内置 {count} 条",
+  "quoteCardSourceCustom": "自定义文件：{path}",
+  "quoteCardSourceCustomMissing": "自定义文件（尚未创建，可按同样格式新建）：{path}",
+  "quoteCardSourceFormat": "每条写 text（句子）与 from（出处，可省略）两个字段；想加句子就往文件里追加，打开 App 时自动读取。",
+  "@quoteCardSourceBuiltIn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@quoteCardSourceCustom": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@quoteCardSourceCustomMissing": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  }
 }

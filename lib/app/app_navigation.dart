@@ -38,6 +38,7 @@ class AppNavigationState extends ChangeNotifier {
   /// 课表 / 考勤 / 工具箱 / 设置，与 [MainShell] 的 NavigationBar 顺序一致。
   static const int scheduleTabIndex = 0;
   static const int attendanceTabIndex = 1;
+  static const int toolboxTabIndex = 2;
 
   int _tabIndex = scheduleTabIndex;
   int get tabIndex => _tabIndex;

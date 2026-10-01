@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import 'package:schedule_plan/app/app_navigation.dart';
 import 'package:schedule_plan/core/constants/app_constants.dart';
 import 'package:schedule_plan/core/l10n/l10n_extensions.dart';
 import 'package:schedule_plan/core/logging/app_logger.dart';
@@ -18,6 +20,7 @@ import 'package:schedule_plan/data/services/teaching_insight_service.dart';
 import 'package:schedule_plan/features/statistics/statistics_page.dart';
 import 'package:schedule_plan/features/toolbox/calendar_page.dart';
 import 'package:schedule_plan/features/toolbox/focus_timer_page.dart';
+import 'package:schedule_plan/features/toolbox/quote_card.dart';
 import 'package:schedule_plan/features/todo/todo_page.dart';
 import 'package:schedule_plan/l10n/generated/app_localizations.dart';
 
@@ -40,6 +43,10 @@ import 'package:schedule_plan/l10n/generated/app_localizations.dart';
 ///
 /// 卡片按压用 [SquishyTap]（从手指按下点散开 + 压过头再弹回）；
 /// 成果页用 [HeartBurst]（点哪儿爆一簇爱心）。
+///
+/// 第 21 轮：四张工具卡下面补一张低饱和的「每日一句」大卡片
+/// （[QuoteCard]）—— 用户反馈"下面确实有点空"。它只在第 1 页，
+/// 点它换一句，切回本 Tab / 从第 2 页滑回来也换一句。
 class ToolboxPage extends StatefulWidget {
   const ToolboxPage({super.key});
 
@@ -54,6 +61,18 @@ class _ToolboxPageState extends State<ToolboxPage> {
   TeachingInsight? _insight;
   bool _loadingInsight = true;
 
+  /// 「每日一句」的换句信号（用户规格第 21 轮）。
+  ///
+  /// 每一次自增都会让 [QuoteCard] 重新抽一句。触发点：切回工具箱 Tab、
+  /// 从第 2 页滑回第 1 页；点卡片自身换句在 [QuoteCard] 内部完成。
+  int _quoteSeed = 0;
+
+  /// 跨 Tab 导航状态：用来感知"老师从别的 Tab 回到工具箱了"。
+  AppNavigationState? _navigation;
+
+  /// 上一个可见的 Tab 下标。
+  int _lastTabIndex = AppNavigationState.toolboxTabIndex;
+
   /// 展开的分段卡片 id（可多个同时展开，默认第一段展开）。
   final Set<String> _openSections = <String>{_InsightSectionId.lessons};
 
@@ -64,16 +83,57 @@ class _ToolboxPageState extends State<ToolboxPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final navigation = context.read<AppNavigationState>();
+    if (!identical(navigation, _navigation)) {
+      _navigation?.removeListener(_onNavigationChanged);
+      _navigation = navigation;
+      navigation.addListener(_onNavigationChanged);
+      _lastTabIndex = navigation.tabIndex;
+    }
+  }
+
+  @override
   void dispose() {
+    _navigation?.removeListener(_onNavigationChanged);
     _controller.dispose();
     super.dispose();
   }
 
-  Future<void> _loadInsight() async {
+  /// 从别的 Tab 回到工具箱时：换一句 + 静默重算教学成果。
+  ///
+  /// `IndexedStack` 切回来**既不 `initState` 也不重读库**，所以要显式刷：
+  /// - 换句是用户规格（"切换到这一页就随机跳出来"）；
+  /// - 成果页的考勤率 / 专注次数本来就可能刚在别的 Tab 被改过，
+  ///   走 [silent] 刷新是为了**不把整页打成骨架**（切个 Tab 就白一下太糙）。
+  void _onNavigationChanged() {
+    final navigation = _navigation;
+    if (navigation == null || !mounted) {
+      return;
+    }
+    final index = navigation.tabIndex;
+    final previous = _lastTabIndex;
+    _lastTabIndex = index;
+    if (previous == index || index != AppNavigationState.toolboxTabIndex) {
+      return;
+    }
+    setState(() => _quoteSeed++);
+    if (_page == 0) {
+      // 停在第 1 页时成果页看不见，没必要跟着重算
+      return;
+    }
+    // ignore: discarded_futures — 由 setState 驱动 UI
+    _loadInsight(silent: true);
+  }
+
+  Future<void> _loadInsight({bool silent = false}) async {
     if (!mounted) {
       return;
     }
-    setState(() => _loadingInsight = true);
+    if (!silent) {
+      setState(() => _loadingInsight = true);
+    }
     try {
       final insight = await TeachingInsightService().load();
       if (!mounted) {
@@ -152,7 +212,7 @@ class _ToolboxPageState extends State<ToolboxPage> {
           IconButton(
             tooltip: l10n.retry,
             icon: const Icon(Icons.refresh),
-            onPressed: _loadInsight,
+            onPressed: () => _loadInsight(),
           ),
         ],
       ),
@@ -163,7 +223,13 @@ class _ToolboxPageState extends State<ToolboxPage> {
               controller: _controller,
               onPageChanged: (index) {
                 AppMotion.select();
-                setState(() => _page = index);
+                setState(() {
+                  // 从第 2 页滑回第 1 页 = 又"切换到这一页"，换一句
+                  if (index == 0 && _page != 0) {
+                    _quoteSeed++;
+                  }
+                  _page = index;
+                });
               },
               children: <Widget>[
                 _buildTools(context),
@@ -178,7 +244,7 @@ class _ToolboxPageState extends State<ToolboxPage> {
   }
 
   // ---------------------------------------------------------------------------
-  // 第 1 页：所有工具卡片（2 列网格，可滚动）
+  // 第 1 页：所有工具卡片（2 列网格）+ 下方「每日一句」大卡片
   // ---------------------------------------------------------------------------
 
   Widget _buildTools(BuildContext context) {
@@ -205,6 +271,20 @@ class _ToolboxPageState extends State<ToolboxPage> {
                 child: _ToolCard(entry: entries[i]),
               ),
           ],
+        ),
+        // 用户规格（第 21 轮）：四张卡下面留白太多，补一张低饱和的语录大卡片，
+        // 点它换一句、切回本页也换一句。换句信号走 [_quoteSeed]。
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppConstants.spaceL,
+            AppConstants.spaceS,
+            AppConstants.spaceL,
+            AppConstants.spaceXs,
+          ),
+          child: StaggeredEntrance(
+            index: entries.length,
+            child: QuoteCard(rerollToken: _quoteSeed),
+          ),
         ),
       ],
     );

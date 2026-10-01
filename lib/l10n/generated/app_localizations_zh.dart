@@ -2146,4 +2146,29 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attendanceLegendRate => '出勤率';
+
+  @override
+  String get quoteCardTapHint => '轻触换一句';
+
+  @override
+  String get quoteCardSourceTitle => '语录来源';
+
+  @override
+  String quoteCardSourceBuiltIn(int count) {
+    return '内置 $count 条';
+  }
+
+  @override
+  String quoteCardSourceCustom(String path) {
+    return '自定义文件：$path';
+  }
+
+  @override
+  String quoteCardSourceCustomMissing(String path) {
+    return '自定义文件（尚未创建，可按同样格式新建）：$path';
+  }
+
+  @override
+  String get quoteCardSourceFormat =>
+      '每条写 text（句子）与 from（出处，可省略）两个字段；想加句子就往文件里追加，打开 App 时自动读取。';
 }

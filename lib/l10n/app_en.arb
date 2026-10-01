@@ -1271,5 +1271,32 @@
   "attendanceLegendMakeup": "Make-up workday",
   "attendanceLegendHoliday": "Holiday",
   "attendanceLegendNoRecord": "Not marked",
-  "attendanceLegendRate": "Attendance"
+  "attendanceLegendRate": "Attendance",
+  "quoteCardTapHint": "Tap to shuffle",
+  "quoteCardSourceTitle": "Quote sources",
+  "quoteCardSourceBuiltIn": "{count} built in",
+  "quoteCardSourceCustom": "Custom file: {path}",
+  "quoteCardSourceCustomMissing": "Custom file (not created yet — add one in the same format): {path}",
+  "quoteCardSourceFormat": "Each entry takes a text field (the line) and an optional from field (the source). Append entries to the file — they load when the app starts.",
+  "@quoteCardSourceBuiltIn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@quoteCardSourceCustom": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@quoteCardSourceCustomMissing": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -511,6 +511,27 @@ NEW_KEYS = {
     "attendanceLegendMakeup": {"zh": "调休上班", "en": "Make-up workday"},
     "attendanceLegendNoRecord": {"zh": "有课未点名", "en": "Not marked"},
     "attendanceLegendRate": {"zh": "出勤率", "en": "Attendance"},
+    # ---- 第 21 轮：工具箱首屏下方的「每日一句」大卡片 ----
+    # 语料是 assets/data/quotes.json（可选再叠加应用文档目录下的 quotes.json），
+    # 长按卡片弹的这个说明就是"我想再往里加句子该去哪加"的唯一出口。
+    "quoteCardTapHint": {"zh": "轻触换一句", "en": "Tap to shuffle"},
+    "quoteCardSourceTitle": {"zh": "语录来源", "en": "Quote sources"},
+    "quoteCardSourceBuiltIn": {
+        "zh": "内置 {count} 条",
+        "en": "{count} built in",
+    },
+    "quoteCardSourceCustom": {
+        "zh": "自定义文件：{path}",
+        "en": "Custom file: {path}",
+    },
+    "quoteCardSourceCustomMissing": {
+        "zh": "自定义文件（尚未创建，可按同样格式新建）：{path}",
+        "en": "Custom file (not created yet — add one in the same format): {path}",
+    },
+    "quoteCardSourceFormat": {
+        "zh": "每条写 text（句子）与 from（出处，可省略）两个字段；想加句子就往文件里追加，打开 App 时自动读取。",
+        "en": "Each entry takes a text field (the line) and an optional from field (the source). Append entries to the file — they load when the app starts.",
+    },
 }
 
 # 需要改口径的旧键（用户规格变了，文案必须跟着走，否则和界面行为对不上）
@@ -681,6 +702,12 @@ PLACEHOLDERS = {
     "updateSettingsSubtitle": {"placeholders": {"version": {"type": "String"}}},
     "updateSettingsSubtitleAvailable": {
         "placeholders": {"version": {"type": "String"}},
+    },
+    # ---- 第 21 轮 ----
+    "quoteCardSourceBuiltIn": {"placeholders": {"count": {"type": "int"}}},
+    "quoteCardSourceCustom": {"placeholders": {"path": {"type": "String"}}},
+    "quoteCardSourceCustomMissing": {
+        "placeholders": {"path": {"type": "String"}},
     },
 }
 

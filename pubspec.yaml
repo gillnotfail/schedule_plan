@@ -74,3 +74,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+
+  # 内置资源：教师工具箱首屏「每日一句」的语录库。
+  # 想加句子直接改 assets/data/quotes.json，不用动代码。
+  assets:
+    - assets/data/

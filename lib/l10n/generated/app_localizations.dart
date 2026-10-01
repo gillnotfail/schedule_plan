@@ -4051,6 +4051,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Attendance'**
   String get attendanceLegendRate;
+
+  /// No description provided for @quoteCardTapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to shuffle'**
+  String get quoteCardTapHint;
+
+  /// No description provided for @quoteCardSourceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quote sources'**
+  String get quoteCardSourceTitle;
+
+  /// No description provided for @quoteCardSourceBuiltIn.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} built in'**
+  String quoteCardSourceBuiltIn(int count);
+
+  /// No description provided for @quoteCardSourceCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom file: {path}'**
+  String quoteCardSourceCustom(String path);
+
+  /// No description provided for @quoteCardSourceCustomMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom file (not created yet — add one in the same format): {path}'**
+  String quoteCardSourceCustomMissing(String path);
+
+  /// No description provided for @quoteCardSourceFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Each entry takes a text field (the line) and an optional from field (the source). Append entries to the file — they load when the app starts.'**
+  String get quoteCardSourceFormat;
 }
 
 class _AppLocalizationsDelegate

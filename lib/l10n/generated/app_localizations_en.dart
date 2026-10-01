@@ -2217,4 +2217,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attendanceLegendRate => 'Attendance';
+
+  @override
+  String get quoteCardTapHint => 'Tap to shuffle';
+
+  @override
+  String get quoteCardSourceTitle => 'Quote sources';
+
+  @override
+  String quoteCardSourceBuiltIn(int count) {
+    return '$count built in';
+  }
+
+  @override
+  String quoteCardSourceCustom(String path) {
+    return 'Custom file: $path';
+  }
+
+  @override
+  String quoteCardSourceCustomMissing(String path) {
+    return 'Custom file (not created yet — add one in the same format): $path';
+  }
+
+  @override
+  String get quoteCardSourceFormat =>
+      'Each entry takes a text field (the line) and an optional from field (the source). Append entries to the file — they load when the app starts.';
 }
