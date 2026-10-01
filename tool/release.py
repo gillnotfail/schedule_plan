@@ -134,6 +134,34 @@ DELTA_WORTHWHILE_RATIO = 0.9
 # ---------------------------------------------------------------------------
 
 
+# 打印命令时，这些键名等号右边的值一律打成星号。
+_SECRET_PATTERN = re.compile(
+    r"(?i)\b(access_token|private_token|gitee_token|github_token|token)"
+    r"=([^\s&\"']+)"
+)
+# `https://user:token@host/...` 这种把凭据塞进 URL 的写法（走 HTTPS 远端时）。
+_URL_CREDENTIAL_PATTERN = re.compile(
+    r"(?i)\b([a-z][a-z0-9+.\-]*://)[^/\s:@]+:[^/\s@]+@"
+)
+
+
+def mask_secrets(text: str) -> str:
+    """把命令与日志里的凭据打成星号。
+
+    发布日志是**经常被整段贴出来排障**的东西（报错、奇怪的状态码、问"这行为什么
+    这样"）。而 `curl_request` 走的是命令行，一次 `verify_gitee_token` 就足以把
+    32 位令牌写进终端回滚缓冲、CI 日志、聊天窗口——泄露不可逆，且当事人往往
+    意识不到。所以三个打印命令的出口（`run` 的正常日志与失败分支、`curl_request`
+    的超时分支）全部过一遍这里。
+
+    注意是"过一遍文本"而不是"在拼参数时跳过"：令牌还可能藏在 URL query
+    （`?access_token=`）、`--form-string access_token=`、以及远端地址里的
+    `user:pass@` 三种形态，逐处判断迟早会漏。
+    """
+    text = _URL_CREDENTIAL_PATTERN.sub(lambda m: "%s***:***@" % m.group(1), text)
+    return _SECRET_PATTERN.sub(lambda m: "%s=***" % m.group(1), text)
+
+
 def log(message: str) -> None:
     print(message, flush=True)
 
@@ -179,7 +207,7 @@ def flutter_command(*args: str) -> list[str]:
 
 def run(command: list[str], *, cwd: str = ROOT, env: dict | None = None,
         check: bool = True) -> subprocess.CompletedProcess:
-    log("  $ %s" % " ".join(command))
+    log("  $ %s" % mask_secrets(" ".join(command)))
     process = subprocess.run(
         command,
         cwd=cwd,
@@ -192,7 +220,7 @@ def run(command: list[str], *, cwd: str = ROOT, env: dict | None = None,
     if check and process.returncode != 0:
         die(
             "命令失败（退出码 %d）：%s\n--- stdout ---\n%s\n--- stderr ---\n%s"
-            % (process.returncode, " ".join(command),
+            % (process.returncode, mask_secrets(" ".join(command)),
                process.stdout[-4000:], process.stderr[-4000:])
         )
     return process
@@ -812,7 +840,8 @@ def curl_request(method: str, url: str, *, fields: dict | None = None,
     index = output.rfind(CURL_STATUS_MARKER)
     if index < 0:
         die("curl 没有返回状态码（%s）：\n%s\n%s"
-            % (" ".join(command), output[-600:], (result.stderr or "")[-600:]))
+            % (mask_secrets(" ".join(command)), output[-600:],
+               (result.stderr or "")[-600:]))
     return int(output[index + len(CURL_STATUS_MARKER):].strip()), output[:index]
 
 
