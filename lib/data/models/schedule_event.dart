@@ -133,12 +133,22 @@ enum EventRecurrence {
 }
 
 /// 专注模式记录（readme 3.12 表 focus_session，模块五 5.1）。
+///
+/// 两条容易写错的语义，改动前先读这里：
+/// - [startedAt] 是**开始**那一刻的毫秒时间戳，不是结束时刻。统计页按它
+///   落在哪一周来汇总「本周专注次数」，写成结束时刻会让跨零点的那一节
+///   整段算进第二天。
+/// - [durationMinutes] 是**实际投入**的分钟数（跑满 = 计划时长；中途放弃 =
+///   已经坐了多久）。统计只汇总 [completed] 为真的那些，所以放弃的记录
+///   进去不会把「累计专注」拉低成莫名其妙的数字。
 class FocusSession {
   const FocusSession({
     this.id,
     required this.startedAt,
     required this.durationMinutes,
     this.completed = false,
+    this.label,
+    this.category,
   });
 
   final int? id;
@@ -146,11 +156,26 @@ class FocusSession {
   final int durationMinutes;
   final bool completed;
 
+  /// 这次专注叫什么。
+  ///
+  /// **两种可能**：从预设里挑的存**稳定 id**（如 `meditation`、`pomodoro`），
+  /// 自己敲的存**用户原文**。渲染时先拿 id 去查本地化文案，查不到就当普通
+  /// 文本显示 —— 这样换语言时预设名会跟着翻，自己写的字不会被翻译。
+  final String? label;
+
+  /// 所属类别，取 `health` / `work` / `life` 三者之一；没选就是 null。
+  ///
+  /// 与 [label] 分开存是为了让"按类别回看"有一个稳定的汇总维度 ——
+  /// 名字是给人看的、会变，类别是给统计用的、不该变。
+  final String? category;
+
   Map<String, Object?> toMap() => <String, Object?>{
         if (id != null) 'id': id,
         'started_at': startedAt,
         'duration_minutes': durationMinutes,
         'completed': completed ? 1 : 0,
+        'label': label,
+        'category': category,
       };
 
   static FocusSession fromMap(Map<String, Object?> map) => FocusSession(
@@ -158,5 +183,7 @@ class FocusSession {
         startedAt: map['started_at'] as int,
         durationMinutes: map['duration_minutes'] as int,
         completed: (map['completed'] as int? ?? 0) == 1,
+        label: map['label'] as String?,
+        category: map['category'] as String?,
       );
 }

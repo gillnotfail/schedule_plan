@@ -474,19 +474,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get focusTimer => 'Focus timer';
 
   @override
-  String get focusStart => 'Start';
-
-  @override
   String get focusPause => 'Pause';
 
   @override
   String get focusResume => 'Resume';
-
-  @override
-  String get focusReset => 'Reset';
-
-  @override
-  String get focusBreak => 'Break';
 
   @override
   String get focusDone => 'Focus session complete';
@@ -1156,7 +1147,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get toolTodoDesc => 'Smart todos and general lists';
 
   @override
-  String get toolFocusDesc => 'Pomodoro focus timer';
+  String get toolFocusDesc =>
+      'Focus timer that locks the screen — with a reward at the end';
 
   @override
   String get toolCalendarDesc => 'Events and reminders';
@@ -2246,4 +2238,185 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get groupClearData => 'Clear data';
+
+  @override
+  String get focusCategoryHealth => 'Health';
+
+  @override
+  String get focusCategoryWork => 'Work';
+
+  @override
+  String get focusCategoryLife => 'Life';
+
+  @override
+  String get focusPresetExercise => 'Exercise';
+
+  @override
+  String get focusPresetMeditation => 'Guided meditation';
+
+  @override
+  String get focusPresetBreathing => 'Breathing';
+
+  @override
+  String get focusPresetPomodoro => 'Pomodoro';
+
+  @override
+  String get focusPresetMeeting => 'Meeting timer';
+
+  @override
+  String get focusPresetSpeech => 'Speech timer';
+
+  @override
+  String get focusPresetHandwriting => 'Handwriting';
+
+  @override
+  String get focusPresetCleaning => 'Cleaning';
+
+  @override
+  String get focusPresetRest => 'Rest reminder';
+
+  @override
+  String get focusPresetCooking => 'Cooking timer';
+
+  @override
+  String get focusPresetGaming => 'Game timer';
+
+  @override
+  String get focusNameLabel => 'Name this session';
+
+  @override
+  String get focusNameOptional => 'optional';
+
+  @override
+  String get focusNameCustom => 'Write your own';
+
+  @override
+  String get focusNameHint => 'e.g. lesson prep';
+
+  @override
+  String get focusDurationTitle => 'Duration';
+
+  @override
+  String get focusStartAction => 'Start focusing';
+
+  @override
+  String get focusMinDurationHint => 'At least 1 minute to start';
+
+  @override
+  String get focusLockNotice =>
+      'Once started, the screen stays on and locked until this session ends or you exit';
+
+  @override
+  String get focusSoundToggle => 'Sound cues';
+
+  @override
+  String get focusStrongLockToggle => 'Stronger lock';
+
+  @override
+  String get focusStrongLockDesc =>
+      'Uses Android screen pinning to also block notifications and the home gesture. Screen pinning must be enabled in system settings first';
+
+  @override
+  String get focusStrongLockUnavailable =>
+      'Screen pinning is off on this phone — locking with immersive full screen';
+
+  @override
+  String get focusRunningTitle => 'Focusing';
+
+  @override
+  String get focusPausedTitle => 'Paused';
+
+  @override
+  String get focusTapToPause => 'Tap to pause';
+
+  @override
+  String get focusTapToResume => 'Tap to resume';
+
+  @override
+  String get focusGestureHint =>
+      'Long-press and drag to adjust · double-tap to reset';
+
+  @override
+  String get focusExitAction => 'Exit';
+
+  @override
+  String get focusExitTitle => 'End this session?';
+
+  @override
+  String focusExitElapsed(String duration) {
+    return 'You\'ve held on for $duration';
+  }
+
+  @override
+  String focusExitRemaining(String duration) {
+    return 'Only $duration to go';
+  }
+
+  @override
+  String get focusExitAlmostThere =>
+      'You\'re nearly there — sure you want to stop?';
+
+  @override
+  String get focusExitEncourage =>
+      'Fragmented time can\'t take this from you. Hold on and this stretch is whole.';
+
+  @override
+  String get focusExitKeepGoing => 'Keep going';
+
+  @override
+  String get focusExitConfirm => 'End session';
+
+  @override
+  String focusAbandonedHint(String duration) {
+    return 'Recorded $duration for this session';
+  }
+
+  @override
+  String get focusDoneHeadline => 'You did it';
+
+  @override
+  String get focusPraiseFragments =>
+      'Fragmented time can\'t take this from you.';
+
+  @override
+  String get focusPraiseSteady => 'Holding this steady beats everything.';
+
+  @override
+  String get focusPraiseComeback => 'Every return is a fresh start.';
+
+  @override
+  String get focusPraiseTime => 'You gave this time back to yourself.';
+
+  @override
+  String get focusStatThisSession => 'This session';
+
+  @override
+  String get focusStatToday => 'Today';
+
+  @override
+  String get focusStatStreak => 'Streak';
+
+  @override
+  String focusStreakDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String get focusTakeBreak => 'Take a 5-min break';
+
+  @override
+  String get focusBreakRunning => 'On a break';
+
+  @override
+  String get focusAgain => 'Go again';
+
+  @override
+  String get focusFinishAction => 'Done';
+
+  @override
+  String get focusStatEmpty => '—';
+
+  @override
+  String get focusBreakDone =>
+      'Break\'s over — start the next stretch whenever you like';
 }

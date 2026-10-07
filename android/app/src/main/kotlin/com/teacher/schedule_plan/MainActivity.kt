@@ -11,11 +11,32 @@ class MainActivity : FlutterActivity() {
      */
     private var apkInstallerChannel: ApkInstallerChannel? = null
 
+    /**
+     * 专注模式用到的原生能力（屏幕常亮 / 屏幕固定 / 提示音）。
+     * 具体实现见 [FocusLockChannel]。
+     *
+     * 这里传的是 Activity 本身而不是 applicationContext ——
+     * `startLockTask()` / `stopLockTask()` 是 Activity 的方法，
+     * 窗口标志也只有挂在 Activity 的 window 上才生效。
+     */
+    private var focusLockChannel: FocusLockChannel? = null
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         apkInstallerChannel = ApkInstallerChannel(
             applicationContext,
             flutterEngine.dartExecutor.binaryMessenger,
         )
+        focusLockChannel = FocusLockChannel(
+            this,
+            flutterEngine.dartExecutor.binaryMessenger,
+        )
+    }
+
+    override fun onDestroy() {
+        // ToneGenerator 会占着音频通道，必须显式释放。
+        focusLockChannel?.dispose()
+        focusLockChannel = null
+        super.onDestroy()
     }
 }

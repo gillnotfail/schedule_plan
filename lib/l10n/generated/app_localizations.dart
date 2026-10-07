@@ -992,12 +992,6 @@ abstract class AppLocalizations {
   /// **'Focus timer'**
   String get focusTimer;
 
-  /// No description provided for @focusStart.
-  ///
-  /// In en, this message translates to:
-  /// **'Start'**
-  String get focusStart;
-
   /// No description provided for @focusPause.
   ///
   /// In en, this message translates to:
@@ -1009,18 +1003,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resume'**
   String get focusResume;
-
-  /// No description provided for @focusReset.
-  ///
-  /// In en, this message translates to:
-  /// **'Reset'**
-  String get focusReset;
-
-  /// No description provided for @focusBreak.
-  ///
-  /// In en, this message translates to:
-  /// **'Break'**
-  String get focusBreak;
 
   /// No description provided for @focusDone.
   ///
@@ -2255,7 +2237,7 @@ abstract class AppLocalizations {
   /// No description provided for @toolFocusDesc.
   ///
   /// In en, this message translates to:
-  /// **'Pomodoro focus timer'**
+  /// **'Focus timer that locks the screen — with a reward at the end'**
   String get toolFocusDesc;
 
   /// No description provided for @toolCalendarDesc.
@@ -4093,6 +4075,336 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear data'**
   String get groupClearData;
+
+  /// No description provided for @focusCategoryHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get focusCategoryHealth;
+
+  /// No description provided for @focusCategoryWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get focusCategoryWork;
+
+  /// No description provided for @focusCategoryLife.
+  ///
+  /// In en, this message translates to:
+  /// **'Life'**
+  String get focusCategoryLife;
+
+  /// No description provided for @focusPresetExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise'**
+  String get focusPresetExercise;
+
+  /// No description provided for @focusPresetMeditation.
+  ///
+  /// In en, this message translates to:
+  /// **'Guided meditation'**
+  String get focusPresetMeditation;
+
+  /// No description provided for @focusPresetBreathing.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathing'**
+  String get focusPresetBreathing;
+
+  /// No description provided for @focusPresetPomodoro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pomodoro'**
+  String get focusPresetPomodoro;
+
+  /// No description provided for @focusPresetMeeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Meeting timer'**
+  String get focusPresetMeeting;
+
+  /// No description provided for @focusPresetSpeech.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech timer'**
+  String get focusPresetSpeech;
+
+  /// No description provided for @focusPresetHandwriting.
+  ///
+  /// In en, this message translates to:
+  /// **'Handwriting'**
+  String get focusPresetHandwriting;
+
+  /// No description provided for @focusPresetCleaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleaning'**
+  String get focusPresetCleaning;
+
+  /// No description provided for @focusPresetRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest reminder'**
+  String get focusPresetRest;
+
+  /// No description provided for @focusPresetCooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooking timer'**
+  String get focusPresetCooking;
+
+  /// No description provided for @focusPresetGaming.
+  ///
+  /// In en, this message translates to:
+  /// **'Game timer'**
+  String get focusPresetGaming;
+
+  /// No description provided for @focusNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name this session'**
+  String get focusNameLabel;
+
+  /// No description provided for @focusNameOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'optional'**
+  String get focusNameOptional;
+
+  /// No description provided for @focusNameCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your own'**
+  String get focusNameCustom;
+
+  /// No description provided for @focusNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. lesson prep'**
+  String get focusNameHint;
+
+  /// No description provided for @focusDurationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get focusDurationTitle;
+
+  /// No description provided for @focusStartAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start focusing'**
+  String get focusStartAction;
+
+  /// No description provided for @focusMinDurationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 1 minute to start'**
+  String get focusMinDurationHint;
+
+  /// No description provided for @focusLockNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Once started, the screen stays on and locked until this session ends or you exit'**
+  String get focusLockNotice;
+
+  /// No description provided for @focusSoundToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound cues'**
+  String get focusSoundToggle;
+
+  /// No description provided for @focusStrongLockToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stronger lock'**
+  String get focusStrongLockToggle;
+
+  /// No description provided for @focusStrongLockDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses Android screen pinning to also block notifications and the home gesture. Screen pinning must be enabled in system settings first'**
+  String get focusStrongLockDesc;
+
+  /// No description provided for @focusStrongLockUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen pinning is off on this phone — locking with immersive full screen'**
+  String get focusStrongLockUnavailable;
+
+  /// No description provided for @focusRunningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Focusing'**
+  String get focusRunningTitle;
+
+  /// No description provided for @focusPausedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get focusPausedTitle;
+
+  /// No description provided for @focusTapToPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to pause'**
+  String get focusTapToPause;
+
+  /// No description provided for @focusTapToResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to resume'**
+  String get focusTapToResume;
+
+  /// No description provided for @focusGestureHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press and drag to adjust · double-tap to reset'**
+  String get focusGestureHint;
+
+  /// No description provided for @focusExitAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit'**
+  String get focusExitAction;
+
+  /// No description provided for @focusExitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'End this session?'**
+  String get focusExitTitle;
+
+  /// No description provided for @focusExitElapsed.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve held on for {duration}'**
+  String focusExitElapsed(String duration);
+
+  /// No description provided for @focusExitRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {duration} to go'**
+  String focusExitRemaining(String duration);
+
+  /// No description provided for @focusExitAlmostThere.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re nearly there — sure you want to stop?'**
+  String get focusExitAlmostThere;
+
+  /// No description provided for @focusExitEncourage.
+  ///
+  /// In en, this message translates to:
+  /// **'Fragmented time can\'t take this from you. Hold on and this stretch is whole.'**
+  String get focusExitEncourage;
+
+  /// No description provided for @focusExitKeepGoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep going'**
+  String get focusExitKeepGoing;
+
+  /// No description provided for @focusExitConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'End session'**
+  String get focusExitConfirm;
+
+  /// No description provided for @focusAbandonedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded {duration} for this session'**
+  String focusAbandonedHint(String duration);
+
+  /// No description provided for @focusDoneHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'You did it'**
+  String get focusDoneHeadline;
+
+  /// No description provided for @focusPraiseFragments.
+  ///
+  /// In en, this message translates to:
+  /// **'Fragmented time can\'t take this from you.'**
+  String get focusPraiseFragments;
+
+  /// No description provided for @focusPraiseSteady.
+  ///
+  /// In en, this message translates to:
+  /// **'Holding this steady beats everything.'**
+  String get focusPraiseSteady;
+
+  /// No description provided for @focusPraiseComeback.
+  ///
+  /// In en, this message translates to:
+  /// **'Every return is a fresh start.'**
+  String get focusPraiseComeback;
+
+  /// No description provided for @focusPraiseTime.
+  ///
+  /// In en, this message translates to:
+  /// **'You gave this time back to yourself.'**
+  String get focusPraiseTime;
+
+  /// No description provided for @focusStatThisSession.
+  ///
+  /// In en, this message translates to:
+  /// **'This session'**
+  String get focusStatThisSession;
+
+  /// No description provided for @focusStatToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get focusStatToday;
+
+  /// No description provided for @focusStatStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get focusStatStreak;
+
+  /// No description provided for @focusStreakDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String focusStreakDays(int days);
+
+  /// No description provided for @focusTakeBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a 5-min break'**
+  String get focusTakeBreak;
+
+  /// No description provided for @focusBreakRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'On a break'**
+  String get focusBreakRunning;
+
+  /// No description provided for @focusAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Go again'**
+  String get focusAgain;
+
+  /// No description provided for @focusFinishAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get focusFinishAction;
+
+  /// No description provided for @focusStatEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get focusStatEmpty;
+
+  /// No description provided for @focusBreakDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Break\'s over — start the next stretch whenever you like'**
+  String get focusBreakDone;
 }
 
 class _AppLocalizationsDelegate

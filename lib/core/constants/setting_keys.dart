@@ -48,6 +48,24 @@ abstract final class SettingKeys {
   /// 番茄钟休息时长（分钟）
   static const String focusBreakMinutes = 'focus_break_minutes';
 
+  /// 进行中的专注会话快照（一段 JSON 文本）。
+  ///
+  /// 专注模式的标准用法是"把手机锁在一边"，而这段内存最容易被系统回收 ——
+  /// 不落快照的话，用户专心坐了一小时回来看到的是一块归零的计时器。
+  /// 存 `app_settings` 而不是新建表：这是**一台设备同时只有一份**的临时状态，
+  /// 不是要按行查询的历史记录（历史照旧写 `focus_session`）。
+  static const String focusSessionSnapshot = 'focus_session_snapshot';
+
+  /// 专注时是否额外尝试系统「屏幕固定」（增强锁定，默认关闭）。
+  ///
+  /// 默认关：它要求用户在系统设置里打开「屏幕固定」，不少国产 ROM 还把它
+  /// 藏起来或阉割掉。默认走"沉浸全屏 + 常亮 + 拦返回"这一档，任何手机都能用；
+  /// 想要更死的锁再由用户主动开，开启时会先探测系统支持。
+  static const String focusStrongLockEnabled = 'focus_strong_lock_enabled';
+
+  /// 专注提示音开关（默认开启）。走系统 `ToneGenerator`，不加任何依赖。
+  static const String focusSoundEnabled = 'focus_sound_enabled';
+
   /// 学生列表排序方式（模块二 2.4，排序方式记忆在本地）
   static const String studentSortMode = 'student_sort_mode';
 
@@ -142,6 +160,9 @@ abstract final class SettingKeys {
     lessonReminderEnabled: '1',
     focusMinutes: '25',
     focusBreakMinutes: '5',
+    focusSessionSnapshot: '',
+    focusStrongLockEnabled: '0',
+    focusSoundEnabled: '1',
     studentSortMode: 'name',
     studentSortDescending: '0',
     statisticsClassFilter: '0',

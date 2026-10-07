@@ -149,11 +149,8 @@
   "todoCompletedSection": "Completed ({count})",
   "toolboxTitle": "Toolbox",
   "focusTimer": "Focus timer",
-  "focusStart": "Start",
   "focusPause": "Pause",
   "focusResume": "Resume",
-  "focusReset": "Reset",
-  "focusBreak": "Break",
   "focusDone": "Focus session complete",
   "scheduleCalendar": "Calendar",
   "eventAdd": "Add event",
@@ -554,7 +551,7 @@
   "statsColumnStatus": "Status",
   "toolStatisticsDesc": "Attendance trends and ranking",
   "toolTodoDesc": "Smart todos and general lists",
-  "toolFocusDesc": "Pomodoro focus timer",
+  "toolFocusDesc": "Focus timer that locks the screen — with a reward at the end",
   "toolCalendarDesc": "Events and reminders",
   "importReasonMissingClass": "Missing class",
   "noStudentNo": "No student no.",
@@ -1299,5 +1296,88 @@
   "groupSystem": "System settings",
   "systemSettingsDesc": "Attendance defaults, holidays, notifications, data cleanup",
   "groupHoliday": "Holidays",
-  "groupClearData": "Clear data"
+  "groupClearData": "Clear data",
+  "focusCategoryHealth": "Health",
+  "focusCategoryWork": "Work",
+  "focusCategoryLife": "Life",
+  "focusPresetExercise": "Exercise",
+  "focusPresetMeditation": "Guided meditation",
+  "focusPresetBreathing": "Breathing",
+  "focusPresetPomodoro": "Pomodoro",
+  "focusPresetMeeting": "Meeting timer",
+  "focusPresetSpeech": "Speech timer",
+  "focusPresetHandwriting": "Handwriting",
+  "focusPresetCleaning": "Cleaning",
+  "focusPresetRest": "Rest reminder",
+  "focusPresetCooking": "Cooking timer",
+  "focusPresetGaming": "Game timer",
+  "focusNameLabel": "Name this session",
+  "focusNameOptional": "optional",
+  "focusNameCustom": "Write your own",
+  "focusNameHint": "e.g. lesson prep",
+  "focusDurationTitle": "Duration",
+  "focusStartAction": "Start focusing",
+  "focusMinDurationHint": "At least 1 minute to start",
+  "focusLockNotice": "Once started, the screen stays on and locked until this session ends or you exit",
+  "focusSoundToggle": "Sound cues",
+  "focusStrongLockToggle": "Stronger lock",
+  "focusStrongLockDesc": "Uses Android screen pinning to also block notifications and the home gesture. Screen pinning must be enabled in system settings first",
+  "focusStrongLockUnavailable": "Screen pinning is off on this phone — locking with immersive full screen",
+  "focusRunningTitle": "Focusing",
+  "focusPausedTitle": "Paused",
+  "focusTapToPause": "Tap to pause",
+  "focusTapToResume": "Tap to resume",
+  "focusGestureHint": "Long-press and drag to adjust · double-tap to reset",
+  "focusExitAction": "Exit",
+  "focusExitTitle": "End this session?",
+  "focusExitElapsed": "You've held on for {duration}",
+  "focusExitRemaining": "Only {duration} to go",
+  "focusExitAlmostThere": "You're nearly there — sure you want to stop?",
+  "focusExitEncourage": "Fragmented time can't take this from you. Hold on and this stretch is whole.",
+  "focusExitKeepGoing": "Keep going",
+  "focusExitConfirm": "End session",
+  "focusAbandonedHint": "Recorded {duration} for this session",
+  "focusDoneHeadline": "You did it",
+  "focusPraiseFragments": "Fragmented time can't take this from you.",
+  "focusPraiseSteady": "Holding this steady beats everything.",
+  "focusPraiseComeback": "Every return is a fresh start.",
+  "focusPraiseTime": "You gave this time back to yourself.",
+  "focusStatThisSession": "This session",
+  "focusStatToday": "Today",
+  "focusStatStreak": "Streak",
+  "focusStreakDays": "{days} days",
+  "focusTakeBreak": "Take a 5-min break",
+  "focusBreakRunning": "On a break",
+  "focusAgain": "Go again",
+  "focusFinishAction": "Done",
+  "focusStatEmpty": "—",
+  "@focusExitElapsed": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "@focusExitRemaining": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "@focusAbandonedHint": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "@focusStreakDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "focusBreakDone": "Break's over — start the next stretch whenever you like"
 }

@@ -2,7 +2,7 @@ name: schedule_plan
 description: "全面课表计划 - 面向一线教师/辅导员的个人效率工具（课表 / 考勤 / 统计 / 待办 / 工具箱）"
 publish_to: 'none'
 
-version: 1.0.7+8
+version: 1.0.8+9
 
 environment:
   sdk: ^3.11.4

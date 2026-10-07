@@ -29,7 +29,10 @@ abstract final class DatabaseSchema {
   /// v7 -> v8：**删表**——`note`（快速笔记）与 `llm_provider_config`（LLM 提供商）
   /// 对应的功能整块下线（用户规格：这两个功能用得不多，通通去掉），
   /// 建表语句与迁移脚本里的定义一并移除，老库升级时把这两张表 DROP 掉。
-  static const int version = 8;
+  /// v8 -> v9：`focus_session` 增加 `label`（这次专注叫什么）与 `category`
+  /// （健康 / 工作效率 / 生活应用 三类）。纯加列、可空——老记录没有名字是
+  /// 正常语义，不是缺失，所以不回填。
+  static const int version = 9;
 
   /// 首次建库时写入的默认作息模板名称（种子数据，非界面文案）。
   static const String _seedTemplateName = '默认作息';
@@ -216,7 +219,9 @@ abstract final class DatabaseSchema {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       started_at INTEGER NOT NULL,
       duration_minutes INTEGER NOT NULL,
-      completed INTEGER NOT NULL DEFAULT 0
+      completed INTEGER NOT NULL DEFAULT 0,
+      label TEXT,
+      category TEXT
     )
     ''',
     // 3.13 批量导入日志
@@ -343,6 +348,9 @@ abstract final class DatabaseSchema {
         }
         if (from < 8 && to >= 8) {
           await _migrateV7ToV8(txn);
+        }
+        if (from < 9 && to >= 9) {
+          await _migrateV8ToV9(txn);
         }
       });
     } catch (error, stack) {
@@ -587,6 +595,27 @@ abstract final class DatabaseSchema {
     await txn.execute('DROP TABLE IF EXISTS note');
     await txn.execute('DROP TABLE IF EXISTS llm_provider_config');
     AppLogger.i('v7 -> v8 迁移完成：删除 note / llm_provider_config 两张表');
+  }
+
+  /// v8 -> v9：`focus_session` 增加 `label` 与 `category` 两列。
+  ///
+  /// 专注模式支持给每次专注起名（健康类「冥想引导」、效率类「番茄工作法」…），
+  /// 名字与所属分类都要留下来，将来才能按类别回看"这周练了几次冥想"。
+  ///
+  /// 纯加列、两列都可空，因此**不需要回填、也不重建表**：
+  /// 老记录没有名字正是它的事实（那时候压根没这个功能），
+  /// 显示成"未命名"即可，不该编一个默认值塞进去。
+  /// 照例用 `PRAGMA table_info` 先探一次，保证迁移中断后重跑不报错。
+  static Future<void> _migrateV8ToV9(Transaction txn) async {
+    final columns = await txn.rawQuery('PRAGMA table_info(focus_session)');
+    final names = columns.map((row) => row['name']).toSet();
+    if (!names.contains('label')) {
+      await txn.execute('ALTER TABLE focus_session ADD COLUMN label TEXT');
+    }
+    if (!names.contains('category')) {
+      await txn.execute('ALTER TABLE focus_session ADD COLUMN category TEXT');
+    }
+    AppLogger.i('v8 -> v9 迁移完成：focus_session 增加 label / category');
   }
 
   /// 迁移后一致性校验：

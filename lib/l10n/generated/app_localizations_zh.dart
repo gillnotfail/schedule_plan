@@ -468,19 +468,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get focusTimer => '专注模式';
 
   @override
-  String get focusStart => '开始';
-
-  @override
   String get focusPause => '暂停';
 
   @override
   String get focusResume => '继续';
-
-  @override
-  String get focusReset => '重置';
-
-  @override
-  String get focusBreak => '休息';
 
   @override
   String get focusDone => '专注完成';
@@ -1135,7 +1126,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get toolTodoDesc => '智能待办与通用清单';
 
   @override
-  String get toolFocusDesc => '番茄钟专注计时';
+  String get toolFocusDesc => '锁屏专注计时,坐满给成果卡';
 
   @override
   String get toolCalendarDesc => '日程与课前提醒';
@@ -2174,4 +2165,177 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get groupClearData => '清空数据';
+
+  @override
+  String get focusCategoryHealth => '健康';
+
+  @override
+  String get focusCategoryWork => '工作效率';
+
+  @override
+  String get focusCategoryLife => '生活应用';
+
+  @override
+  String get focusPresetExercise => '运动';
+
+  @override
+  String get focusPresetMeditation => '冥想引导';
+
+  @override
+  String get focusPresetBreathing => '呼吸训练';
+
+  @override
+  String get focusPresetPomodoro => '番茄工作法';
+
+  @override
+  String get focusPresetMeeting => '会议计时';
+
+  @override
+  String get focusPresetSpeech => '演讲计时';
+
+  @override
+  String get focusPresetHandwriting => '练字';
+
+  @override
+  String get focusPresetCleaning => '打扫卫生';
+
+  @override
+  String get focusPresetRest => '休息提醒';
+
+  @override
+  String get focusPresetCooking => '烹饪计时';
+
+  @override
+  String get focusPresetGaming => '游戏计时';
+
+  @override
+  String get focusNameLabel => '这次专注叫什么';
+
+  @override
+  String get focusNameOptional => '选填';
+
+  @override
+  String get focusNameCustom => '自己写一个';
+
+  @override
+  String get focusNameHint => '例如：备课、复盘';
+
+  @override
+  String get focusDurationTitle => '专注时长';
+
+  @override
+  String get focusStartAction => '开始专注';
+
+  @override
+  String get focusMinDurationHint => '至少 1 分钟才能开始';
+
+  @override
+  String get focusLockNotice => '开始后屏幕会一直亮着并锁住，直到本次结束或你主动退出';
+
+  @override
+  String get focusSoundToggle => '提示音';
+
+  @override
+  String get focusStrongLockToggle => '更强锁定';
+
+  @override
+  String get focusStrongLockDesc => '调用系统「屏幕固定」，通知栏与回桌面也锁住。需要先在系统设置里打开「屏幕固定」';
+
+  @override
+  String get focusStrongLockUnavailable => '这台手机没开启「屏幕固定」，本次用沉浸全屏锁定';
+
+  @override
+  String get focusRunningTitle => '专注中';
+
+  @override
+  String get focusPausedTitle => '已暂停';
+
+  @override
+  String get focusTapToPause => '轻触屏幕暂停';
+
+  @override
+  String get focusTapToResume => '轻触屏幕继续';
+
+  @override
+  String get focusGestureHint => '长按上下滑动调时长 · 双击归零';
+
+  @override
+  String get focusExitAction => '退出';
+
+  @override
+  String get focusExitTitle => '要结束这次专注吗？';
+
+  @override
+  String focusExitElapsed(String duration) {
+    return '你已经坚持了 $duration';
+  }
+
+  @override
+  String focusExitRemaining(String duration) {
+    return '距离目标只差 $duration';
+  }
+
+  @override
+  String get focusExitAlmostThere => '就差最后一点点了，真的舍得吗？';
+
+  @override
+  String get focusExitEncourage => '碎片化夺不走你的生活。再撑一下，这一段就完整了。';
+
+  @override
+  String get focusExitKeepGoing => '继续专注';
+
+  @override
+  String get focusExitConfirm => '结束本次';
+
+  @override
+  String focusAbandonedHint(String duration) {
+    return '本次专注 $duration，已记下来';
+  }
+
+  @override
+  String get focusDoneHeadline => '你做到了';
+
+  @override
+  String get focusPraiseFragments => '碎片化夺不走你的生活。';
+
+  @override
+  String get focusPraiseSteady => '稳住这一段，比什么都强。';
+
+  @override
+  String get focusPraiseComeback => '每一次坐回来，都是一次重新开始。';
+
+  @override
+  String get focusPraiseTime => '你把这段时间，还给了自己。';
+
+  @override
+  String get focusStatThisSession => '本次';
+
+  @override
+  String get focusStatToday => '今日累计';
+
+  @override
+  String get focusStatStreak => '连续专注';
+
+  @override
+  String focusStreakDays(int days) {
+    return '$days 天';
+  }
+
+  @override
+  String get focusTakeBreak => '休息 5 分钟';
+
+  @override
+  String get focusBreakRunning => '休息中';
+
+  @override
+  String get focusAgain => '再来一次';
+
+  @override
+  String get focusFinishAction => '完成';
+
+  @override
+  String get focusStatEmpty => '—';
+
+  @override
+  String get focusBreakDone => '休息结束，随时可以开始下一段';
 }

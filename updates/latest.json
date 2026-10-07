@@ -3,6 +3,58 @@
   "assetsBase": "https://gitee.com/jeo-xie/schedule_plan/releases/download",
   "releases": [
     {
+      "versionCode": 9,
+      "versionName": "1.0.8",
+      "tag": "v1.0.8",
+      "publishedAt": "2026-10-07T13:31:18+08:00",
+      "notes": [
+        "**「专注模式」整个重做了 —— 之前那个计时有毛病**：设 25 分钟，实际 5 分钟就跑完了，等于白设。现在按真实时间走，你设多久就是多久，中途手机卡一下、切个后台也不会跑偏",
+        "**开始前可以给这次专注起个名字**。分三类：健康（运动、冥想引导、呼吸训练）、工作效率（番茄工作法、会议计时、演讲计时）、日常（练字、打扫卫生、休息提醒、烹饪计时、游戏计时），也可以自己敲一个",
+        "**倒计时自己拨**：时、分、秒三列滚轮，手指上下滑就能选",
+        "**专注期间屏幕是锁住的**：进入后全屏显示、屏幕不熄、返回键也拦下来。真想中途退出，会先告诉你「已经坚持了多久、离目标还差多少」，确认之后才放你走",
+        "**跑满有奖励**：会出一张成果卡，给一句鼓励，还写着本次时长、今日累计、连续专注天数。可以直接点「休息 5 分钟」（休息时间不锁屏），或者「再来一次」",
+        "**五处声音提醒**：开始、暂停、过半、最后 1 分钟、完成各响一下，不想要可以在准备页关掉",
+        "**新增「更强锁定」开关（默认关）**：打开后会调用手机系统自带的「屏幕固定」，把手机真正钉在专注界面上。**这个功能需要你手机系统里先打开「屏幕固定」**，有些手机厂商把它去掉了；能不能用，App 会自己试一次并如实告诉你，不会假装锁上",
+        "**中途放弃也会留一条记录**（记为未完成），但休息的那几分钟不算进专注统计",
+        "修好了统计里「专注开始时间」被记成结束时间的问题：以前跨着零点的那一段专注会被算进第二天",
+        "修好了中途放弃之后什么都不留下的问题"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24220931,
+          "sha256": "0d89af99ac69e9adb92d836bb454ff2c70722206ee89e6ccd72651671217fd83"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22269003,
+          "sha256": "4b0d8ea4f43495f1841d428813e060c37ba7ede50e267681f4bfff8ccaba475f"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 8,
+          "abi": "arm64-v8a",
+          "file": "patch-8-9-arm64-v8a.spdp",
+          "size": 4743335,
+          "targetSize": 24220931,
+          "sha256": "75edc7ca6428d55919dd6a9dd646d193edd28d9bb781f96f3dcab76f5472bbe3",
+          "baseSha256": "c95b74b285f4578fbd41808e420fcf52506b0ddff90289dea120c77cde18863a"
+        },
+        {
+          "fromVersionCode": 8,
+          "abi": "armeabi-v7a",
+          "file": "patch-8-9-armeabi-v7a.spdp",
+          "size": 5179274,
+          "targetSize": 22269003,
+          "sha256": "f747a8aa362cdef233de06180a3c348edf147522b4b807777a8d2f05fd8bcb09",
+          "baseSha256": "3ae1874964f34418bac5b72bcc7e9deffcfefd5bb75f231b51cefee497556c22"
+        }
+      ]
+    },
+    {
       "versionCode": 8,
       "versionName": "1.0.7",
       "tag": "v1.0.7",
@@ -383,7 +435,7 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-10-01T15:30:24+08:00",
+  "generatedAt": "2026-10-07T13:31:18+08:00",
   "assetsBases": [
     "https://gitee.com/jeo-xie/schedule_plan/releases/download",
     "https://github.com/gillnotfail/schedule_plan/releases/download"

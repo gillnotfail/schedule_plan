@@ -286,8 +286,30 @@ abstract final class AppConstants {
   static const int focusDefaultMinutes = 25;
   static const int focusDefaultBreakMinutes = 5;
 
-  /// 番茄钟进度刷新间隔
-  static const Duration focusTicker = Duration(milliseconds: 200);
+  /// 专注时长的可选下限 / 上限：1 分钟 ~ 3 小时。
+  ///
+  /// 下限 1 分钟是给"我就想坐一会儿"留的入口；上限 3 小时是因为再长
+  /// 就不该叫专注了（那是没睡）。滚轮上「时」最多拨到 3，拨到 3 时
+  /// 分 / 秒自动收成 0，所以这三条边界天然一致，不需要再做钳制。
+  static const int focusMinSeconds = 60;
+  static const int focusMaxSeconds = 3 * 60 * 60;
+
+  /// 时长滚轮的小时上限（0~3）。见 [focusMaxSeconds] 的说明。
+  static const int focusMaxHours = 3;
+
+  /// 时长滚轮「秒」列的步长。
+  ///
+  /// 专注计时精确到秒没有意义，5 秒一格足够表达"再坐 20 秒"，
+  /// 还能把 60 格的秒列缩到 12 格，少滚一半的圈。
+  static const int focusSecondStep = 5;
+
+  /// 曾经这里是 `focusTicker = 200ms`，配一个"每次 tick 减 1 秒"的回调，
+  /// 于是 25 分钟的专注 5 分钟就跑完了。**根因不是间隔取错，而是"拿累加器
+  /// 表示剩余时间"这条路本身就错**：定时器的抖动、掉帧、被系统延后都会
+  /// 永久沉淀成误差。现在改成墙钟口径（见 `focus_clock.dart`），
+  /// 只记每一段从什么时候开始、每次用 `DateTime.now()` 现算，
+  /// 刷新频率就只是"画多细"，不再影响"准不准"。故这里不再需要 ticker 常量。
+  static const Duration focusUiTick = Duration(milliseconds: 100);
 
   // ---------------------------------------------------------------------------
   // 存储与自动清理（模块七 7.6）

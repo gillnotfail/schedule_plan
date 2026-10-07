@@ -29,6 +29,15 @@ class SettingsState extends ChangeNotifier {
   bool lessonReminderEnabled = true;
   int focusMinutes = AppConstants.focusDefaultMinutes;
   int focusBreakMinutes = AppConstants.focusDefaultBreakMinutes;
+
+  /// 专注时的提示音开关（走系统 ToneGenerator，不加任何依赖）。
+  bool focusSoundEnabled = true;
+
+  /// 专注时是否额外尝试系统「屏幕固定」（增强锁定，默认关闭）。
+  ///
+  /// 默认关：它要求用户先在系统设置里打开「屏幕固定」，不少国产 ROM 还把它
+  /// 藏起来或阉割掉。默认那一档（沉浸全屏 + 常亮 + 拦返回）任何手机都能用。
+  bool focusStrongLockEnabled = false;
   StudentSortMode studentSortMode = StudentSortMode.namePinyin;
   String statisticsGranularity = 'week';
   int statisticsClassFilter = 0;
@@ -65,6 +74,9 @@ class SettingsState extends ChangeNotifier {
           await _settings.readBool(SettingKeys.lessonReminderEnabled);
       focusMinutes = await _settings.readInt(SettingKeys.focusMinutes);
       focusBreakMinutes = await _settings.readInt(SettingKeys.focusBreakMinutes);
+      focusSoundEnabled = await _settings.readBool(SettingKeys.focusSoundEnabled);
+      focusStrongLockEnabled =
+          await _settings.readBool(SettingKeys.focusStrongLockEnabled);
       studentSortMode = StudentSortMode.fromStorage(
         await _settings.read(SettingKeys.studentSortMode),
       );

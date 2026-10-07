@@ -191,11 +191,8 @@
   },
   "toolboxTitle": "教师工具箱",
   "focusTimer": "专注模式",
-  "focusStart": "开始",
   "focusPause": "暂停",
   "focusResume": "继续",
-  "focusReset": "重置",
-  "focusBreak": "休息",
   "focusDone": "专注完成",
   "scheduleCalendar": "日程安排",
   "eventAdd": "新增日程",
@@ -554,7 +551,7 @@
   "statsColumnStatus": "考勤",
   "toolStatisticsDesc": "出勤率趋势与排名",
   "toolTodoDesc": "智能待办与通用清单",
-  "toolFocusDesc": "番茄钟专注计时",
+  "toolFocusDesc": "锁屏专注计时,坐满给成果卡",
   "toolCalendarDesc": "日程与课前提醒",
   "importReasonMissingClass": "缺少班级",
   "noStudentNo": "未填学号",
@@ -1299,5 +1296,88 @@
   "groupSystem": "系统设置",
   "systemSettingsDesc": "考勤默认状态、调休、通知与数据清理",
   "groupHoliday": "调休",
-  "groupClearData": "清空数据"
+  "groupClearData": "清空数据",
+  "focusCategoryHealth": "健康",
+  "focusCategoryWork": "工作效率",
+  "focusCategoryLife": "生活应用",
+  "focusPresetExercise": "运动",
+  "focusPresetMeditation": "冥想引导",
+  "focusPresetBreathing": "呼吸训练",
+  "focusPresetPomodoro": "番茄工作法",
+  "focusPresetMeeting": "会议计时",
+  "focusPresetSpeech": "演讲计时",
+  "focusPresetHandwriting": "练字",
+  "focusPresetCleaning": "打扫卫生",
+  "focusPresetRest": "休息提醒",
+  "focusPresetCooking": "烹饪计时",
+  "focusPresetGaming": "游戏计时",
+  "focusNameLabel": "这次专注叫什么",
+  "focusNameOptional": "选填",
+  "focusNameCustom": "自己写一个",
+  "focusNameHint": "例如：备课、复盘",
+  "focusDurationTitle": "专注时长",
+  "focusStartAction": "开始专注",
+  "focusMinDurationHint": "至少 1 分钟才能开始",
+  "focusLockNotice": "开始后屏幕会一直亮着并锁住，直到本次结束或你主动退出",
+  "focusSoundToggle": "提示音",
+  "focusStrongLockToggle": "更强锁定",
+  "focusStrongLockDesc": "调用系统「屏幕固定」，通知栏与回桌面也锁住。需要先在系统设置里打开「屏幕固定」",
+  "focusStrongLockUnavailable": "这台手机没开启「屏幕固定」，本次用沉浸全屏锁定",
+  "focusRunningTitle": "专注中",
+  "focusPausedTitle": "已暂停",
+  "focusTapToPause": "轻触屏幕暂停",
+  "focusTapToResume": "轻触屏幕继续",
+  "focusGestureHint": "长按上下滑动调时长 · 双击归零",
+  "focusExitAction": "退出",
+  "focusExitTitle": "要结束这次专注吗？",
+  "focusExitElapsed": "你已经坚持了 {duration}",
+  "focusExitRemaining": "距离目标只差 {duration}",
+  "focusExitAlmostThere": "就差最后一点点了，真的舍得吗？",
+  "focusExitEncourage": "碎片化夺不走你的生活。再撑一下，这一段就完整了。",
+  "focusExitKeepGoing": "继续专注",
+  "focusExitConfirm": "结束本次",
+  "focusAbandonedHint": "本次专注 {duration}，已记下来",
+  "focusDoneHeadline": "你做到了",
+  "focusPraiseFragments": "碎片化夺不走你的生活。",
+  "focusPraiseSteady": "稳住这一段，比什么都强。",
+  "focusPraiseComeback": "每一次坐回来，都是一次重新开始。",
+  "focusPraiseTime": "你把这段时间，还给了自己。",
+  "focusStatThisSession": "本次",
+  "focusStatToday": "今日累计",
+  "focusStatStreak": "连续专注",
+  "focusStreakDays": "{days} 天",
+  "focusTakeBreak": "休息 5 分钟",
+  "focusBreakRunning": "休息中",
+  "focusAgain": "再来一次",
+  "focusFinishAction": "完成",
+  "focusStatEmpty": "—",
+  "@focusExitElapsed": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "@focusExitRemaining": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "@focusAbandonedHint": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "@focusStreakDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "focusBreakDone": "休息结束，随时可以开始下一段"
 }

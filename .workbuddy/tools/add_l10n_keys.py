@@ -544,6 +544,113 @@ NEW_KEYS = {
     },
     "groupHoliday": {"zh": "调休", "en": "Holidays"},
     "groupClearData": {"zh": "清空数据", "en": "Clear data"},
+    # ---- 第 23 轮：专注模式重做（锁屏 + 命名 + 成果）----
+    # 初衷（用户原话）：玩手机会夺走注意力，回过神来要重新进入专注很费劲。
+    # 所以这一版的核心是"这段时间屏幕不给你用"，其余文案都服务于
+    # "让人愿意坚持到最后一秒"：过程中少打扰，退出时要劝一句，完成后给回报。
+    #
+    # 三级分类（健康 / 工作效率 / 生活应用）—— 落库存的是稳定 id，显示走这里。
+    "focusCategoryHealth": {"zh": "健康", "en": "Health"},
+    "focusCategoryWork": {"zh": "工作效率", "en": "Work"},
+    "focusCategoryLife": {"zh": "生活应用", "en": "Life"},
+    "focusPresetExercise": {"zh": "运动", "en": "Exercise"},
+    "focusPresetMeditation": {"zh": "冥想引导", "en": "Guided meditation"},
+    "focusPresetBreathing": {"zh": "呼吸训练", "en": "Breathing"},
+    "focusPresetPomodoro": {"zh": "番茄工作法", "en": "Pomodoro"},
+    "focusPresetMeeting": {"zh": "会议计时", "en": "Meeting timer"},
+    "focusPresetSpeech": {"zh": "演讲计时", "en": "Speech timer"},
+    "focusPresetHandwriting": {"zh": "练字", "en": "Handwriting"},
+    "focusPresetCleaning": {"zh": "打扫卫生", "en": "Cleaning"},
+    "focusPresetRest": {"zh": "休息提醒", "en": "Rest reminder"},
+    "focusPresetCooking": {"zh": "烹饪计时", "en": "Cooking timer"},
+    "focusPresetGaming": {"zh": "游戏计时", "en": "Game timer"},
+    # 准备态
+    "focusNameLabel": {"zh": "这次专注叫什么", "en": "Name this session"},
+    "focusNameOptional": {"zh": "选填", "en": "optional"},
+    "focusNameCustom": {"zh": "自己写一个", "en": "Write your own"},
+    "focusNameHint": {"zh": "例如：备课、复盘", "en": "e.g. lesson prep"},
+    "focusDurationTitle": {"zh": "专注时长", "en": "Duration"},
+    "focusStartAction": {"zh": "开始专注", "en": "Start focusing"},
+    "focusMinDurationHint": {
+        "zh": "至少 1 分钟才能开始",
+        "en": "At least 1 minute to start",
+    },
+    "focusLockNotice": {
+        "zh": "开始后屏幕会一直亮着并锁住，直到本次结束或你主动退出",
+        "en": "Once started, the screen stays on and locked until this session ends or you exit",
+    },
+    "focusSoundToggle": {"zh": "提示音", "en": "Sound cues"},
+    "focusStrongLockToggle": {"zh": "更强锁定", "en": "Stronger lock"},
+    "focusStrongLockDesc": {
+        "zh": "调用系统「屏幕固定」，通知栏与回桌面也锁住。需要先在系统设置里打开「屏幕固定」",
+        "en": "Uses Android screen pinning to also block notifications and the home gesture. "
+              "Screen pinning must be enabled in system settings first",
+    },
+    "focusStrongLockUnavailable": {
+        "zh": "这台手机没开启「屏幕固定」，本次用沉浸全屏锁定",
+        "en": "Screen pinning is off on this phone — locking with immersive full screen",
+    },
+    # 专注态
+    "focusRunningTitle": {"zh": "专注中", "en": "Focusing"},
+    "focusPausedTitle": {"zh": "已暂停", "en": "Paused"},
+    "focusTapToPause": {"zh": "轻触屏幕暂停", "en": "Tap to pause"},
+    "focusTapToResume": {"zh": "轻触屏幕继续", "en": "Tap to resume"},
+    "focusGestureHint": {
+        "zh": "长按上下滑动调时长 · 双击归零",
+        "en": "Long-press and drag to adjust · double-tap to reset",
+    },
+    "focusExitAction": {"zh": "退出", "en": "Exit"},
+    # 退出拦截
+    "focusExitTitle": {"zh": "要结束这次专注吗？", "en": "End this session?"},
+    "focusExitElapsed": {
+        "zh": "你已经坚持了 {duration}",
+        "en": "You've held on for {duration}",
+    },
+    "focusExitAlmostThere": {
+        "zh": "就差最后一点点了，真的舍得吗？",
+        "en": "You're nearly there — sure you want to stop?",
+    },
+    "focusExitEncourage": {
+        "zh": "碎片化夺不走你的生活。再撑一下，这一段就完整了。",
+        "en": "Fragmented time can't take this from you. Hold on and this stretch is whole.",
+    },
+    "focusExitKeepGoing": {"zh": "继续专注", "en": "Keep going"},
+    "focusExitConfirm": {"zh": "结束本次", "en": "End session"},
+    "focusAbandonedHint": {
+        "zh": "本次专注 {duration}，已记下来",
+        "en": "Recorded {duration} for this session",
+    },
+    # 完成态
+    "focusDoneHeadline": {"zh": "你做到了", "en": "You did it"},
+    "focusPraiseFragments": {
+        "zh": "碎片化夺不走你的生活。",
+        "en": "Fragmented time can't take this from you.",
+    },
+    "focusPraiseSteady": {
+        "zh": "稳住这一段，比什么都强。",
+        "en": "Holding this steady beats everything.",
+    },
+    "focusPraiseComeback": {
+        "zh": "每一次坐回来，都是一次重新开始。",
+        "en": "Every return is a fresh start.",
+    },
+    "focusPraiseTime": {
+        "zh": "你把这段时间，还给了自己。",
+        "en": "You gave this time back to yourself.",
+    },
+    "focusStatThisSession": {"zh": "本次", "en": "This session"},
+    "focusStatToday": {"zh": "今日累计", "en": "Today"},
+    "focusStatStreak": {"zh": "连续专注", "en": "Streak"},
+    "focusStreakDays": {"zh": "{days} 天", "en": "{days} days"},
+    "focusTakeBreak": {"zh": "休息 5 分钟", "en": "Take a 5-min break"},
+    "focusBreakRunning": {"zh": "休息中", "en": "On a break"},
+    "focusBreakDone": {
+        "zh": "休息结束，随时可以开始下一段",
+        "en": "Break's over — start the next stretch whenever you like",
+    },
+    "focusAgain": {"zh": "再来一次", "en": "Go again"},
+    "focusFinishAction": {"zh": "完成", "en": "Done"},
+    "focusStatEmpty": {"zh": "—", "en": "—"},
 }
 
 # 需要改口径的旧键（用户规格变了，文案必须跟着走，否则和界面行为对不上）
@@ -574,6 +681,19 @@ UPDATE_KEYS = {
     # 第 22 轮：「权限」这一组搬进系统设置页后只装通知相关那几项，
     # 组名跟着收窄成「通知权限」，跟组内第一行的标题对齐。
     "groupPermission": {"zh": "通知权限", "en": "Notifications"},
+    # 第 23 轮：`{duration}` 展开成「17 分钟」这种带空格的短句，
+    # 后面再跟一个「了」会变成「17 分钟 了」，中英之间空一格还行、
+    # 两个汉字之间空一格就别扭了。去掉尾字，意思一样。
+    "focusExitRemaining": {
+        "zh": "距离目标只差 {duration}",
+        "en": "Only {duration} to go",
+    },
+    # 第 23 轮:工具箱那张卡片不再是"番茄钟"了 —— 现在会真锁屏、
+    # 会记名字、完成之后给成果卡,副标题得跟上。
+    "toolFocusDesc": {
+        "zh": "锁屏专注计时,坐满给成果卡",
+        "en": "Focus timer that locks the screen — with a reward at the end",
+    },
 }
 
 # 本轮不需要的键（避免留下没人用的文案）。默认状态就是"出勤"，
@@ -604,7 +724,12 @@ DROP_KEYS = ["attendanceMarkAllPresent", "attendanceStatusHint",
              # 第 22 轮：设置页重排 —— 「教学参数」「数据维护」两个组已并进
              # 系统设置页（数据清理那组改用新增的 groupClearData），
              # 「技术栈」一行按规格删除；这三条文案全库已无引用。
-             "groupTeaching", "groupData", "aboutTechStack"]
+             "groupTeaching", "groupData", "aboutTechStack",
+             # 第 23 轮：专注页整页重写。旧的"开始 / 重置 / 休息"是三个并列
+             # 小图标按钮的产物；新版是"准备态 → 专注态 → 成果态"的流程，
+             # 按钮文案换成了 focusStartAction / focusTakeBreak 这些更明确的说法，
+             # 下面三条全库已无引用。
+             "focusStart", "focusReset", "focusBreak"]
 
 PLACEHOLDERS = {
     "gridMakeupHint": {
@@ -728,6 +853,11 @@ PLACEHOLDERS = {
     "quoteCardSourceCustomMissing": {
         "placeholders": {"path": {"type": "String"}},
     },
+    # ---- 第 23 轮：专注模式 ----
+    "focusExitElapsed": {"placeholders": {"duration": {"type": "String"}}},
+    "focusExitRemaining": {"placeholders": {"duration": {"type": "String"}}},
+    "focusAbandonedHint": {"placeholders": {"duration": {"type": "String"}}},
+    "focusStreakDays": {"placeholders": {"days": {"type": "int"}}},
 }
 
 

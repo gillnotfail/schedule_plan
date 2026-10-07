@@ -1,9 +1,9 @@
 # schedule_plan 长期约定
 
-> **只记「改错会出事」的硬约束**。**注入上限约 10k 字符**，超出的部分后续会话**看不到** → 本文件只留**红线**；
-> **细则、常量、文件清单在 `MEMORY-DETAIL.md`**；过程记录在 `YYYY-MM-DD.md`。
-> **动这些子系统之前必须先读 `MEMORY-DETAIL.md`**：课表格子与曲线布局、考勤名单与日历圆环、表单与名单、节假日与调休、
-> 日程与统计、**工具箱「每日一句」语录卡片**、全局动效与配色、机械表盘、拍照识别课表、**发布与差分升级**。
+> **只记「改错会出事」的硬约束**。**注入上限约 10k 字符**，超出部分后续会话**看不到** → 只留**红线**；
+> **细则/常量/文件清单在 `MEMORY-DETAIL.md`**；过程记录在 `YYYY-MM-DD.md`。
+> **动这些子系统前先读 `MEMORY-DETAIL.md`**：课表格子与曲线布局、考勤名单与日历圆环、表单与名单、节假日与调休、
+> 日程与统计、「每日一句」语录卡片、**专注模式**、全局动效与配色、机械表盘、拍照识别课表、**发布与差分升级**。
 > 需求唯一来源 `docs/SPEC.md`；发布手册 `docs/RELEASE.md`。
 
 ## 平台 / 需求
@@ -12,31 +12,39 @@
 - 只做 Android APK；iOS 只留默认模板，不验证。**暂不加鸿蒙（ohos）代码**。
 
 ## 质量门槛与工具链（提交前必跑）
-- `flutter analyze --no-pub` 零 issue（**含 test/**）；`flutter test` 全绿（当前 +416）。跑完**立刻**在 IDEA 里
-  只看这两条命令的日志末行。
+- `flutter analyze --no-pub` 零 issue（**含 test/**）；`flutter test` 全绿（当前 +479）。
 - **跑前设 `NO_PROXY=localhost,127.0.0.1,::1`**，否则代理劫持 flutter_tester 的 WebSocket。
-- **本机 Git Bash 的 coreutils 全废**（`ls`/`grep`/`tail` not found）。flutter 一律走 **PowerShell**；找文件用 Glob、
-  找内容用 Grep，**不走 Bash**；Bash 里只有 managed Python/Node 的绝对路径可用。
-- PowerShell 重定向用 `& flutter ... 2>&1 | Out-File -Encoding utf8 <log>`，**不要 `*>`**（UTF-16LE）；读日志用
-  Python `open(p, encoding='utf-8')`；看中文测试名先设 `[Console]::OutputEncoding` 为 UTF8。
-- **PowerShell 承接 flutter 输出时退出码不可信**（stderr 的 `Flutter assets will be downloaded...` 被包成
-  `NativeCommandError`）——**只信日志最后一行**（`No issues found!` / `All tests passed!`）。
+- 找文件用 Glob、找内容用 Grep；Bash 里 managed Python/Node 走绝对路径。
+  （**第 25 轮实测 `ls`/`grep`/`tail`/`head`/`wc` 都可用** —— 早先「coreutils 全废」的记录已不成立。）
+- **flutter 一律走 `C:\Users\jeo\AppData\Local\Temp\wb_run_flutter.py`**（直调 `flutter.BAT`，绕开 PowerShell 管道）：
+  `<py> wb_run_flutter.py <项目绝对路径> analyze --no-pub`。末尾自打 `=== EXIT n ===`，**以日志最后一行结论为准**
+  （PowerShell 承接 flutter 输出时退出码不可信；`*>` 重定向是 UTF-16LE，要用 `Out-File -Encoding utf8`）。
 - **同一时刻只跑一个 flutter 命令**：并发让 native assets 拷贝撞车报 `PathExistsException ... sqlite3.dll`；
-  真撞了删 `build/native_assets` 重跑。改源码时不同时构建。
-- **长命令必须显式给 `timeout`**：工具默认 **120s 就掐，`run_in_background` 也不豁免**。症状 = `Status: failed` +
-  `Duration: 2m 1s` + **日志停在中间某行**（输出先缓存、结束才落盘）。`flutter build apk --release` 实测 ~1m56s。
-- **Python 脚本里调 flutter 必须解析出 `.bat`**：`subprocess` 走 `CreateProcess`，只自动补 `.exe`（`PATHEXT` 是
-  cmd.exe 的规则）→ `["flutter", ...]` 报 `FileNotFoundError [WinError 2]`。用 `shutil.which("flutter")`。
-  （手敲 `flutter` 能跑 ≠ 脚本里能跑，别怀疑 PATH。）
-- **命名管道耗尽（`CreateFile failed 231`）：Dart 无法 spawn 任何子进程** → analyze/test/`dart format` 全线失败，
-  报错五花八门。杀 dart/cmd/conhost 无效（内核级句柄泄漏），**只能重启电脑**。别误判成代码错误。
+  真撞了删 `build/native_assets` 重跑。
+- **长命令必须显式给 `timeout`**：默认 **120s 就掐，`run_in_background` 也不豁免**。症状 = `Status: failed` +
+  `Duration: 2m 1s` + **日志停在中间某行**（输出先缓存、结束才落盘）。`build apk --release` 实测 ~1m56s。
+- **Python 脚本里调 flutter 必须解析出 `.bat`**（`shutil.which`），否则 `[WinError 2]`。
+- **`flutter`/`dart` 全线废（analyze/test/build/format 一起挂）** 时报错是
+  `CreateFile failed 231`（`ERROR_PIPE_BUSY`，**不是权限问题**），别误判成代码错误。
+  **根因是 WorkBuddy 的进程环境**：第 24 轮实测同一探针在**用户自己的 cmd 里
+  `成功 20 个`**、在本机 Bash/PowerShell 里 **100% 失败**；环境变量/沙箱开关/Job/控制台/管道全都排除了。
+  **重启电脑解决不了**（实测 uptime 1.3 分钟仍挂）——别让人再去重启。
+  **判据只有一条：当场起一个 Dart 子进程**（`%TEMP%\wb_spawn_probe.dart`）——**「刚才能跑」不算证据**。
+  处置：请用户在自家终端里跑（样板 `%TEMP%\release_v1.0.8.bat`），别杀进程、别改代码。
+  两个带偏人的假象：① **Bash 照样能用**（长驻 shell 复用管道）；② **PowerShell 工具静默返回空输出**（exit 0）。
+  全部排查记录见 `MEMORY-DETAIL.md`「工具链故障」。
+- **写 .bat 包 flutter 时，禁止用 `if errorlevel 1` 当门禁**：`flutter.BAT` **成功也返回非 0**，
+  于是一个"环境自检"会把**整个后续流程静默跳过**（第 24 轮实测：窗口只打出 `flutter --version`
+  就退出，发布一步没跑，而看上去像"跑完了"）。自检只做展示，**别拿它的退出码决定走不走下一步**。
 - **同一文件多处改动要一条条 Edit**（并行写会互相覆盖：日志 success 但没落盘），改完复核。
   **Edit 替换「注释+紧邻声明」后立刻 analyze**（曾连注释删掉 `enum _TipTone` → 9 个 undefined_identifier）。
-- 批量改代码走**独立 .py 脚本**（`bash -c`/PowerShell 单行会被 shell 吃掉中文+三引号+`$`）；每处 replace 前
-  `assert 旧串 in s`；注意 CRLF，用 `newline=''` 读。`bash` heredoc 被安全策略拦，长文本用 Write/Edit。
+- 批量改代码走**独立 .py 脚本**（shell 单行会吃掉中文+三引号+`$`）；每处 replace 前 `assert 旧串 in s`；
+  注意 CRLF，用 `newline=''` 读。`bash` heredoc 被安全策略拦，长文本用 Write/Edit。
 - widget 测试改窗口：`tester.view.devicePixelRatio = 1; tester.view.physicalSize = size; addTearDown(tester.view.reset);`，
   别给 `MaterialApp` 套 `SizedBox`。测试 `main()` 内局部函数**不加下划线前缀**。
 - widget 测试 `find.text` 会撞时间轴刻度，断言浮层用 `find.descendant(of: 浮层)` 限定。
+- widget 测试里**组件 `initState` 去读 sqlite** 时，`pumpAndSettle` 推的是假时钟 → 查询永远跑不完，内部锁超时 Timer
+  挂到测试结束、被判 "A Timer is still pending"；用 `tester.runAsync(() => Future.delayed(...))` 放它们跑完。
 - 单测要真实亮度/对比度用 `dart:math` 的 `math.pow(...).toDouble()`，别手写 Taylor 展开。
 - 断言日期前想清楚：**假期里的周六不是 weekend**（2026-09-26 在中秋假期内 → `holiday`）。
 
@@ -45,80 +53,51 @@
   **冲突检测按真实时间区间重叠，禁止比 period_index**（多模板聚合会误判）。
 - 时间存 `"HH:mm"`、日期存 `"YYYY-MM-DD"`，不存时间戳。考勤唯一键 `(student_id, lesson_id, date)`。
 - 外键显式 ON DELETE；迁移包事务 + 校验 `class.template_id` 无悬空。
-- DB `version=8`，**16 张表**（`test/unit/schema_test.dart` 断言数量/顺序，加表/删表必须同步改）：v3 `course.color`、
-  v4 `attendance_record`、v5 `student_course_status`、v6 `schedule_event.recurrence`（默认 `'once'`）、v7 `holiday_day`、
-  v8 **删表**（`note` / `llm_provider_config`，两个功能整块下线）。加表一律是**纯加表加列**、可重复执行、不重建表；
-  v8 是本项目第一次「减表」，用 `DROP TABLE IF EXISTS`。**不动 `migrate()` 里 `rebuildingCourse` 那段**（只服务 v1→v2，
-  须临时关外键，否则 DROP course 级联清空 lesson）。
+- DB `version=9`，**16 张表**（`schema_test.dart` 断言数量/顺序，加表/删表必须同步改）。加表一律是**纯加表加列**、
+  可重复执行、不重建表；**逐版明细见 `MEMORY-DETAIL.md`「数据库」**。**不动 `migrate()` 的 `rebuildingCourse` 段**
+  （只服务 v1→v2，须临时关外键，否则 DROP course 级联清空 lesson）。
 - **删一个功能模块前，按 import 路径全库 grep（下划线形式，如 `note_repository`），别只搜驼峰类名** ——
-  本项目有**一文件多类**的仓库（`note_repository.dart` 同时还装着 `ScheduleEventRepository`、
-  `llm_repository.dart` 同时还装着 `ImportLogRepository`）。只搜类名会漏掉 import 语句，删完 analyze 才炸一片
-  undefined。拆出来的新文件：`schedule_event_repository.dart` / `import_log_repository.dart`。
-- 桌面 sqflite 必须先初始化 FFI：`AppDatabase._ensureDatabaseFactory()` 按平台调 `sqfliteFfiInit()` + `databaseFactoryFfi`，
-  否则 not initialized。`sqflite_common_ffi` + `sqlite3_flutter_libs` 必须在 `dependencies`。ff 包 import 要
+  本项目有**一文件多类**的仓库（`note_repository.dart` 同时还装着 `ScheduleEventRepository`）。只搜类名会漏掉
+  import 语句，删完 analyze 才炸一片 undefined。
+- 桌面 sqflite 必须先初始化 FFI：`AppDatabase._ensureDatabaseFactory()` 按平台调 `sqfliteFfiInit()` +
+  `databaseFactoryFfi`。`sqflite_common_ffi` + `sqlite3_flutter_libs` 必须在 `dependencies`。ff 包 import 要
   `hide DatabaseException`，且别与 `sqflite` 同时 import（analyzer 判 unnecessary）。
 - 课程配色唯一口径 `CourseDetail.color`：课程自选 > 挂载班级里第一个 > 主题兜底。只走 `parseHexColor`
-  （`core/utils/color_utils.dart`），**禁止 `int.parse` 裸转**；课表/课程卡/表单预览不许各写一套。
-  **凡是"把课程色铺满一块"的地方（课表格子、错峰曲线课块）都必须再过一个 `solidFillColor`** ——
-  它把过亮的色压到白字对比度 ≥ 3.2（色板里浅蓝/黄绿/亮橙只有 2.2~2.9，不压会糊）。课表格子第 19 轮起是
-  **整格铺满 + 白字**（旧的淡渐变底 + 色脊 + 描边 + 深色字已被用户否掉）；两个视图共用 `_ScheduleData.courseColors`。
+  （`core/utils/color_utils.dart`），**禁止 `int.parse` 裸转**。**凡是"把课程色铺满一块"的地方都必须再过一个
+  `solidFillColor`**（把过亮的色压到白字对比度 ≥ 3.2）。课表格子第 19 轮起是**整格铺满 + 白字**。
 - 翻月走 `DateUtils.shiftMonth`（`DateTime(y,m±1,d)` 会进位：3/31 往前变 3/3）；加天用 `DateTime(y,m,d+n)`。
 
 ## i18n
 - 禁止硬编码，全走 `lib/l10n/app_zh.arb`/`app_en.arb` + `context.l10n`，zh/en 严格对齐。
 - **加键一律走 `.workbuddy/tools/add_l10n_keys.py`**（幂等）：`NEW_KEYS` 加键、`UPDATE_KEYS` 改已存在键口径（脚本内
-  `assert key in data`，不许凭空 create）、`PLACEHOLDERS` 加 `@key`；末尾自带对齐断言。跑完 `flutter gen-l10n`
-  （有 `l10n.yaml` 时命令行参数被忽略，属预期）再 analyze。当前 zh/en 各 **666** 键。
+  `assert key in data`）、`PLACEHOLDERS` 加 `@key`；末尾自带对齐断言。跑完 `flutter gen-l10n`（有 `l10n.yaml` 时
+  命令行参数被忽略，属预期）再 analyze。当前 zh/en 各 **718** 键。
   **改这个脚本别拿 `"...元数据",\n}` 当尾部锚点**：`NEW_KEYS` / `PLACEHOLDERS` / `UPDATE_KEYS` 三个 dict 都以它结尾，
-  会串到另一个 dict 里去（踩过：文案进了 PLACEHOLDERS、占位符元数据进了 NEW_KEYS）。锚点带上前一条**完整的键名**。
+  会串到另一个 dict 里去。锚点要带上前一条**完整的键名**。
 
-## 发布与更新链路（细则见 `MEMORY-DETAIL.md`）
-- **仓库必须公开**（2026-09-30 已转 public）：应用里没有也不该有凭据，只能匿名取清单与安装包。私有仓库下**发布全绿、
-  手机端永远看不到更新**（raw 与 jsDelivr 都 404）。判断：匿名 `GET api.github.com/repos/<o>/<r>` → 404 即私有。
-  **别把 token 塞进 App 换私有**（APK 可反编译）。
-- **`release.py` 顺序不能反**：**先提交打标签推送 → 再建 Release**。反过来的话 GitHub 会按 `target_commitish`
-  （默认远端默认分支 HEAD）**自造同名标签** → Release 挂在旧提交上、随后 `git push` 标签被 `already exists` 拒绝。
-  故 `upload_release` 必须显式传本次提交 SHA，推送后再 `ls-remote` 复核。**要建 Release 就必须去掉 `--no-commit`
-  且带 `--push`**（脚本会拦）。已发错的修法：`git push origin +refs/tags/vX:refs/tags/vX`。
-- 仓库 `gillnotfail/schedule_plan`（GitHub，主）+ **`jeo-xie/schedule_plan`（Gitee，国内首选）**。
-  `README.md` 面向 GitHub，规格 `docs/SPEC.md`，更新说明 `CHANGELOG.md`
-  （**必须写用户能看懂的话**：`release.py` 原样抽最新一节进 `updates/latest.json` 给应用内展示。
-  条目**可以折行**，缩进续行会接回同一条；但**别用空行续写同一条**，那会被当成下一条）。
-  `updates/latest.json` **入库**；APK 与补丁挂 Releases **不入库**。
-- `pubspec.yaml` 的 `version: x.y.z+N`，**`N` 是 versionCode，每次发版必须递增**，否则拒绝覆盖安装。
-- **双仓库分发（第 22 轮）**：每次发布**往 Gitee 与 GitHub 各发一份**同一批 APK/补丁（Gitee 附件地址与 GitHub
-  同构），清单 `assetsBases` 按 `[Gitee, GitHub]` 排；客户端取清单 **Gitee raw 第一**（带 `?t=` 破缓存）→ GitHub raw
-  → jsDelivr → 自配镜像。**单数 `assetsBase` 必须保留且必须指向"当场回验过能下"的源**（≤1.0.5 的旧客户端只读它），
-  **`schemaVersion` 绝不许因为加字段而 +1**（老客户端见到更高版本会判"清单不可用"，把已装机用户锁死）。
-  Gitee API `GET /releases/tags/{tag}` 在 tag 不存在时**也返回 200 + `null`**，只能按"含 `id` 的 dict"判；
-  `--no-gitee` / `--gitee-only` 是仅有的两个逃生开关。
-- **回验里「本机连不上」≠「源坏了」（v1.0.6 踩过，别改回去）**：发布机在国内时 `github.com` 时通时断
-  （`api.github.com` 常通，所以建 Release/传附件一直成功），回验会把 GitHub 误判成"源坏了"剔掉 →
-  用户的手机（可能挂代理）本来能取 GitHub，清单却只剩一个源、彻底没退路。**只有服务器明确回 4xx/5xx
-  才剔源**；超时 / 连接重置 / 状态码 `000` 一律**保留为兜底**。Gitee raw 密集请求会偶发 `451`，探测已重试 1 次。
-- **发布最后一步是清 jsDelivr 缓存**（`release.py` 已自动做，别绕过）：`@main` 对分支缓存**最长 12h**，
-  国内 raw 不通时客户端只能读它 → **手机端最多晚半天才看到更新**。手工补清 =
-  `curl https://purge.jsdelivr.net/gh/<owner>/<repo>@main/updates/latest.json`（公开端点，无需凭据）；
-  判断"是不是缓存在作怪"：同一个 commit 用 `@<sha>` 取是实时的，`@main` 旧 + `@<sha>` 新 = 缓存。
-  **清完必须回读 `@main` 的 sha256 与本地比**：purge 响应里 `status == "finished"` **不代表清成功**，
-  要看 `paths[...].throttled` —— 它为 `true` 时说明被限流（返回 `finished` 但**没清**）。连续发两个版本
-  必然被限流，实测 `throttlingReset` **约 6 分钟**，脚本会等到点自动重试一轮（上限 10 分钟）。
-  `release.py` 请求这个端点**走 curl 而不是 urllib**：本机 urllib 会被远程重置（`WinError 10054`），
-  同一地址 curl 正常（`api.github.com` 的 urllib 请求是好的，所以只有这一条会挂）。
-- **`GITHUB_TOKEN` 只放 `~/.schedule_plan-release.env`**（家目录，**绝不进仓库**——仓库里任何文件都可能被
-  `git add -A` 带上去，PAT 泄露不可逆）；`verify_token()` 在**打包之前**先验。**别让用户把 token 贴进对话**（实测两次
-  都被截到 31 字符）。`--bump` 自增版本号并写回 pubspec；**CHANGELOG 没有对应版本节时直接拒绝发布**（设计如此）。
-- **分差**：生成端 `tool/delta_patch.py` + 设备端 `lib/core/utils/delta_patch.dart`（CDC 32 位 gear 哈希 + SPDP v1，
-  固定头 98 字节，整体 gzip）。**掩码必须取高 15 位（bits 17..31）**：`h=(h<<1)+GEAR[b]` 的 bit0 恒等于
-  `GEAR[末字节]&1`，低位只有 256 种取值，放低位会退化（曾「整份文件切不出边界」）。`selftest` 有**分块均值必须落在
-  `[1<<14,1<<16]`** 护栏；**别拿复用率当格式兼容性门槛**（守错指标）。
-- **三层安全网**：① 下载后按清单 SHA-256 校验；② 分差合成后再与**清单里整包的指纹**交叉校验（两个独立来源）；
-  ③ 生成端 `--verify`。任一步失败 → 删文件、换下一地址、**最终回落下载完整包**。
-- **安装走 `PackageInstaller`，不用 `ACTION_VIEW` + FileProvider**：本项目 `androidx.core` 由 share_plus 以
-  `compileOnly` 引入 → **自建 FileProvider 子类编译不过**（决策性理由）。`InstallResultReceiver` 会被调用**一到两次**；
-  系统装完重启进程致回执丢失 → 故有 `UpdateService.markInstalledExternally()`（回前台比对版本号）。
-- **`RandomAccessFile.writeFrom(list, start, end)` 第三个参数是下标 `end` 不是长度**；写错时第一条命令（cursor=0）
-  恰好正确、第二条才抛 `RangeError`——**只有多条命令才暴露**。
+## 发布与更新链路（**细则见 `MEMORY-DETAIL.md` 同名章节；这一节只留红线**）
+- **仓库必须公开**（私有 → 手机端永远看不到更新，raw 与 jsDelivr 都 404）。**别把 token 塞进 App**（APK 可反编译）。
+- **`release.py` 顺序不能反**：先「提交 → 打标签 → 推送」→ 再建 Release（反过来 GitHub 会自造同名标签挂到旧提交）。
+  要建 Release 就必须带 `--push`。仓库：`gillnotfail/schedule_plan`（GitHub）+ **`jeo-xie/schedule_plan`（Gitee，首选）**。
+- `CHANGELOG.md` **必须写用户能看懂的话**（`release.py` 原样抽最新一节进 `updates/latest.json` 给应用内展示；
+  条目可折行、缩进续行会接回同一条，**别用空行续写同一条**）。`updates/latest.json` **入库**，APK 与补丁**不入库**。
+- `pubspec.yaml` 的 `version: x.y.z+N`，**`N`（versionCode）每次发版必须递增**，否则拒绝覆盖安装。
+  **CHANGELOG 没有对应版本节时直接拒绝发布**（设计如此，不是 bug）。
+- **双仓库分发**：每次发布往 Gitee 与 GitHub **各发一份**同一批 APK/补丁；清单 `assetsBases=[Gitee, GitHub]`，
+  客户端取清单 **Gitee raw 第一**（带 `?t=` 破 60s 缓存）→ GitHub raw → jsDelivr → 用户自配镜像。
+  **`schemaVersion` 绝不因加字段而 +1**（老客户端见更高版本会判"清单不可用"，等于把已装机用户锁死）。
+  **单数 `assetsBase` 必须保留**且指向当场回验过能匿名下载的源（≤1.0.5 的旧客户端只读它）。
+- **回验里「本机连不上」≠「源坏了」**：只有服务器明确回 4xx/5xx 才剔源；超时 / 连接重置 / `000`
+  一律**保留为兜底**（发布机在国内时 `github.com` 时通时断，剔掉等于让用户没了退路）。
+- **发布最后一步是清 jsDelivr 缓存**（`release.py` 自动做，别绕过；`@main` 对分支最长缓存 12h）。
+  `status == "finished"` **不代表清成功**，要看 `paths[...].throttled`（连发两版必被限流，约 6 分钟）；
+  这个端点**必须走 curl**（本机 urllib 必 `WinError 10054`）。
+- **令牌只放 `~/.schedule_plan-release.env`**（`GITHUB_TOKEN` / `GITEE_TOKEN`），**绝不进仓库**；
+  别让用户把 token 贴进对话（实测两次都被截到 31 字符）。
+- **分差掩码必须取高 15 位（bits 17..31）**，放低位会退化。**三层安全网**：下载后按清单 SHA-256 校验 →
+  分差合成后再与清单里整包的指纹交叉校验 → 生成端 `--verify`；任一步失败 → 换下一地址 → 最终回落整包。
+- **安装走 `PackageInstaller`**（`androidx.core` 由 share_plus `compileOnly` 引入 → 自建 FileProvider 编不过）。
+- **`RandomAccessFile.writeFrom(list, start, end)` 第三参是下标 `end` 不是长度**（只有多条命令才暴露）。
 
 ## 构建
 - `flutter build apk --release`；签名走 `android/key.properties` → `android/keystore.jks`（不入库）。
@@ -165,3 +144,7 @@
   「教学参数 / 权限 / 数据维护」三块整体搬进 `features/settings/system_settings_page.dart`，页内顺序 =
   未记录日期的默认状态 → 调休(3) → 通知权限(4) → 时间列级联更新 → 清空数据(2)。
   **「拍照生成课表」与「统计设置」不允许再回设置页**（前者与课表页重复，后者在工具箱「教学成果」标题右侧齿轮）。
+- **专注模式只有专注态锁屏**，暂停与休息一律不锁；`isBreak` 必须进快照（否则恢复时会把休息当专注锁上）。
+  **计时必须墙钟口径**（"每次 tick 减 1 秒"会让 25 分钟 5 分钟就跑完）；`started_at` = **开始**时刻；
+  统计**只算 `completed`**；**休息段不写 `focus_session`**；`label` 落库存**稳定 id**、显示时查 l10n。
+  增强档「屏幕固定」**先做后验**，失败如实提示，**绝不假装锁上**（普通 App 做不到绝对锁定）。

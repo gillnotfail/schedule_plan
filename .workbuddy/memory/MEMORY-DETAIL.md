@@ -4,6 +4,30 @@
 > **动下列子系统之前先读对应小节**。过程与理由见 `.workbuddy/memory/YYYY-MM-DD.md`。
 > 红线（不许违反的那句话）在 `MEMORY.md` 的「红线速查」，本文件负责「怎么才对」。
 
+## 数据库（版本 / 迁移 / 模型口径）
+
+**当前 `version = 9`，16 张表**。`test/unit/schema_test.dart` 断言表数量与顺序 —— 加表/删表必须同步改它
+（它对版本号的断言是 `greaterThan(0)`，所以单纯升版本不用动它）。
+
+逐版迁移：
+
+| 版本 | 内容 |
+| --- | --- |
+| v3 | `course.color` |
+| v4 | 新增 `attendance_record` 表 |
+| v5 | 新增 `student_course_status` 表 |
+| v6 | `schedule_event.recurrence`（默认 `'once'`） |
+| v7 | 新增 `holiday_day` 表 |
+| v8 | **删表**：`note` / `llm_provider_config` |
+| v9 | `focus_session.label` / `focus_session.category` |
+
+- 加表一律是**纯加表加列**：可重复执行、不重建表、不回填。
+- v8 是第一次「减表」，用 `DROP TABLE IF EXISTS`。
+- **`migrate()` 里的 `rebuildingCourse` 那段不要动**：它只服务 v1→v2，必须临时关外键，
+  否则 `DROP course` 会级联清空 `lesson`。
+- `focus_session.label` 落库存**稳定 id**（如 `meditation`），显示时才查 l10n、查不到回落原文；
+  `category` 单独存 `health` / `work` / `life`。
+
 ## 课表骨架（表永远是满的）
 - **出厂作息唯一来源 `DatabaseSchema.generatePeriodRows`**：出厂种子、一键生成作息、新建模板预置作息、作息自愈全调它，
   禁止第二份循环。入参 `DatabaseExecutor`，事务内/库上都能调。默认周一~周五 × 08:00 起 × 每节 40 分钟 × 课间 10 分钟
@@ -322,6 +346,64 @@
   系统 `SpeechRecognizer` / `SFSpeechRecognizer`（离线看机型）或云端 ASR（**违背「不接服务商」**）。**要做先做
   「唤起 + 预填」，不要一上来做端内 ASR。**
 
+## 专注模式（第 23 轮重做，动之前必读）
+
+初衷不是"做个番茄钟"，而是用户提的那个问题：**玩手机会把注意力抢走，重新回到专注要花很久**。
+所以重点在"这段时间屏幕不给你用"，其余全服务于"让人愿意坚持到最后一秒"。
+
+### 结构
+
+`lib/features/toolbox/focus/` 下一个文件一件事：`focus_clock.dart`（纯计时，可单测）、
+`focus_controller.dart`（状态机 + 快照）、`focus_presets.dart`（三级分类）、
+`focus_duration_wheel.dart` / `focus_dial.dart`（控件）、`focus_setup_view.dart` /
+`focus_running_view.dart` / `focus_exit_sheet.dart` / `focus_done_view.dart`（四屏）、
+`focus_session_store.dart`（快照落库口）、`focus_lock_service.dart`（原生通道 Dart 侧）。
+原生在 `android/.../FocusLockChannel.kt`，`MainActivity` 里注册（**传 `this` 不是
+`applicationContext`**：`startLockTask` 是 Activity 的方法，窗口标志也只挂在 Activity 上）。
+
+### 红线
+
+- **计时一律墙钟口径**。只记「已结算时长 + 当前段起点」，剩余时间每次用传进来的 `now` 现算。
+  **禁止"每次 tick 减 1 秒"**：定时器抖动、掉帧、被系统延后都会**永久沉淀**成误差。
+  旧实现 tick 200ms + 每次减 1 秒 → 25 分钟的专注 5 分钟就"完成"了（快 5 倍）。
+  `FocusClock` 的每个方法都收显式 `now`，单测喂虚拟时间轴，不用等真实时间流过。
+- **`started_at` 必须是开始那一刻**，不是结束时刻 —— 教学成果页按它落在哪一周汇总，
+  写成结束时刻会让跨零点的那一节整段算进第二天。**`duration_minutes` 是实际投入**：
+  跑满 = 计划时长，中途放弃 = 已坐了多久。统计**只汇总 `completed = 1`**。
+- **只有专注态锁屏**。暂停与休息**一律不锁**（否则连水都喝不上）。
+  休息段靠 `FocusController.isBreak` 标记，它**必须进快照** —— 否则 App 被杀后恢复时
+  会把一段 5 分钟的休息当成专注，把屏幕莫名其妙锁上。
+- **休息段不写 `focus_session`**：那是休息不是专注投入，记进去等于给"本周专注次数"灌水。
+- **两档锁定，绝不假装成功**。基础档 = 沉浸全屏 + `FLAG_KEEP_SCREEN_ON` + 拦返回，
+  任何手机都能用；增强档 = 系统「屏幕固定」(`startLockTask`)，**先做后验**：
+  调完立刻读 `ActivityManager.lockTaskModeState`，没进去就返回 false 并如实弹提示。
+  普通 App **做不到"绝对锁定"**（那要 Device Owner，得用 adb 设受管设备）。
+- **`label` 落库存稳定 id**（`meditation` 这些），显示时先查 l10n、查不到再回落原文。
+  `category` 单独存 `health` / `work` / `life`：名字是给人看的会变，类别是给统计用的不该变。
+  控制器与界面之间的口径 = 字符串 id；要 `FocusCategory` 枚举就 `fromStorage()` 转。
+- **快照的 `segmentStartMs` 必须是这一段真实的起点**，不许图省事写 `DateTime.now()` ——
+  那样每次落盘都把起点往后挪，等于悄无声息地抹掉已经专注的那段时间。
+- **两个刷新档位别合并**：`progressListenable` 每帧（给环），`displayedRemaining` 只在
+  秒数真变了才通知（给数字）。让数字跟着 60fps 重建是白烧电，而锁屏专注时电就是命。
+  背景渐变同理，订阅**秒级**的 `displayedRemaining` 而不是每帧进度。
+- 庆祝动效**一次性播放**，别用 `repeat()`：循环动画会让 `pumpAndSettle` 永远等不到静止，
+  组件测试没法写（项目里 `PulseLoading` 就是这个坑）。
+
+### 界面约束
+
+- 准备态：时长是 `00:00:00` **三列滚轮**，范围 1 分钟 ~ 3 小时。拨到 3 小时时**分/秒自动归零
+  并回弹**（否则会出现 `03:59:59` 这种被内部钳到 3 小时、界面却写着另一个数的状态）；
+  不满 1 分钟**不替用户改数字**，只禁用「开始」并说明原因（硬掰会跟正在滑的手抢）。
+- 专注态：`Stack` 三层（背景渐变 / 环形进度 / 内容）。手势全铺在整屏：
+  轻触暂停继续、长按上下滑动调时长（36px ≈ 1 分钟）、双击归零。
+  页面用 `PopScope(canPop: !immersive)` 拦返回，**拦下来走的是"劝一句"那条路**，不是直接放行。
+- 退出拦截文案必须**先报数字再劝**：「你已经坚持了 X」「距离目标只差 Y」→ 二次确认才放行。
+  放行时把这次"未完成"也记下来（`completed = 0`），半分钟以内的不算。
+- 成果卡的鼓励语**在完成那一刻选好再当参数传进去**，不要在 `build` 里随机 ——
+  那样每次重画都会跳一句，看着像出了 bug。
+- 离开页面（`dispose`）必须把常亮、沉浸模式、屏幕固定**全部还回去**；忘了关的后果是
+  "退出专注后手机再也不息屏"，用户会以为是手机坏了。
+
 ## 发布与更新链路（细则）
 - **客户端清单地址（第 22 轮起 Gitee 第一）**：**Gitee raw（第一，带 `?t=` 时间戳）** → raw.githubusercontent
   （第二）→ jsDelivr（第三、国内可达）→ 用户可配镜像前缀（套在这三条**后面**）。自动检查一天一次
@@ -452,3 +534,102 @@ __HTTP_STATUS__%{http_code}"` 切出状态码；文本字段一律 `--form-strin
 - **真实发版的复用率远低于合成用例**：v1.0.0 → v1.0.1（改 2 个 widget + 3 个 l10n 键）实测 arm64 复用 **59.3%**
   → 补丁 3.81 MB = 整包 **16.5%**；armeabi-v7a 复用 **50.7%** → 补丁 4.22 MB = **20.0%**。
   即「真实功能更新下，手机端只需下 1/6~1/5」。（合成用例「改 1 字节」的 99.9% 只说明算法正确，不代表真实场景。）
+- **`release.py` 的步骤顺序不能反**：**先「提交 → 打标签 → 推送」→ 再建 Release**。反过来的话 GitHub 会按
+  `target_commitish`（默认远端默认分支 HEAD）**自造一个同名标签** → Release 挂在旧提交上，随后 `git push` 标签
+  被 `already exists` 拒绝。故 `upload_release` 必须显式传本次提交 SHA，推送后再 `ls-remote` 复核。
+  **要建 Release 就必须去掉 `--no-commit` 且带 `--push`**（脚本会拦）。已发错的修法：
+  `git push origin +refs/tags/vX:refs/tags/vX`。
+- **安装走 `PackageInstaller`，不用 `ACTION_VIEW` + FileProvider**——本项目 `androidx.core` 由 share_plus 以
+  `compileOnly` 引入，**自建 FileProvider 子类编译不过**（决策性理由，不是风格偏好）。
+  `InstallResultReceiver` 会被调用**一到两次**；系统装完重启进程会导致回执丢失 → 故有
+  `UpdateService.markInstalledExternally()`（回前台比对版本号兜底）。
+- **分差掩码为什么必须取高 15 位（bits 17..31）**：`h=(h<<1)+GEAR[b]` 的 bit0 恒等于 `GEAR[末字节]&1`，
+  低位只有 256 种取值，放低位会退化（曾出现「整份文件切不出边界」）。`selftest` 有
+  **分块均值必须落在 `[1<<14,1<<16]`** 的护栏；**别拿复用率当格式兼容性门槛**（守错指标）。
+- **`RandomAccessFile.writeFrom(list, start, end)` 第三个参数是下标 `end` 而不是长度**：写错时第一条命令
+  （cursor=0）恰好正确、第二条才抛 `RangeError` —— **只有多条命令才暴露**，单命令用例测不出来。
+
+## 工具链故障：Dart 起不了子进程（`CreateFile failed 231`）
+
+**症状**：任何 `flutter` / `dart run` 命令崩，刷屏
+`CreateFile failed 231 (所有的管道范例都在使用中。)`，然后 flutter_tools 打印
+`ProcessException: 所有的管道范例都在使用中。 (at ../../runtime/bin/process_win.cc:742)`。
+`flutter --version` 也一样 —— **只要 Dart VM 要 spawn 子进程就必挂**（`analyze` / `test` / `build` / `dart format` 全灭）。
+注意这是 `ERROR_PIPE_BUSY`（231），不是权限问题。
+
+**唯一可靠的判据**：当场起一个 Dart 子进程试。现成探针
+`C:\Users\jeo\AppData\Local\Temp\wb_spawn_probe.dart`（内含 `Process.runSync` / `Process.start` /
+连发 20 个三种情形），直接跑：
+
+```
+D:\flutter\bin\cache\dart-sdk\bin\dart.exe "C:\Users\jeo\AppData\Local\Temp\wb_spawn_probe.dart"
+```
+
+**「几分钟前 analyze 还能跑」不构成证据。** 第 24 轮实测同一条命令序列里先好后坏：
+`flutter analyze`（13:14）与 `flutter test`（13:12）都正常，13:16 的 `flutter build` 就崩了。
+
+### 第 24 轮已排除的原因（别再重复排查）
+
+| 假设 | 实验 | 结论 |
+| --- | --- | --- |
+| 内核句柄泄漏、重启即可 | `GetTickCount64()` 查 uptime = **1.3 分钟**（确实重启过），再跑探针 | **重启后照样失败** → 「重启就能好」不成立 |
+| Bash 工具/沙箱在拦 | `dangerouslyDisableSandbox: true` 重跑 | 一样失败 |
+| WorkBuddy 注入的环境变量 | 用最小环境（只留 SystemRoot/PATH/TEMP/PATHEXT）跑 | 一样失败 |
+| 被放进 Job 对象 | `QueryInformationJobObject` 读 `LimitFlags` | 只有 `BREAKAWAY_OK`，无 `ActiveProcessLimit`、无 UI 限制 → 良性 |
+| 控制台 / conhost 归属 | `CREATE_NEW_CONSOLE` / `CREATE_NEW_PROCESS_GROUP` | 一样失败 |
+| 命名管道本身坏了 / 名字冲突 | Python 用 ctypes 直接调 `CreateNamedPipeW` + `CreateFileW`（入向×1 实例×overlapped 等各种组合） | **全部 OK**；`os.listdir('\\.\pipe\\')` 共 133 条，**dart/flutter 相关 0 条** |
+| Windows 侧把它当成沙箱进程 | — | 未证实 |
+
+**关键对照**：Python 的 `subprocess` 起 `cmd /c ver` **完全正常**，`D:\flutter\bin\cache\dart-sdk\bin\dart.exe --version`
+**也正常** —— 坏的只有「Dart VM 创建命名管道去 spawn 子进程」这一条路径。
+`CREATE_BREAKAWAY_FROM_JOB` 试过，被拒（`WinError 5`），所以没法验证「脱离 WorkBuddy 进程树是否就好」。
+
+### 结论（第 24 轮实测）
+
+**同样的探针命令在用户自己的 cmd 窗口里完全正常**（`exit=0`、`[连发 20 个] 成功 20 个`），
+在本机 Bash / PowerShell 工具里 100% 失败。所以：
+
+> **不是机器坏了，是 WorkBuddy 的进程环境（Sandbox Center 那一层）让 Dart VM 建不出命名管道。**
+> 环境变量、Job、控制台、沙箱开关都不是原因；换个**不由 WorkBuddy 启动的终端**就好了。
+
+**解法：发版（以及任何要 `flutter build` / `flutter test` 的活儿）在那个终端里跑。**
+
+现成脚本：`C:\Users\jeo\AppData\Local\Temp\release_v1.0.8.bat`（双击即可；先 `flutter --version`
+自检，再 `tool/release.py --no-bump --push`）。手工等价命令：
+
+```bat
+set "PATH=D:\flutter\bin;%PATH%"
+cd /d E:\flutterStudy\schedule_plan
+"C:\Users\jeo\AppData\Local\Programs\Python\Python313\python.exe" tool\release.py --no-bump --push
+```
+
+注意用户终端里**没有代理**（WorkBuddy 的 `HTTP_PROXY` 是逐进程注入的），所以 API 走直连；
+用户级环境变量里也确实没有代理。
+
+**副作用提醒**：这意味着**本机 Bash/PowerShell 工具不能跑任何 Dart 命令**（连 `flutter --version` 都不行），
+直到 WorkBuddy 修好或重启到正常状态。遇到时**别再怀疑机器、别再让人重启电脑**，
+直接请用户在自家终端里跑。
+
+### 附带踩到：`.bat` 里 `if errorlevel` 把整个发布静默跳过
+
+第一版 `release_v1.0.8.bat` 在 `flutter --version` 之后写了
+`if errorlevel 1 ( echo 环境不可用 & exit /b 1 )` 当门禁。结果用户跑出来只有：
+
+```
+============================================================
+ step 0/1  sanity check: flutter / dart spawn
+============================================================
+Flutter 3.41.6 • channel stable • ...
+```
+然后直接回提示符 —— **发布那一步一个字都没输出，但看起来像"跑完了"**。
+查仓库确认 `HEAD` / 标签 / `dist/releases` 全是原样，确实没执行。
+
+**原因**：`flutter.BAT` 是 `D:\flutter\bin\flutter.bat` 包装脚本，**成功时也返回非 0 退出码**
+（它内部有 `goto`/`exit /b` 的路径会留下非 0）。所以拿它的退出码当门禁必然误判。
+
+**规矩**：给 flutter 做 `.bat` 包装时，自检步骤**只展示、不判定**；
+要判定就用**自己脚本的退出码**（`set "RC=%ERRORLEVEL%"` 紧接着 python 那一行取），
+并且**在最后一次性报告成功/失败**，别在中途 `exit /b`。
+
+
+
