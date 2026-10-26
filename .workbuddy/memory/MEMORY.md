@@ -71,7 +71,7 @@
 - 禁止硬编码，全走 `lib/l10n/app_zh.arb`/`app_en.arb` + `context.l10n`，zh/en 严格对齐。
 - **加键一律走 `.workbuddy/tools/add_l10n_keys.py`**（幂等）：`NEW_KEYS` 加键、`UPDATE_KEYS` 改已存在键口径（脚本内
   `assert key in data`）、`PLACEHOLDERS` 加 `@key`；末尾自带对齐断言。跑完 `flutter gen-l10n`（有 `l10n.yaml` 时
-  命令行参数被忽略，属预期）再 analyze。当前 zh/en 各 **722** 键。
+  命令行参数被忽略，属预期）再 analyze。当前 zh/en 各 **721** 键。
   **改这个脚本别拿 `"...元数据",\n}` 当尾部锚点**：`NEW_KEYS` / `PLACEHOLDERS` / `UPDATE_KEYS` 三个 dict 都以它结尾，
   会串到另一个 dict 里去。锚点要带上前一条**完整的键名**。
 
