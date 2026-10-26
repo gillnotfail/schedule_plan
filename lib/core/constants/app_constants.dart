@@ -303,6 +303,14 @@ abstract final class AppConstants {
   /// 还能把 60 格的秒列缩到 12 格，少滚一半的圈。
   static const int focusSecondStep = 5;
 
+  /// 专注时长滚轮一格的像素高度，比设置页的 [wheelItemExtent] (44) 矮 4px。
+  ///
+  /// 两条理由，都是实测反馈来的：
+  /// - 准备态要塞进**一页**（命名 + 时长 + 开关 + 按钮）；
+  /// - 格小一点，同样的滑动速度能划过更多格 —— 从 25 分钟拨到 1 小时
+  ///   不用甩三次。高度取 4 格 = 160。
+  static const double focusWheelItemExtent = 40.0;
+
   /// 曾经这里是 `focusTicker = 200ms`，配一个"每次 tick 减 1 秒"的回调，
   /// 于是 25 分钟的专注 5 分钟就跑完了。**根因不是间隔取错，而是"拿累加器
   /// 表示剩余时间"这条路本身就错**：定时器的抖动、掉帧、被系统延后都会

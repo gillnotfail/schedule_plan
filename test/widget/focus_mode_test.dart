@@ -56,7 +56,7 @@ void main() {
   // 内部锁超时的 Timer 会一直挂到测试结束被判成 pending timer。
   databaseFactory = databaseFactoryFfiNoIsolate;
 
-  /// 准备态一屏内容不少（预览环 + 命名卡 + 时长滚轮 + 选项 + 按钮）。
+  /// 准备态一屏内容不少（命名卡 + 时长滚轮 + 选项 + 按钮）。
   /// 默认 800×600 会让靠后的内容根本不在 element 树里，`find` 就会误判。
   void useTallWindow(WidgetTester tester) {
     tester.view.devicePixelRatio = 1;
@@ -71,6 +71,7 @@ void main() {
     required TextEditingController controller,
     FocusCategory? category,
     String? label,
+    bool withAppBar = false,
     ValueChanged<Duration>? onTotalChanged,
     ValueChanged<FocusCategory?>? onCategoryChanged,
     ValueChanged<String?>? onLabelChanged,
@@ -79,6 +80,7 @@ void main() {
     await tester.pumpWidget(
       wrap(
         Scaffold(
+          appBar: withAppBar ? AppBar(title: const Text('专注模式')) : null,
           body: FocusSetupView(
             total: total,
             category: category,
@@ -99,7 +101,47 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('准备态：时长以 00:00:00 呈现，三级分类与预设都在', (tester) async {
+  testWidgets('准备态在主流手机尺寸下不用上下滑', (tester) async {
+    // 用户规格："现在比一页还长，最好放在一页上，不用上下滑动。"
+    // 411×850 是主流安卓的逻辑尺寸（1080×2340 @ dpr 2.625 附近）。
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(411, 850);
+    addTearDown(tester.view.reset);
+
+    final controller = TextEditingController();
+    addTearDown(controller.dispose);
+
+    await pumpSetup(
+      tester,
+      total: const Duration(minutes: 25),
+      controller: controller,
+      withAppBar: true,
+    );
+
+    // 页面里有两个可滚区域（纵向 ListView + 预设那行横滑），取纵向那个
+    final vertical = find
+        .descendant(
+          of: find.byType(ListView),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    final position = tester.state<ScrollableState>(vertical).position;
+    expect(position.axis, Axis.vertical);
+    expect(
+      position.maxScrollExtent,
+      0,
+      reason: '准备态纵向不该能滚 —— 内容又被撑出一页了',
+    );
+
+    // 按钮与锁屏说明都得在视口里，不能靠滚动才看到
+    expect(
+      tester.getBottomLeft(find.text('开始专注')).dy,
+      lessThan(850),
+      reason: '「开始专注」被顶出屏幕了',
+    );
+  });
+
+  testWidgets('准备态：时长是 时/分/秒 三列滚轮，三级分类与预设都在', (tester) async {
     useTallWindow(tester);
     final controller = TextEditingController();
     addTearDown(controller.dispose);
@@ -110,8 +152,8 @@ void main() {
       controller: controller,
     );
 
-    // 预览与卡片上各有一处时长
-    expect(find.text('00:25:00'), findsOneWidget);
+    // 时长在滚轮上（分列停在 25），卡片右上角是口语化时长
+    expect(find.text('25'), findsOneWidget);
     expect(find.text('25 分钟'), findsOneWidget);
 
     // 三级分类
@@ -180,6 +222,9 @@ void main() {
       onCategoryChanged: (value) => category = value,
     );
 
+    // 预设现在是一行横滑，靠后的「练字」可能不在视口里，先滚过去
+    await tester.ensureVisible(find.text('练字'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('练字'));
     await tester.pumpAndSettle();
 

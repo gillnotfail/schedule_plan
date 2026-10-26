@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:schedule_plan/core/constants/app_constants.dart';
@@ -50,6 +52,14 @@ class _FocusDurationWheelState extends State<FocusDurationWheel> {
   /// 正在程序化地拨轮子，用来忽略随之而来的回调，避免自激循环。
   bool _programmatic = false;
 
+  /// 自己**上一次上报出去**的秒数。
+  ///
+  /// 这里踩过一个很坑的 bug：滚一格 → 上报 → 页面 setState → 新值又传回来
+  /// → [didUpdateWidget] 里 `jumpToItem` 三列 → **正在进行的惯性滚动被当场掐断**。
+  /// 表现就是"滚一格就停、怎么甩都很慢"。所以凡是与自己上报的值相同，
+  /// 一律当作回音忽略，只同步内部字段、绝不碰 controller。
+  int _lastEmittedSeconds = -1;
+
   @override
   void initState() {
     super.initState();
@@ -65,6 +75,12 @@ class _FocusDurationWheelState extends State<FocusDurationWheel> {
     if (widget.value == oldWidget.value) {
       return;
     }
+    // 这是刚刚从自己这里上报出去的值，绕了一圈回来了 —— 内部状态早就是
+    // 对的，再 jump 一次只会把用户正在甩的滚轮拽停。见 [_lastEmittedSeconds]。
+    if (widget.value.inSeconds == _lastEmittedSeconds) {
+      return;
+    }
+    // 真·外部改动（重置 / 换默认时长 / 休息段结束）：这时才归位。
     _adopt(widget.value);
     if (_hourController.hasClients) {
       _programmatic = true;
@@ -126,6 +142,9 @@ class _FocusDurationWheelState extends State<FocusDurationWheel> {
         curve: AppMotion.decelerate,
       ),
     ]);
+    if (!mounted) {
+      return;
+    }
     _programmatic = false;
     _emit();
   }
@@ -134,9 +153,11 @@ class _FocusDurationWheelState extends State<FocusDurationWheel> {
     if (_programmatic) {
       return;
     }
-    widget.onChanged(_current);
+    final value = _current;
+    _lastEmittedSeconds = value.inSeconds;
+    widget.onChanged(value);
     if (_hours >= _maxHours) {
-      _collapseTail();
+      unawaited(_collapseTail());
     }
   }
 
@@ -157,8 +178,9 @@ class _FocusDurationWheelState extends State<FocusDurationWheel> {
 
   @override
   Widget build(BuildContext context) {
+    // 4 格高（40×4）。比原来的 190 矮一截，是为了让整个准备态塞进一屏。
     return SizedBox(
-      height: 190,
+      height: AppConstants.focusWheelItemExtent * 4,
       child: Row(
         children: <Widget>[
           Expanded(
@@ -212,32 +234,39 @@ class _FocusDurationWheelState extends State<FocusDurationWheel> {
   }) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return ListWheelScrollView.useDelegate(
-      controller: controller,
-      itemExtent: AppConstants.wheelItemExtent,
-      diameterRatio: 1.4,
-      perspective: 0.005,
-      physics: const FixedExtentScrollPhysics(),
-      onSelectedItemChanged: (index) {
-        AppMotion.select();
-        onChanged(index);
+    return NotificationListener<ScrollEndNotification>(
+      onNotification: (notification) {
+        // 震动从"每过一格"挪到"停稳之后震一次"：连续滑动时每格都震会让
+        // 反馈连成一串、还把主线程的 haptic 排满，手感发涩。程序化归位不震。
+        if (notification.depth == 0 && !_programmatic) {
+          AppMotion.select();
+        }
+        return false;
       },
-      childDelegate: ListWheelChildBuilderDelegate(
-        builder: (context, index) {
-          final selected = index == current;
-          return Center(
-            child: Text(
-              (index * scale).toString().padLeft(2, '0'),
-              style: theme.textTheme.headlineSmall?.copyWith(
-                // 数字宽度固定，滚动时不会被 1 和 8 的宽度差带得左右晃。
-                fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
-                fontWeight: selected ? FontWeight.w800 : FontWeight.w400,
-                color: selected ? scheme.primary : scheme.onSurfaceVariant,
+      child: ListWheelScrollView.useDelegate(
+        controller: controller,
+        itemExtent: AppConstants.focusWheelItemExtent,
+        diameterRatio: 1.4,
+        perspective: 0.005,
+        physics: const FixedExtentScrollPhysics(),
+        onSelectedItemChanged: onChanged,
+        childDelegate: ListWheelChildBuilderDelegate(
+          builder: (context, index) {
+            final selected = index == current;
+            return Center(
+              child: Text(
+                (index * scale).toString().padLeft(2, '0'),
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  // 数字宽度固定，滚动时不会被 1 和 8 的宽度差带得左右晃。
+                  fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w400,
+                  color: selected ? scheme.primary : scheme.onSurfaceVariant,
+                ),
               ),
-            ),
-          );
-        },
-        childCount: count,
+            );
+          },
+          childCount: count,
+        ),
       ),
     );
   }

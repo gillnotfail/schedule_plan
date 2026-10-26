@@ -3,6 +3,50 @@
   "assetsBase": "https://gitee.com/jeo-xie/schedule_plan/releases/download",
   "releases": [
     {
+      "versionCode": 11,
+      "versionName": "1.0.10",
+      "tag": "v1.0.10",
+      "publishedAt": "2026-10-26T22:11:12+08:00",
+      "notes": [
+        "**专注模式的准备页现在一屏放得下了**，不用再上下滑：去掉了顶上那个和下面重复的圆环，常用场景排成一行、左右滑动查看，\"更强锁定\"的说明改成打开后才出现",
+        "**选时长终于滑得动了**：之前滚一格就被弹回去，怎么甩都只走一格、感觉很慢。原因是滚轮每动一下就把自己重新归位一次，把惯性打断了。顺带把格子调矮了一点，同样一甩能多划几格"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24286467,
+          "sha256": "dc6d089785ddb6d1c2eb0343cb724ee5bc25d978cd21d2154f18cb97ab32e1d3"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22269003,
+          "sha256": "d65d254803eb97f6cd9d7e0223d81e1e241afdc7fadf409df641a0b45869f879"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 10,
+          "abi": "arm64-v8a",
+          "file": "patch-10-11-arm64-v8a.spdp",
+          "size": 3782629,
+          "targetSize": 24286467,
+          "sha256": "40e62dc3fcc08a3fd6ca9787f147f86018d79fa1fdff9e325524812dfc9c269f",
+          "baseSha256": "52b53d9d403037af15b347e861032a15ade2a330d1f38f40c68c5b7b1b8dd483"
+        },
+        {
+          "fromVersionCode": 10,
+          "abi": "armeabi-v7a",
+          "file": "patch-10-11-armeabi-v7a.spdp",
+          "size": 3883584,
+          "targetSize": 22269003,
+          "sha256": "a4059a5932eff6c638bcb2da72dd977e99597d331e63248e8455c0674f5df05b",
+          "baseSha256": "b5aa85443e8ff16ac33746c7feacd027e5c89be5de709abc193985b6a3bf8d68"
+        }
+      ]
+    },
+    {
       "versionCode": 10,
       "versionName": "1.0.9",
       "tag": "v1.0.9",
@@ -483,7 +527,7 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-10-26T21:49:59+08:00",
+  "generatedAt": "2026-10-26T22:11:12+08:00",
   "assetsBases": [
     "https://gitee.com/jeo-xie/schedule_plan/releases/download",
     "https://github.com/gillnotfail/schedule_plan/releases/download"

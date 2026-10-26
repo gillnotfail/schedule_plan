@@ -4,7 +4,6 @@ import 'package:schedule_plan/core/constants/app_constants.dart';
 import 'package:schedule_plan/core/l10n/l10n_extensions.dart';
 import 'package:schedule_plan/core/widgets/app_card.dart';
 import 'package:schedule_plan/features/toolbox/focus/focus_clock.dart';
-import 'package:schedule_plan/features/toolbox/focus/focus_dial.dart';
 import 'package:schedule_plan/features/toolbox/focus/focus_duration_wheel.dart';
 import 'package:schedule_plan/features/toolbox/focus/focus_presets.dart';
 
@@ -52,23 +51,29 @@ class FocusSetupView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 用户规格：**准备态必须一页放得下，不要上下滑**。
+    //
+    // 为此砍掉了三样东西，都有明确的理由：
+    // - 顶部那个预览环（原来 170px）：它里面的数字和下面滚轮**完全重复**，
+    //   圆的视觉主场在专注态（那个环形倒计时），准备态不需要；
+    // - 预设胶囊从四行平铺改**单行横滑**（11 个全在，只是不再往下叠）；
+    // - 两个开关从上下两行并成**一排**。
+    // ListView 只留作极端小屏（内容真超了）的兜底，正常机型不会滚。
     return Column(
       children: <Widget>[
         Expanded(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(
               AppConstants.spaceL,
-              AppConstants.spaceS,
               AppConstants.spaceL,
               AppConstants.spaceL,
+              AppConstants.spaceM,
             ),
             children: <Widget>[
-              _preview(context),
-              const SizedBox(height: AppConstants.spaceL),
               _nameCard(context),
-              const SizedBox(height: AppConstants.spaceM),
+              const SizedBox(height: AppConstants.spaceS),
               _durationCard(context),
-              const SizedBox(height: AppConstants.spaceM),
+              const SizedBox(height: AppConstants.spaceS),
               _optionsCard(context),
             ],
           ),
@@ -79,56 +84,6 @@ class FocusSetupView extends StatelessWidget {
   }
 
   // ---------------------------------------------------------------------------
-  // 预览：一整圈 = 你要坐的这段时间
-  // ---------------------------------------------------------------------------
-
-  Widget _preview(BuildContext context) {
-    final theme = Theme.of(context);
-    final name = _displayName(context);
-    return Center(
-      child: FocusRing(
-        progress: 1,
-        diameter: 170,
-        strokeWidth: 12,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Text(
-              formatFocusDuration(total),
-              style: focusDigitTextStyle(context, fontSize: 30),
-            ),
-            if (name.isNotEmpty) ...<Widget>[
-              const SizedBox(height: AppConstants.spaceXs),
-              SizedBox(
-                width: 120,
-                child: Text(
-                  name,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 名字当前该怎么显示：预设 id 走本地化，自己写的原样显示。
-  String _displayName(BuildContext context) {
-    final current = label;
-    if (current == null || current.isEmpty) {
-      final selected = category;
-      return selected == null ? '' : focusCategoryLabel(context, selected);
-    }
-    return focusPresetLabel(context, current) ?? current;
-  }
-
-  // ---------------------------------------------------------------------------
   // 命名
   // ---------------------------------------------------------------------------
 
@@ -136,6 +91,12 @@ class FocusSetupView extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     return AppCard(
+      padding: const EdgeInsets.fromLTRB(
+        AppConstants.spaceL,
+        AppConstants.spaceM,
+        AppConstants.spaceL,
+        AppConstants.spaceM,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -157,7 +118,7 @@ class FocusSetupView extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppConstants.spaceM),
+          const SizedBox(height: AppConstants.spaceS),
           Wrap(
             spacing: AppConstants.spaceS,
             runSpacing: AppConstants.spaceS,
@@ -171,24 +132,23 @@ class FocusSetupView extends StatelessWidget {
                     ))
                 .toList(),
           ),
-          const SizedBox(height: AppConstants.spaceM),
-          Divider(
-            height: 1,
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.6),
+          const SizedBox(height: AppConstants.spaceS),
+          // 预设**单行横滑**，不换行。原来 11 个胶囊平铺要占四行、两百多像素，
+          // 是"备注占满整页"的主因；横滑之后只占一行，全部预设仍然都在。
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Wrap(
+              spacing: AppConstants.spaceS,
+              children: _visiblePresets()
+                  .map((preset) => _PresetChip(
+                        label: focusPresetLabel(context, preset.id) ?? preset.id,
+                        selected: preset.id == label,
+                        onTap: () => _pickPreset(context, preset),
+                      ))
+                  .toList(),
+            ),
           ),
-          const SizedBox(height: AppConstants.spaceM),
-          Wrap(
-            spacing: AppConstants.spaceS,
-            runSpacing: AppConstants.spaceS,
-            children: _visiblePresets()
-                .map((preset) => _PresetChip(
-                      label: focusPresetLabel(context, preset.id) ?? preset.id,
-                      selected: preset.id == label,
-                      onTap: () => _pickPreset(context, preset),
-                    ))
-                .toList(),
-          ),
-          const SizedBox(height: AppConstants.spaceM),
+          const SizedBox(height: AppConstants.spaceS),
           TextField(
             controller: labelController,
             textInputAction: TextInputAction.done,
@@ -198,6 +158,10 @@ class FocusSetupView extends StatelessWidget {
               prefixIcon: const Icon(Icons.edit_outlined, size: 20),
               counterText: '',
               isDense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.spaceM,
+                vertical: AppConstants.spaceM,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadii.tile),
               ),
@@ -238,6 +202,12 @@ class FocusSetupView extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     return AppCard(
+      padding: const EdgeInsets.fromLTRB(
+        AppConstants.spaceL,
+        AppConstants.spaceM,
+        AppConstants.spaceL,
+        AppConstants.spaceM,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -270,28 +240,56 @@ class FocusSetupView extends StatelessWidget {
   // 选项
   // ---------------------------------------------------------------------------
 
+  /// 两个开关**并成一排**：原来是上下两行、下面那行还带一句解释，
+  /// 单这两行就吃掉一百多像素。「更强锁定」的说明改成开启后才出现 ——
+  /// 没开的时候解释也用不上，开了才需要知道手机变成了什么样。
   Widget _optionsCard(BuildContext context) {
     final l10n = context.l10n;
+    final theme = Theme.of(context);
     return AppCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppConstants.spaceM,
-        vertical: AppConstants.spaceS,
+      padding: const EdgeInsets.fromLTRB(
+        AppConstants.spaceM,
+        AppConstants.spaceXs,
+        AppConstants.spaceXs,
+        AppConstants.spaceXs,
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          _OptionRow(
-            icon: Icons.volume_up_outlined,
-            title: l10n.focusSoundToggle,
-            value: soundEnabled,
-            onChanged: onSoundChanged,
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: _OptionTile(
+                  icon: Icons.volume_up_outlined,
+                  title: l10n.focusSoundToggle,
+                  value: soundEnabled,
+                  onChanged: onSoundChanged,
+                ),
+              ),
+              Expanded(
+                child: _OptionTile(
+                  icon: Icons.lock_outline,
+                  title: l10n.focusStrongLockToggle,
+                  value: strongLockEnabled,
+                  onChanged: onStrongLockChanged,
+                ),
+              ),
+            ],
           ),
-          _OptionRow(
-            icon: Icons.lock_outline,
-            title: l10n.focusStrongLockToggle,
-            subtitle: l10n.focusStrongLockDesc,
-            value: strongLockEnabled,
-            onChanged: onStrongLockChanged,
-          ),
+          if (strongLockEnabled)
+            Padding(
+              padding: const EdgeInsets.only(
+                left: AppConstants.spaceXs,
+                right: AppConstants.spaceM,
+                bottom: AppConstants.spaceXs,
+              ),
+              child: Text(
+                l10n.focusStrongLockDesc,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -455,66 +453,42 @@ class _ChipShell extends StatelessWidget {
   }
 }
 
-/// 一行开关（图标 + 标题 + 可选副标题 + Switch）。
-class _OptionRow extends StatelessWidget {
-  const _OptionRow({
+/// 一个紧凑开关：图标 + 标题 + Switch，横排只占一行。
+///
+/// 这是从上下两行的 [_OptionRow]（已删）压下来的 —— 准备态要一屏装下，
+/// 每个开关省下的 50 多像素都是必要的。
+class _OptionTile extends StatelessWidget {
+  const _OptionTile({
     required this.icon,
     required this.title,
     required this.value,
     required this.onChanged,
-    this.subtitle,
   });
 
   final IconData icon;
   final String title;
-  final String? subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppConstants.spaceS),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Icon(
-              icon,
-              size: 20,
-              color: theme.colorScheme.onSurfaceVariant,
+    return Row(
+      children: <Widget>[
+        Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
+        const SizedBox(width: AppConstants.spaceXs),
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(width: AppConstants.spaceM),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                if (subtitle != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      subtitle!,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(width: AppConstants.spaceS),
-          Switch(value: value, onChanged: onChanged),
-        ],
-      ),
+        ),
+        Switch(value: value, onChanged: onChanged),
+      ],
     );
   }
 }
