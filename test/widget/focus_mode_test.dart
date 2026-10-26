@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -11,7 +12,9 @@ import 'package:schedule_plan/data/repositories/settings_repository.dart';
 import 'package:schedule_plan/data/settings_state.dart';
 import 'package:schedule_plan/features/toolbox/focus/focus_done_view.dart';
 import 'package:schedule_plan/features/toolbox/focus/focus_exit_sheet.dart';
+import 'package:schedule_plan/features/toolbox/focus/focus_lock_service.dart';
 import 'package:schedule_plan/features/toolbox/focus/focus_presets.dart';
+import 'package:schedule_plan/features/toolbox/focus/focus_running_view.dart';
 import 'package:schedule_plan/features/toolbox/focus/focus_setup_view.dart';
 import 'package:schedule_plan/features/toolbox/focus_timer_page.dart';
 import 'package:schedule_plan/l10n/generated/app_localizations.dart';
@@ -339,6 +342,98 @@ void main() {
     expect(
       find.text('开始后屏幕会一直亮着并锁住，直到本次结束或你主动退出'),
       findsOneWidget,
+    );
+  });
+
+  /// 这条钉的是一个**真把用户关在 App 里**的 bug（第 28 轮）：
+  /// 完成专注后回到主页，整个 App 退不出去 —— 屏幕固定没被解除。
+  ///
+  /// 根因不在"忘了释放"，而在"以为没锁上所以不用释放"：首次进入
+  /// 「屏幕固定」系统会弹确认框，`startLockTask()` 之后立刻读到的状态
+  /// 仍是未锁定，于是 `enterLockTask` 报 `pending`；用户随后点了确认，
+  /// 系统真的锁上了。到点释放时又按"我记得没锁"跳过 `stopLockTask()`，
+  /// 就成了死局。
+  ///
+  /// 所以这里的断言是：**哪怕进入时只拿到"待确认"，放手时也必须去解。**
+  testWidgets('屏幕固定报「待确认」时，暂停也必须解除锁定', (tester) async {
+    final calls = <String>[];
+    const channel = MethodChannel(FocusLockService.channelName);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      calls.add(call.method);
+      switch (call.method) {
+        case 'enterLockTask':
+          // 2 = 请求已发出、系统正在等用户确认（用户随后点了确认）
+          return 2;
+        case 'lockTaskState':
+          return 0;
+        case 'exitLockTask':
+          return true;
+        default:
+          return null;
+      }
+    });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    useTallWindow(tester);
+    final db = await _openMemoryDb();
+    addTearDown(db.close);
+    final settings = SettingsRepository(database: db);
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          Provider<SettingsRepository>.value(value: settings),
+          Provider<ScheduleEventRepository>.value(
+            value: ScheduleEventRepository(database: db),
+          ),
+          ChangeNotifierProvider<SettingsState>.value(
+            value: SettingsState(settings),
+          ),
+        ],
+        child: wrap(const FocusTimerPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // 打开「更强锁定」，否则不会走屏幕固定那条路
+    await tester.tap(find.byType(Switch).at(1));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('开始专注'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    expect(
+      find.byType(FocusRunningView),
+      findsOneWidget,
+      reason: '点了开始应当进入专注态',
+    );
+    expect(calls, contains('enterLockTask'));
+
+    // 轻触整屏 = 暂停。暂停必须放手（暂停时还锁着等于不让人喝水），
+    // 而且**不能因为"我记成没锁上"就跳过**。
+    await tester.tapAt(tester.getCenter(find.byType(FocusRunningView)));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(
+      calls.where((method) => method == 'exitLockTask'),
+      isNotEmpty,
+      reason: '释放必须无条件调用 —— 否则用户会被系统钉在 App 里出不去',
+    );
+
+    // 退出页面（成果页点「完成」、或者从专注页返回）也必须再释放一次。
+    // 用户报的场景正是"完成之后回到 App 页面"仍被锁着，而那条路走的是 dispose。
+    final beforeLeave = calls.where((m) => m == 'exitLockTask').length;
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+    expect(
+      calls.where((method) => method == 'exitLockTask').length,
+      greaterThan(beforeLeave),
+      reason: '页面销毁时也要把屏幕固定还回去',
     );
   });
 }

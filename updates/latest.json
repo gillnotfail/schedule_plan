@@ -3,6 +3,50 @@
   "assetsBase": "https://gitee.com/jeo-xie/schedule_plan/releases/download",
   "releases": [
     {
+      "versionCode": 12,
+      "versionName": "1.0.11",
+      "tag": "v1.0.11",
+      "publishedAt": "2026-10-26T22:31:28+08:00",
+      "notes": [
+        "**修掉一个会把 App 锁死的严重问题**：开着「更强锁定」做完一次专注、回到 App 里之后，返回键和滑动手势都会失灵，整个应用退不出去（只能长按返回 + 最近任务才能脱身）。原因是系统第一次固定应用时会问一句「要固定此应用吗」，问的那一瞬间 App 以为没锁上，之后就一直没去解锁。现在不管锁没锁成功，暂停、结束、退出、离开页面都会照样解一次",
+        "顺手把解锁这条路做结实了：以前要按顺序等三件事做完才轮到解锁，中间任何一步卡住，解锁就永远排不上队。现在三件事各走各的，谁也不等谁"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24286467,
+          "sha256": "d29810f7d4d5e517153b1ffb5bdad44f10d16251050e37f8a89ae78bfff6718c"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22269003,
+          "sha256": "d803c5dfdd6c841483a50c5228ee055942111f5d8e365ad72a7ec7354279a280"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 11,
+          "abi": "arm64-v8a",
+          "file": "patch-11-12-arm64-v8a.spdp",
+          "size": 4680584,
+          "targetSize": 24286467,
+          "sha256": "14dbf033148ddefda5e7300ba6b22ba02d44014a3e5ab5bcf5b4f6dd4b9f6a2f",
+          "baseSha256": "dc6d089785ddb6d1c2eb0343cb724ee5bc25d978cd21d2154f18cb97ab32e1d3"
+        },
+        {
+          "fromVersionCode": 11,
+          "abi": "armeabi-v7a",
+          "file": "patch-11-12-armeabi-v7a.spdp",
+          "size": 5045370,
+          "targetSize": 22269003,
+          "sha256": "242677ec26d6fccd83b26e83b53b3f061028c423fa6d530552ef0bce2d7dba1f",
+          "baseSha256": "d65d254803eb97f6cd9d7e0223d81e1e241afdc7fadf409df641a0b45869f879"
+        }
+      ]
+    },
+    {
       "versionCode": 11,
       "versionName": "1.0.10",
       "tag": "v1.0.10",
@@ -527,7 +571,7 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-10-26T22:11:12+08:00",
+  "generatedAt": "2026-10-26T22:31:28+08:00",
   "assetsBases": [
     "https://gitee.com/jeo-xie/schedule_plan/releases/download",
     "https://github.com/gillnotfail/schedule_plan/releases/download"

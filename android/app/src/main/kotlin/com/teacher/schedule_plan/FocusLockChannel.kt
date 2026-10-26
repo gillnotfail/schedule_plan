@@ -53,17 +53,15 @@ class FocusLockChannel(
             // 0 = 未进入，1 = 屏幕固定，2 = 设备所有者锁定。
             "lockTaskState" -> result.success(currentLockTaskState())
 
-            // 尝试进入屏幕固定。返回的是**调用之后立刻读到的真实状态**，
-            // 而不是"我调了所以应该成功了"。
-            "enterLockTask" -> {
-                enterLockTask()
-                result.success(currentLockTaskState() != LOCK_TASK_MODE_NONE)
-            }
+            // 尝试进入屏幕固定。返回三态（见下面 ENTER_* 常量）：
+            // 0 = 拿不到，1 = 已锁定，2 = 请求已发出、但系统还在等用户确认。
+            // **不能只回 true/false** —— 首次进入「屏幕固定」系统会弹确认框，
+            // 那一刻状态仍是 NONE，回 false 会让 Dart 侧记成"没锁上"，
+            // 结果到点释放时被跳过，App 就被系统钉死退不出去了。
+            "enterLockTask" -> result.success(enterLockTask())
 
-            "exitLockTask" -> {
-                exitLockTask()
-                result.success(null)
-            }
+            // 返回**是否确认已解除**。Dart 侧拿 false 会再补一次调用。
+            "exitLockTask" -> result.success(exitLockTask())
 
             "playCue" -> {
                 playCue(call.arguments as? String ?: "")
@@ -103,31 +101,70 @@ class FocusLockChannel(
         }
     }
 
-    private fun enterLockTask() {
-        if (currentLockTaskState() != LOCK_TASK_MODE_NONE) {
-            return
+    /**
+     * 进入屏幕固定，返回 [ENTER_LOCKED] / [ENTER_PENDING] / [ENTER_UNSUPPORTED]。
+     *
+     * 区分 PENDING 是这套代码的关键：`startLockTask()` 正常返回不代表已经锁上。
+     * 用户第一次用「屏幕固定」时，系统会弹一个"要固定此应用吗"的确认框，
+     * 点确认之前 `lockTaskModeState` 还是 NONE。如果把这种"待确认"当成失败，
+     * 用户随后点了确认就真的锁上了，而 App 以为自己没锁 → 结束时不释放 →
+     * **整个 App 被系统钉住，退不出去**。
+     */
+    private fun enterLockTask(): Int {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { doEnterLockTask() }
+            return ENTER_PENDING
         }
-        activity.runOnUiThread {
-            try {
-                // 没开「屏幕固定」时这个方法不会抛异常，只是不生效 ——
-                // 所以返回给 Dart 的是"调完再读一次"的结果，不是 true。
-                activity.startLockTask()
-            } catch (error: Throwable) {
-                // 部分 ROM 会直接抛 IllegalStateException，吞掉当作"不支持"。
+        return doEnterLockTask()
+    }
+
+    private fun doEnterLockTask(): Int {
+        if (currentLockTaskState() != LOCK_TASK_MODE_NONE) {
+            return ENTER_LOCKED
+        }
+        return try {
+            activity.startLockTask()
+            if (currentLockTaskState() != LOCK_TASK_MODE_NONE) {
+                ENTER_LOCKED
+            } else {
+                // 没抛异常也没进锁定态：要么系统正在等用户确认，要么这台 ROM
+                // 把「屏幕固定」阉割了（不少国产 ROM 如此）。两者都算"请求过"，
+                // 释放时必须照样去 stop 一次，否则就是上面说的死局。
+                ENTER_PENDING
             }
+        } catch (error: Throwable) {
+            ENTER_UNSUPPORTED
         }
     }
 
-    private fun exitLockTask() {
-        if (currentLockTaskState() == LOCK_TASK_MODE_NONE) {
-            return
+    /**
+     * 退出屏幕固定，返回**是否确认已解除**。
+     *
+     * 这里刻意**不看前置状态再决定要不要停** —— 之前的写法是"读到 NONE 就
+     * 直接 return"，可一旦读状态本身失败（部分 ROM 会），就再也不会去 stop，
+     * 而屏幕上确实还钉着。宁可多调一次 `stopLockTask()`（不在锁定态时它会
+     * 抛 IllegalStateException，吞掉即可），也不能漏掉。
+     */
+    private fun exitLockTask(): Boolean {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { doExitLockTask() }
+            return true
         }
-        activity.runOnUiThread {
-            try {
-                activity.stopLockTask()
-            } catch (error: Throwable) {
-                // 已经不在锁定态时 stop 会抛，忽略。
-            }
+        doExitLockTask()
+        if (currentLockTaskState() == LOCK_TASK_MODE_NONE) {
+            return true
+        }
+        // stopLockTask 不是秒生效的：等一小会儿再看，还在锁定就再停一次。
+        // 这是"退不出去"的最后一道保险。
+        mainHandler.postDelayed({ doExitLockTask() }, EXIT_RETRY_DELAY_MS)
+        return false
+    }
+
+    private fun doExitLockTask() {
+        try {
+            activity.stopLockTask()
+        } catch (error: Throwable) {
+            // 当前并不在锁定态时 stop 会抛 IllegalStateException，属于正常情况。
         }
     }
 
@@ -160,11 +197,20 @@ class FocusLockChannel(
         }
     }
 
-    /** 页面退出时释放，避免 ToneGenerator 一直占着音频通道。 */
+    /**
+     * Activity 销毁时释放：提示音通道 + **残留的屏幕固定**。
+     *
+     * 后一件事是兜底：正常路径下专注页退出会主动释放，但只要有一环没走到
+     * （Flutter 侧异常、后台被杀前那一刻），用户下次打开就是个钉死的 App。
+     * 这里再补一刀，成本接近零。
+     */
     fun dispose() {
         mainHandler.post {
             toneGenerator?.release()
             toneGenerator = null
+        }
+        if (currentLockTaskState() != LOCK_TASK_MODE_NONE) {
+            doExitLockTask()
         }
     }
 
@@ -173,5 +219,13 @@ class FocusLockChannel(
 
         /** 对应 `ActivityManager.LOCK_TASK_MODE_NONE`。 */
         private const val LOCK_TASK_MODE_NONE = 0
+
+        /** [enterLockTask] 三态：拿不到 / 已锁定 / 请求已发出待确认。 */
+        private const val ENTER_UNSUPPORTED = 0
+        private const val ENTER_LOCKED = 1
+        private const val ENTER_PENDING = 2
+
+        /** stopLockTask 不是秒生效，隔一小会儿再确认一次。 */
+        private const val EXIT_RETRY_DELAY_MS = 300L
     }
 }

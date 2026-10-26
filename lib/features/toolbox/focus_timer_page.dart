@@ -59,9 +59,6 @@ class _FocusTimerPageState extends State<FocusTimerPage>
   bool _soundEnabled = true;
   bool _strongLockEnabled = false;
 
-  /// 当前是否真的处在系统锁定态（屏幕固定成功过）。
-  bool _screenLocked = false;
-
   String _praise = '';
   _FocusStats _stats = const _FocusStats(
     todayTotal: Duration.zero,
@@ -116,33 +113,66 @@ class _FocusTimerPageState extends State<FocusTimerPage>
   // 锁 / 解锁
   // ---------------------------------------------------------------------------
 
+  /// 切换系统栏模式。**故意包一层**：外部一律 `unawaited` 调用它，
+  /// 免得某个环境上这条通道不返回时，把整个锁定 / 释放链拖住。
+  Future<void> _setSystemUiMode(SystemUiMode mode) async {
+    try {
+      await SystemChrome.setEnabledSystemUIMode(mode);
+    } catch (error, stack) {
+      AppLogger.e('切换系统 UI 模式失败', error: error, stack: stack);
+    }
+  }
+
   /// 锁屏分两档（细节见 [FocusLockService]）：
   /// - 基础档：沉浸全屏 + 屏幕常亮 + 拦返回，**任何手机都能用**；
   /// - 增强档：额外尝试系统「屏幕固定」，**先做后验**，没成功就如实告知。
   Future<void> _applyLock({required bool lock}) async {
-    if (lock) {
-      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-      await _lock.setKeepScreenOn(true);
-      if (!_strongLockEnabled) {
-        return;
-      }
-      final entered = await _lock.enterLockTask();
-      _screenLocked = entered;
-      if (!entered && mounted) {
-        // 不假装锁上了：说清楚为什么没锁成，用户才知道该去系统设置里开什么。
-        showAppSnackBar(context, context.l10n.focusStrongLockUnavailable);
-      }
+    if (!lock) {
+      await _releaseLock();
       return;
     }
-    await _releaseLock();
+    // 这两步都**不等**：它们和"能不能锁住"没有依赖关系，等它们只会在
+    // 通道异常时把下面的 enterLockTask 一起拖死。
+    unawaited(_setSystemUiMode(SystemUiMode.immersiveSticky));
+    unawaited(_lock.setKeepScreenOn(true));
+    if (!_strongLockEnabled) {
+      return;
+    }
+    final status = await _lock.enterLockTask();
+    // 只有"明确拿不到"才提示。pending（系统弹了确认框、或在等用户动手）
+    // 不弹 —— 系统自己的弹窗已经在解释了，再叠一条只会挡视线。
+    if (status == FocusLockStatus.unsupported && mounted) {
+      // 不假装锁上了：说清楚为什么没锁成，用户才知道该去系统设置里开什么。
+      showAppSnackBar(context, context.l10n.focusStrongLockUnavailable);
+    }
   }
 
+  /// 释放锁。**这里是"退不出去"的唯一出口，必须做到无条件、幂等、互不牵连。**
+  ///
+  /// 踩过的坑（第 28 轮，用户报"完成专注后 App 退不出去"）：
+  /// 原来这里写的是 `if (_screenLocked) { ... exitLockTask(); }`，靠"我记不记得
+  /// 自己锁过"来决定要不要释放。可是首次进入「屏幕固定」时系统会弹确认框，
+  /// `startLockTask()` 之后立刻读到的状态仍是"未锁定"，于是 Dart 侧记成 false；
+  /// 用户一点确认就真锁上了 —— 而释放时因为记的是 false，直接跳过了
+  /// `stopLockTask()`，整个 App 被系统钉死。
+  ///
+  /// 所以现在的规矩是：**释放不问理由，一律去释放**。原生侧本来就有幂等保护
+  /// （不在锁定态时 stop 会抛异常并被吞掉），多调一次的成本远小于一个锁死的 App。
+  ///
+  /// 另外三件事**谁都不等谁**：之前是顺序 await，任何一步不返回（widget 测试里
+  /// `SystemChrome` 那条通道就永远不返回）或抛异常，排在后面的 `exitLockTask`
+  /// 就永远执行不到 —— 同样是把用户关在 App 里。
   Future<void> _releaseLock() async {
-    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    await _lock.setKeepScreenOn(false);
-    if (_screenLocked) {
-      _screenLocked = false;
-      await _lock.exitLockTask();
+    unawaited(_setSystemUiMode(SystemUiMode.edgeToEdge));
+    unawaited(_lock.setKeepScreenOn(false));
+    var released = await _lock.exitLockTask();
+    if (!released) {
+      // 部分 ROM 的 stopLockTask 不是立刻生效，隔一会儿再补一刀。
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      released = await _lock.exitLockTask();
+      if (!released) {
+        AppLogger.w('专注结束后屏幕固定仍未解除，可能被 ROM 拦下了');
+      }
     }
   }
 

@@ -12,7 +12,7 @@
 - 只做 Android APK；iOS 只留默认模板，不验证。**暂不加鸿蒙（ohos）代码**。
 
 ## 质量门槛与工具链（提交前必跑）
-- `flutter analyze --no-pub` 零 issue（**含 test/**）；`flutter test` 全绿（当前 +486）。
+- `flutter analyze --no-pub` 零 issue（**含 test/**）；`flutter test` 全绿（当前 +487）。
 - **跑前设 `NO_PROXY=localhost,127.0.0.1,::1`**，否则代理劫持 flutter_tester 的 WebSocket。
 - 找文件用 Glob、找内容用 Grep；Bash 里 managed Python/Node 走绝对路径（`ls`/`grep`/`tail` 实测可用）。
 - **flutter 一律走 `C:\Users\jeo\AppData\Local\Temp\wb_run_flutter.py`**（直调 `flutter.BAT`，绕开 PowerShell 管道）：
@@ -140,12 +140,12 @@
   「教学参数 / 权限 / 数据维护」三块整体搬进 `features/settings/system_settings_page.dart`，页内顺序 =
   未记录日期的默认状态 → 调休(3) → 通知权限(4) → 时间列级联更新 → 清空数据(2)。
   **「拍照生成课表」与「统计设置」不允许再回设置页**（前者与课表页重复，后者在工具箱「教学成果」标题右侧齿轮）。
-- **专注模式只有专注态锁屏**，暂停与休息一律不锁；`isBreak` 必须进快照（否则恢复时会把休息当专注锁上）。
-  **计时必须墙钟口径**（"每次 tick 减 1 秒"会让 25 分钟 5 分钟就跑完）；`started_at` = **开始**时刻；
-  统计**只算 `completed`**；**休息段不写 `focus_session`**；`label` 落库存**稳定 id**、显示时查 l10n。
-  增强档「屏幕固定」**先做后验**，失败如实提示，**绝不假装锁上**（普通 App 做不到绝对锁定）。
-  **准备态必须一屏装下、不许纵向滚动**（用户规格）：不设预览环（与滚轮数字重复）、预设单行横滑、
-  两个开关并一排、增强档说明只在开启时出现。`test/widget/focus_mode_test.dart` 用 411×850 断言
-  `maxScrollExtent == 0`。**滚轮绝不能把「自己刚上报的值」当外部改动去 `jumpToItem`** —— 那是
-  「滚一格被拽停、怎么甩都很慢」的根因（`_lastEmittedSeconds` 拦回音）；触觉反馈也要在
-  `ScrollEndNotification` 才发一次，**禁止 `onSelectedItemChanged` 里每格 `AppMotion.select()`**。
+- **专注模式只有专注态锁屏**，暂停与休息一律不锁；`isBreak` 必须进快照（否则恢复时把休息当专注锁上）。
+  **计时必须墙钟口径**（"每次 tick 减 1 秒"会让 25 分钟 5 分钟跑完）；`started_at` = **开始**时刻；
+  统计**只算 `completed`**；**休息段不写 `focus_session`**；`label` 落库**稳定 id**、显示时查 l10n。
+  增强档「屏幕固定」**先做后验**、失败如实提示，**绝不假装锁上**。
+  **释放锁定必须无条件**：首进「屏幕固定」会弹确认框，那刻读到的仍是未锁定，靠"我记得锁过"判断
+  就会漏掉 `stopLockTask()`，用户被钉在 App 里（第 28 轮真事故）。释放三件事**谁也不等谁**，
+  任何一步卡住都不能拖住最后一步。
+  **准备态一屏装下**（411×850 断言 `maxScrollExtent == 0`）；**时长滚轮禁止把「自己刚上报的值」
+  当外部改动 `jumpToItem`**（「滚一格被拽停」的根因）。这两处细则见 `MEMORY-DETAIL.md`。

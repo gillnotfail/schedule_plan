@@ -429,6 +429,30 @@
   放行时把这次"未完成"也记下来（`completed = 0`），半分钟以内的不算。
 - 成果卡的鼓励语**在完成那一刻选好再当参数传进去**，不要在 `build` 里随机 ——
   那样每次重画都会跳一句，看着像出了 bug。
+
+### 锁定与释放（第 28 轮真事故：完成专注后 App 退不出去）
+
+- **释放必须无条件，不能用"我记得锁过"来决定。** 首次进入「屏幕固定」时系统会弹
+  "要固定此应用吗"的确认框；`startLockTask()` 之后**立刻**读 `lockTaskModeState` 仍是
+  `NONE`，于是 `enterLockTask` 报失败、页面记成"没锁上"。用户随后点了确认 —— 系统真的
+  锁上了；到点释放时 `if (_screenLocked)` 直接跳过 `stopLockTask()`，**整个 App 被钉死**，
+  连桌面都回不去。现在的口径：`enterLockTask` 回三态（`unsupported` / `locked` /
+  `pending`），而 `_releaseLock()` **一律**调 `exitLockTask()`（原生侧幂等：不在锁定态
+  时 `stopLockTask` 会抛 `IllegalStateException`，吞掉即可）。多调一次的成本远小于一个锁死的 App。
+- **释放的三件事谁也不等谁**：`SystemChrome.setEnabledSystemUIMode`、`setKeepScreenOn(false)`、
+  `exitLockTask` 原来是顺序 `await`。任何一步不返回，排在后面的 `stopLockTask()` 就永远
+  执行不到 —— 同样是死局。现在前两个 `unawaited`，只 `await` 最后那个。
+- **`SystemChrome.setEnabledSystemUIMode` 在 widget test 里不会完成**（实测
+  `chromeDone = false`，那条 `flutter/platform` 调用只被记录、不回包）。所以想在测试里
+  驱动锁定链路，必须绕开它 —— 本项目就是把这两步设成 `unawaited`，顺带让测试可跑。
+- **原生 `exitLockTask()` 返回"是否确认已解除"**：`stopLockTask()` 之后若读到的仍是锁定，
+  就 `postDelayed(300ms)` 再 stop 一次；Dart 侧拿到 `false` 也会隔 300ms 再调一次。
+  双保险，因为这一环失败的代价是把用户关在 App 里。
+- **Activity 销毁时兜底**：`FocusLockChannel.dispose()` 若发现还锁着，直接 `stopLockTask()`。
+  正常路径由专注页 `dispose()` 负责，这一刀只防"Flutter 侧没走到"。
+- 回归测试：`test/widget/focus_mode_test.dart` 的「屏幕固定报「待确认」时，暂停也必须解除锁定」
+  —— mock 通道让 `enterLockTask` 回 `2`（pending），断言暂停后 `exitLockTask` 被调用，
+  并断言页面销毁时**再调一次**。以后改锁定逻辑，这条错了就是又把人关起来了。
 - 离开页面（`dispose`）必须把常亮、沉浸模式、屏幕固定**全部还回去**；忘了关的后果是
   "退出专注后手机再也不息屏"，用户会以为是手机坏了。
 
