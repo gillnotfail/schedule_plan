@@ -105,7 +105,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectClass => 'Select class';
 
   @override
-  String get emptyScheduleHint => 'No lessons this week. Tap + to add one.';
+  String get emptyScheduleHint =>
+      'No lessons this week. Tap any empty slot to add one';
 
   @override
   String get addLesson => 'Add lesson';
@@ -141,7 +142,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Pick class, then course, then weekday and period to schedule it';
 
   @override
-  String get swapModeHint => 'Swap mode: drag a block onto another to swap';
+  String get swapModeHint =>
+      'Swap mode: drag one block onto another to swap them';
 
   @override
   String get swapForbidden => 'Cannot swap across classes or templates';
@@ -394,9 +396,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get riskRanking => 'High-risk ranking';
 
   @override
-  String get emotionCard => 'Encouragement';
-
-  @override
   String get exportExcel => 'Export Excel';
 
   @override
@@ -409,22 +408,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attendanceRateLabel => 'Attendance rate';
 
   @override
-  String get emotionExcellent => 'This class is doing amazingly well!';
+  String get emotionExcellent => 'Good attendance — almost no absentees';
 
   @override
-  String get emotionGood => 'Solid attendance, keep it up!';
+  String get emotionGood => 'Attendance is fine — a few people were out';
 
   @override
-  String get emotionNormal => 'Every step forward counts.';
+  String get emotionNormal => 'Attendance is so-so — a few students miss often';
 
   @override
-  String get emotionEncourage => 'New week, new chances to shine.';
+  String get emotionEncourage =>
+      'Attendance is low — worth checking the absent list';
 
   @override
   String get todoTitle => 'To-do';
 
   @override
-  String get todoSmart => 'Smart';
+  String get todoSmart => 'Auto';
 
   @override
   String get todoGeneral => 'Personal';
@@ -917,7 +917,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insightAttention => 'Needs attention';
 
   @override
-  String get insightNoAttention => 'All good, keep it up';
+  String get insightNoAttention => 'No issues';
 
   @override
   String get insightAttendanceRate => 'Attendance rate';
@@ -1144,7 +1144,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get toolStatisticsDesc => 'Attendance trends and ranking';
 
   @override
-  String get toolTodoDesc => 'Smart todos and general lists';
+  String get toolTodoDesc =>
+      'Todos created from attendance, plus your own lists';
 
   @override
   String get toolFocusDesc =>
@@ -1229,7 +1230,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cellNoCourseBody =>
-      'Create a course in course management first, then tap this slot again and swipe to place it.';
+      'Create a course in course management first, then tap this slot to pick one';
 
   @override
   String get cellNeedsClassBody =>
@@ -1245,8 +1246,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pickCourseTitle => 'Pick a course for this slot';
 
   @override
-  String get pickCourseHint =>
-      'Scroll to browse, tap to pick, then place it here';
+  String get pickCourseHint => 'Scroll to find a course, tap to pick it';
 
   @override
   String get placeHere => 'Place here';
@@ -1342,7 +1342,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get classDetailStudentsDesc =>
-      'Tap a student to edit; use the icon to delete';
+      'Tap a student to edit, tap the icon to delete';
 
   @override
   String get classDetailNoStudents => 'No students yet - tap + to add';
@@ -1512,9 +1512,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get copyAction => 'Copy';
-
-  @override
-  String get summaryNoAbnormal => 'All present, nothing abnormal';
 
   @override
   String get courseFilterLabel => 'Filter by course';
@@ -2353,12 +2350,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get focusExitAlmostThere =>
-      'You\'re nearly there — sure you want to stop?';
+  String get focusExitAlmostThere => 'Almost there';
 
   @override
   String get focusExitEncourage =>
-      'Fragmented time can\'t take this from you. Hold on and this stretch is whole.';
+      'The phone can wait a few minutes. Finish this stretch';
 
   @override
   String get focusExitKeepGoing => 'Keep going';
@@ -2379,13 +2375,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Fragmented time can\'t take this from you.';
 
   @override
-  String get focusPraiseSteady => 'Holding this steady beats everything.';
+  String get focusPraiseSteady => 'That was a steady one';
 
   @override
-  String get focusPraiseComeback => 'Every return is a fresh start.';
+  String get focusPraiseComeback => 'Back again — keep going';
 
   @override
-  String get focusPraiseTime => 'You gave this time back to yourself.';
+  String get focusPraiseTime => 'That time wasn\'t wasted';
 
   @override
   String get focusStatThisSession => 'This session';
@@ -2419,4 +2415,37 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get focusBreakDone =>
       'Break\'s over — start the next stretch whenever you like';
+
+  @override
+  String attendanceSummaryDate(
+    String month,
+    String day,
+    String weekday,
+    String time,
+  ) {
+    return '$month/$day ($weekday) $time';
+  }
+
+  @override
+  String attendanceSummaryHeader(
+    String date,
+    String course,
+    int expected,
+    int actual,
+  ) {
+    return '$date, $course, expected: $expected, actual: $actual';
+  }
+
+  @override
+  String get attendanceSummaryAbnormal => 'abnormal: ';
+
+  @override
+  String attendanceSummaryStatusCount(String status, int count) {
+    return '$status: $count';
+  }
+
+  @override
+  String attendanceSummaryClassGroup(String className, String names) {
+    return '$className: $names';
+  }
 }

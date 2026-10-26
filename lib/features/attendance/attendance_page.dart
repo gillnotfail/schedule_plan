@@ -31,6 +31,7 @@ import 'package:schedule_plan/data/repositories/student_repository.dart';
 import 'package:schedule_plan/data/services/holiday_service.dart';
 import 'package:schedule_plan/data/settings_state.dart';
 import 'package:schedule_plan/features/attendance/attendance_status_strip.dart';
+import 'package:schedule_plan/features/attendance/attendance_summary.dart';
 import 'package:schedule_plan/features/attendance/calendar_marks.dart';
 import 'package:schedule_plan/features/attendance/class_group_band.dart';
 import 'package:schedule_plan/features/attendance/day_attendance_ring.dart';
@@ -712,21 +713,19 @@ class _AttendancePageState extends State<AttendancePage> {
     if (lesson == null) {
       return;
     }
-    final summary = _abnormalSummary();
+    final summary = _buildSummary();
     if (!mounted) {
       return;
     }
-    // 用户规格：复制的是**特殊情况**（迟到/早退/缺勤/请假 + 休学/免修），
-    // 默认就是出勤的学生不占篇幅；且要弹个对话框让老师先看清复制了什么。
+    // 用户规格：要弹个对话框让老师先看清**具体复制了什么**，再点「复制」。
+    // 摘要永远带头部（时间 / 课程 / 应到 / 实到），没有异常时复制的就是头部本身。
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => _SummaryDialog(
         title: l10n.copySummary,
         summary: summary,
-        emptyText: l10n.summaryNoAbnormal,
         onCopy: () async {
-          final text = summary.isEmpty ? l10n.summaryNoAbnormal : summary;
-          await Clipboard.setData(ClipboardData(text: text));
+          await Clipboard.setData(ClipboardData(text: summary));
           if (dialogContext.mounted) {
             Navigator.of(dialogContext).pop();
           }
@@ -738,37 +737,82 @@ class _AttendancePageState extends State<AttendancePage> {
     );
   }
 
-  /// 组装「异常考勤」摘要：只列非出勤，格式 `迟到：班级 姓名、…`，某状态没有就省略。
+  /// 组装「复制出勤摘要」的完整文本（第 26 轮用户规格）：
   ///
-  /// 用户规格："大部分情况需要的肯定是特殊情况，比方说迟到、早退这种，
-  /// 而不是登记出勤情况，因为默认就是出勤。"
-  String _abnormalSummary() {
+  /// ```
+  /// 10月26日（周一）08:00-08:45，数学，应到：45人。实到：42人，异常出勤：
+  /// 迟到：2人，高一1班：张三、李四；请假：1人，高一1班：王五
+  /// ```
+  ///
+  /// - **应到** = 名单总人数**剔除休学**（休学期间不来上课；免修的仍会来，照常计入）；
+  /// - **实到** = 点了「出勤」的人数（未标记的学生按默认状态算，与名单行显示一致）；
+  /// - 异常段按「状态 → 班级」两级分组，**班级名只出现一次**
+  ///   （修掉旧版每个学生名前面都缀一遍班级名的重复）；
+  /// - 休学学生不计应到，但在异常段里报出来（老师交接 / 报送用得上）；
+  /// - 没有异常学生时不带「异常出勤」尾巴，只复制头部。
+  String _buildSummary() {
+    final l10n = context.l10n;
     final settings = context.read<SettingsState>();
-    final grouped = <AttendanceStatus, List<String>>{};
+    final lesson = _selectedLesson;
+    if (lesson == null) {
+      return '';
+    }
+    var expected = 0;
+    var actual = 0;
+    final abnormal = <AttendanceSummaryEntry>[];
     for (final student in _students) {
       // 与名单行同一口径：休学显示为「休学」；免修不覆盖当天表现，
       // 迟到早退照常进摘要（免修本身不算异常）。
       final status = _effectiveStatus(student, settings);
-      if (status == AttendanceStatus.present ||
-          status == AttendanceStatus.unmarked) {
+      final className = _classNames[student.classId] ?? '';
+      if (status == AttendanceStatus.suspended) {
+        abnormal.add(
+          AttendanceSummaryEntry(
+            status: status,
+            className: className,
+            studentName: student.name,
+          ),
+        );
         continue;
       }
-      final cls = _classNames[student.classId] ?? '';
-      final label = cls.isEmpty ? student.name : '$cls ${student.name}';
-      grouped.putIfAbsent(status, () => <String>[]).add(label);
-    }
-    if (grouped.isEmpty) {
-      return '';
-    }
-    final buffer = StringBuffer();
-    for (final status in AttendanceStatus.choices) {
-      final list = grouped[status] ?? const <String>[];
-      if (list.isEmpty) {
+      expected++;
+      if (status == AttendanceStatus.present) {
+        actual++;
         continue;
       }
-      buffer.writeln('${_statusLabel(status)}：${list.join('、')}');
+      if (status == AttendanceStatus.unmarked ||
+          status == AttendanceStatus.exempt) {
+        continue;
+      }
+      abnormal.add(
+        AttendanceSummaryEntry(
+          status: status,
+          className: className,
+          studentName: student.name,
+        ),
+      );
     }
-    return buffer.toString().trimRight();
+    final dateText = l10n.attendanceSummaryDate(
+      _selectedDate.month.toString(),
+      _selectedDate.day.toString(),
+      l10n.weekdayShort(_selectedDate.weekday),
+      lesson.timeRangeText,
+    );
+    final header = l10n.attendanceSummaryHeader(
+      dateText,
+      lesson.courseName,
+      expected,
+      actual,
+    );
+    return AttendanceSummaryBuilder(
+      header: header,
+      abnormalPrefix: l10n.attendanceSummaryAbnormal,
+      statusCount: (status, count) =>
+          l10n.attendanceSummaryStatusCount(_statusLabel(status), count),
+      classGroup: (className, names) => className.isEmpty
+          ? names.join('、')
+          : l10n.attendanceSummaryClassGroup(className, names.join('、')),
+    ).build(abnormal);
   }
 
   Future<void> _openRollCall() async {
@@ -1524,38 +1568,33 @@ class _StatusLegend extends StatelessWidget {
 /// 复制考勤摘要的对话框：先让老师看清**具体复制了什么**，再点「复制」。
 ///
 /// 用户规格："现在是复制好了，没有对话框，最好有个对话框，告知具体的复制内容。"
-/// 内容是最简化的一行一状态（`迟到：班级 姓名、…`），没异常时给一句全员出勤。
+/// 摘要永远带头部（时间 / 课程 / 应到 / 实到），异常段按「状态 → 班级」分组。
 class _SummaryDialog extends StatelessWidget {
   const _SummaryDialog({
     required this.title,
     required this.summary,
-    required this.emptyText,
     required this.onCopy,
   });
 
   final String title;
   final String summary;
-  final String emptyText;
   final VoidCallback onCopy;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final isEmpty = summary.isEmpty;
     return AlertDialog(
       title: Text(title),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 320),
-        child: isEmpty
-            ? Text(emptyText, style: Theme.of(context).textTheme.bodyMedium)
-            : SingleChildScrollView(
-                child: SelectableText(
-                  summary,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(height: 1.5),
-                ),
-              ),
+        child: SingleChildScrollView(
+          child: SelectableText(
+            summary,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(height: 1.5),
+          ),
+        ),
       ),
       actions: <Widget>[
         TextButton(

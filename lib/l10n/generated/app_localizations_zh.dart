@@ -105,7 +105,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get selectClass => '选择班级';
 
   @override
-  String get emptyScheduleHint => '本周还没有排课，点击右下角 + 新增一节';
+  String get emptyScheduleHint => '本周还没排课，点任意一格就能排';
 
   @override
   String get addLesson => '新增课表';
@@ -138,7 +138,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get quickAddLessonHint => '按 班级 → 课程 → 周几/节次 三步把课排进课表';
 
   @override
-  String get swapModeHint => '交换模式：拖拽一个格子到另一个格子上即可互换';
+  String get swapModeHint => '交换模式：把一个格子拖到另一个格子上，两格互换';
 
   @override
   String get swapForbidden => '跨班级或跨模板不支持直接交换';
@@ -388,9 +388,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get riskRanking => '高风险学生排名';
 
   @override
-  String get emotionCard => '情绪价值卡片';
-
-  @override
   String get exportExcel => '导出 Excel';
 
   @override
@@ -403,22 +400,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attendanceRateLabel => '出勤率';
 
   @override
-  String get emotionExcellent => '这个班级的孩子们真给力！';
+  String get emotionExcellent => '到得很齐，基本没人缺勤';
 
   @override
-  String get emotionGood => '出勤稳稳的，继续保持！';
+  String get emotionGood => '出勤正常，个别人请假';
 
   @override
-  String get emotionNormal => '每一点进步都值得被看见。';
+  String get emotionNormal => '出勤一般，有几个人常缺';
 
   @override
-  String get emotionEncourage => '新的一周，新的闪光点。';
+  String get emotionEncourage => '出勤偏低，可以看看缺勤名单';
 
   @override
   String get todoTitle => '待办';
 
   @override
-  String get todoSmart => '智能待办';
+  String get todoSmart => '自动待办';
 
   @override
   String get todoGeneral => '通用清单';
@@ -796,7 +793,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get todayLabel => '今天';
 
   @override
-  String get quickGenerateTitle => '一键生成作息';
+  String get quickGenerateTitle => '批量生成作息';
 
   @override
   String get quickGenerateDesc => '按开始时间、每节时长、课间间隔与节数批量生成';
@@ -859,7 +856,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get defaultTemplateHint => '新建班级默认使用该作息';
 
   @override
-  String get clearSchedule => '一键清空课表';
+  String get clearSchedule => '清空课表';
 
   @override
   String get clearScheduleConfirm => '将清除当前作息模板下所有班级的课表内容，作息时间保留，且不可撤销。';
@@ -904,7 +901,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insightAttention => '需关注';
 
   @override
-  String get insightNoAttention => '暂无异常，继续保持';
+  String get insightNoAttention => '没有异常';
 
   @override
   String get insightAttendanceRate => '本周出勤率';
@@ -957,7 +954,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courseManagement => '课程管理';
 
   @override
-  String get courseManagementDesc => '新增课程、维护教室与上课班级（课表页点空格子即可排进这一格）';
+  String get courseManagementDesc => '新增课程、维护教室与上课班级（课表页点空格子就能排课）';
 
   @override
   String get statisticsSettings => '统计设置';
@@ -1123,10 +1120,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get toolStatisticsDesc => '出勤率趋势与排名';
 
   @override
-  String get toolTodoDesc => '智能待办与通用清单';
+  String get toolTodoDesc => '考勤自动生成的待办与手动清单';
 
   @override
-  String get toolFocusDesc => '锁屏专注计时,坐满给成果卡';
+  String get toolFocusDesc => '锁屏专注计时，坐满给成果卡';
 
   @override
   String get toolCalendarDesc => '日程与课前提醒';
@@ -1205,7 +1202,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cellNoCourseTitle => '这一格还没有课程';
 
   @override
-  String get cellNoCourseBody => '先在课程管理里建好课程，回来点这一格就能左右滑动挑选并排进课表。';
+  String get cellNoCourseBody => '先在课程管理里建好课程，再回来点这一格挑一门排进去。';
 
   @override
   String get cellNeedsClassBody => '还没有班级，先建一个班级并导入学生名单，才能往格子里排课。';
@@ -1220,7 +1217,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pickCourseTitle => '选一门课放进这一格';
 
   @override
-  String get pickCourseHint => '上下滑动浏览，点一下选中，再放进这一格';
+  String get pickCourseHint => '上下滑动挑一门，点它就选中';
 
   @override
   String get placeHere => '放进这一格';
@@ -1312,7 +1309,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get classDetailStudents => '本班学生';
 
   @override
-  String get classDetailStudentsDesc => '点学生即可修改，右侧图标可删除';
+  String get classDetailStudentsDesc => '点学生就能改，右边的图标能删';
 
   @override
   String get classDetailNoStudents => '这个班还没有学生，点右下角添加';
@@ -1475,9 +1472,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get copyAction => '复制';
-
-  @override
-  String get summaryNoAbnormal => '全员出勤，无异常';
 
   @override
   String get courseFilterLabel => '按课程筛选';
@@ -2276,10 +2270,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get focusExitAlmostThere => '就差最后一点点了，真的舍得吗？';
+  String get focusExitAlmostThere => '就剩一点了';
 
   @override
-  String get focusExitEncourage => '碎片化夺不走你的生活。再撑一下，这一段就完整了。';
+  String get focusExitEncourage => '手机不差这几分钟，这一段先留给自己。';
 
   @override
   String get focusExitKeepGoing => '继续专注';
@@ -2299,13 +2293,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get focusPraiseFragments => '碎片化夺不走你的生活。';
 
   @override
-  String get focusPraiseSteady => '稳住这一段，比什么都强。';
+  String get focusPraiseSteady => '这一段很稳。';
 
   @override
-  String get focusPraiseComeback => '每一次坐回来，都是一次重新开始。';
+  String get focusPraiseComeback => '回来了，就接着走。';
 
   @override
-  String get focusPraiseTime => '你把这段时间，还给了自己。';
+  String get focusPraiseTime => '这段时间没白花。';
 
   @override
   String get focusStatThisSession => '本次';
@@ -2338,4 +2332,37 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get focusBreakDone => '休息结束，随时可以开始下一段';
+
+  @override
+  String attendanceSummaryDate(
+    String month,
+    String day,
+    String weekday,
+    String time,
+  ) {
+    return '$month月$day日（$weekday）$time';
+  }
+
+  @override
+  String attendanceSummaryHeader(
+    String date,
+    String course,
+    int expected,
+    int actual,
+  ) {
+    return '$date，$course，应到：$expected人。实到：$actual人';
+  }
+
+  @override
+  String get attendanceSummaryAbnormal => '异常出勤：';
+
+  @override
+  String attendanceSummaryStatusCount(String status, int count) {
+    return '$status：$count人';
+  }
+
+  @override
+  String attendanceSummaryClassGroup(String className, String names) {
+    return '$className：$names';
+  }
 }

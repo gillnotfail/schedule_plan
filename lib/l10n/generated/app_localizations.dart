@@ -293,7 +293,7 @@ abstract class AppLocalizations {
   /// No description provided for @emptyScheduleHint.
   ///
   /// In en, this message translates to:
-  /// **'No lessons this week. Tap + to add one.'**
+  /// **'No lessons this week. Tap any empty slot to add one'**
   String get emptyScheduleHint;
 
   /// No description provided for @addLesson.
@@ -359,7 +359,7 @@ abstract class AppLocalizations {
   /// No description provided for @swapModeHint.
   ///
   /// In en, this message translates to:
-  /// **'Swap mode: drag a block onto another to swap'**
+  /// **'Swap mode: drag one block onto another to swap them'**
   String get swapModeHint;
 
   /// No description provided for @swapForbidden.
@@ -836,12 +836,6 @@ abstract class AppLocalizations {
   /// **'High-risk ranking'**
   String get riskRanking;
 
-  /// No description provided for @emotionCard.
-  ///
-  /// In en, this message translates to:
-  /// **'Encouragement'**
-  String get emotionCard;
-
   /// No description provided for @exportExcel.
   ///
   /// In en, this message translates to:
@@ -869,25 +863,25 @@ abstract class AppLocalizations {
   /// No description provided for @emotionExcellent.
   ///
   /// In en, this message translates to:
-  /// **'This class is doing amazingly well!'**
+  /// **'Good attendance — almost no absentees'**
   String get emotionExcellent;
 
   /// No description provided for @emotionGood.
   ///
   /// In en, this message translates to:
-  /// **'Solid attendance, keep it up!'**
+  /// **'Attendance is fine — a few people were out'**
   String get emotionGood;
 
   /// No description provided for @emotionNormal.
   ///
   /// In en, this message translates to:
-  /// **'Every step forward counts.'**
+  /// **'Attendance is so-so — a few students miss often'**
   String get emotionNormal;
 
   /// No description provided for @emotionEncourage.
   ///
   /// In en, this message translates to:
-  /// **'New week, new chances to shine.'**
+  /// **'Attendance is low — worth checking the absent list'**
   String get emotionEncourage;
 
   /// No description provided for @todoTitle.
@@ -899,7 +893,7 @@ abstract class AppLocalizations {
   /// No description provided for @todoSmart.
   ///
   /// In en, this message translates to:
-  /// **'Smart'**
+  /// **'Auto'**
   String get todoSmart;
 
   /// No description provided for @todoGeneral.
@@ -1823,7 +1817,7 @@ abstract class AppLocalizations {
   /// No description provided for @insightNoAttention.
   ///
   /// In en, this message translates to:
-  /// **'All good, keep it up'**
+  /// **'No issues'**
   String get insightNoAttention;
 
   /// No description provided for @insightAttendanceRate.
@@ -2231,7 +2225,7 @@ abstract class AppLocalizations {
   /// No description provided for @toolTodoDesc.
   ///
   /// In en, this message translates to:
-  /// **'Smart todos and general lists'**
+  /// **'Todos created from attendance, plus your own lists'**
   String get toolTodoDesc;
 
   /// No description provided for @toolFocusDesc.
@@ -2381,7 +2375,7 @@ abstract class AppLocalizations {
   /// No description provided for @cellNoCourseBody.
   ///
   /// In en, this message translates to:
-  /// **'Create a course in course management first, then tap this slot again and swipe to place it.'**
+  /// **'Create a course in course management first, then tap this slot to pick one'**
   String get cellNoCourseBody;
 
   /// No description provided for @cellNeedsClassBody.
@@ -2411,7 +2405,7 @@ abstract class AppLocalizations {
   /// No description provided for @pickCourseHint.
   ///
   /// In en, this message translates to:
-  /// **'Scroll to browse, tap to pick, then place it here'**
+  /// **'Scroll to find a course, tap to pick it'**
   String get pickCourseHint;
 
   /// No description provided for @placeHere.
@@ -2579,7 +2573,7 @@ abstract class AppLocalizations {
   /// No description provided for @classDetailStudentsDesc.
   ///
   /// In en, this message translates to:
-  /// **'Tap a student to edit; use the icon to delete'**
+  /// **'Tap a student to edit, tap the icon to delete'**
   String get classDetailStudentsDesc;
 
   /// No description provided for @classDetailNoStudents.
@@ -2869,12 +2863,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copy'**
   String get copyAction;
-
-  /// No description provided for @summaryNoAbnormal.
-  ///
-  /// In en, this message translates to:
-  /// **'All present, nothing abnormal'**
-  String get summaryNoAbnormal;
 
   /// No description provided for @courseFilterLabel.
   ///
@@ -4289,13 +4277,13 @@ abstract class AppLocalizations {
   /// No description provided for @focusExitAlmostThere.
   ///
   /// In en, this message translates to:
-  /// **'You\'re nearly there — sure you want to stop?'**
+  /// **'Almost there'**
   String get focusExitAlmostThere;
 
   /// No description provided for @focusExitEncourage.
   ///
   /// In en, this message translates to:
-  /// **'Fragmented time can\'t take this from you. Hold on and this stretch is whole.'**
+  /// **'The phone can wait a few minutes. Finish this stretch'**
   String get focusExitEncourage;
 
   /// No description provided for @focusExitKeepGoing.
@@ -4331,19 +4319,19 @@ abstract class AppLocalizations {
   /// No description provided for @focusPraiseSteady.
   ///
   /// In en, this message translates to:
-  /// **'Holding this steady beats everything.'**
+  /// **'That was a steady one'**
   String get focusPraiseSteady;
 
   /// No description provided for @focusPraiseComeback.
   ///
   /// In en, this message translates to:
-  /// **'Every return is a fresh start.'**
+  /// **'Back again — keep going'**
   String get focusPraiseComeback;
 
   /// No description provided for @focusPraiseTime.
   ///
   /// In en, this message translates to:
-  /// **'You gave this time back to yourself.'**
+  /// **'That time wasn\'t wasted'**
   String get focusPraiseTime;
 
   /// No description provided for @focusStatThisSession.
@@ -4405,6 +4393,46 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Break\'s over — start the next stretch whenever you like'**
   String get focusBreakDone;
+
+  /// No description provided for @attendanceSummaryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'{month}/{day} ({weekday}) {time}'**
+  String attendanceSummaryDate(
+    String month,
+    String day,
+    String weekday,
+    String time,
+  );
+
+  /// No description provided for @attendanceSummaryHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}, {course}, expected: {expected}, actual: {actual}'**
+  String attendanceSummaryHeader(
+    String date,
+    String course,
+    int expected,
+    int actual,
+  );
+
+  /// No description provided for @attendanceSummaryAbnormal.
+  ///
+  /// In en, this message translates to:
+  /// **'abnormal: '**
+  String get attendanceSummaryAbnormal;
+
+  /// No description provided for @attendanceSummaryStatusCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{status}: {count}'**
+  String attendanceSummaryStatusCount(String status, int count);
+
+  /// No description provided for @attendanceSummaryClassGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'{className}: {names}'**
+  String attendanceSummaryClassGroup(String className, String names);
 }
 
 class _AppLocalizationsDelegate

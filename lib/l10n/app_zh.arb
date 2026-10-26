@@ -32,7 +32,7 @@
   "scheduleAggregateView": "时间轴",
   "scheduleClassView": "班级网格",
   "selectClass": "选择班级",
-  "emptyScheduleHint": "本周还没有排课，点击右下角 + 新增一节",
+  "emptyScheduleHint": "本周还没排课，点任意一格就能排",
   "addLesson": "新增课表",
   "editLesson": "编辑课表",
   "deleteLesson": "删除课表",
@@ -43,7 +43,7 @@
   "slotOccupied": "该班级本节的课表格子已被占用",
   "noTemplatePeriod": "该班级绑定的作息模板中没有对应的节次",
   "quickAddLessonHint": "按 班级 → 课程 → 周几/节次 三步把课排进课表",
-  "swapModeHint": "交换模式：拖拽一个格子到另一个格子上即可互换",
+  "swapModeHint": "交换模式：把一个格子拖到另一个格子上，两格互换",
   "swapForbidden": "跨班级或跨模板不支持直接交换",
   "swapDone": "课表格子已交换",
   "editLessonTime": "修改时间",
@@ -158,17 +158,16 @@
   "courseRateChart": "课程出勤率",
   "abnormalList": "异常出勤明细",
   "riskRanking": "高风险学生排名",
-  "emotionCard": "情绪价值卡片",
   "exportExcel": "导出 Excel",
   "exportSuccess": "Excel 已生成",
   "filterByStatus": "按状态筛选",
   "attendanceRateLabel": "出勤率",
-  "emotionExcellent": "这个班级的孩子们真给力！",
-  "emotionGood": "出勤稳稳的，继续保持！",
-  "emotionNormal": "每一点进步都值得被看见。",
-  "emotionEncourage": "新的一周，新的闪光点。",
+  "emotionExcellent": "到得很齐，基本没人缺勤",
+  "emotionGood": "出勤正常，个别人请假",
+  "emotionNormal": "出勤一般，有几个人常缺",
+  "emotionEncourage": "出勤偏低，可以看看缺勤名单",
   "todoTitle": "待办",
-  "todoSmart": "智能待办",
+  "todoSmart": "自动待办",
   "todoGeneral": "通用清单",
   "todoAdd": "新增待办",
   "todoTitleRequired": "待办标题不能为空",
@@ -360,7 +359,7 @@
   "gridPeriodHeader": "节次",
   "gridTimeHeader": "时间",
   "todayLabel": "今天",
-  "quickGenerateTitle": "一键生成作息",
+  "quickGenerateTitle": "批量生成作息",
   "quickGenerateDesc": "按开始时间、每节时长、课间间隔与节数批量生成",
   "generateStartTime": "开始时间",
   "generateLessonMinutes": "每节课时长（分钟）",
@@ -406,7 +405,7 @@
   },
   "defaultTemplateEdit": "默认作息修改",
   "defaultTemplateHint": "新建班级默认使用该作息",
-  "clearSchedule": "一键清空课表",
+  "clearSchedule": "清空课表",
   "clearScheduleConfirm": "将清除当前作息模板下所有班级的课表内容，作息时间保留，且不可撤销。",
   "clearScheduleDone": "课表已清空",
   "importPhotoSchedule": "拍照导入课表",
@@ -421,7 +420,7 @@
   "insightDoneLessons": "已上课时",
   "insightLeftLessons": "剩余课时",
   "insightAttention": "需关注",
-  "insightNoAttention": "暂无异常，继续保持",
+  "insightNoAttention": "没有异常",
   "insightAttendanceRate": "本周出勤率",
   "insightCheer": "本周已完成 {done} 节课，辛苦了",
   "@insightCheer": {
@@ -473,7 +472,7 @@
   "classManagement": "班级管理",
   "classManagementDesc": "导入名单后自动生成班级与人数",
   "courseManagement": "课程管理",
-  "courseManagementDesc": "新增课程、维护教室与上课班级（课表页点空格子即可排进这一格）",
+  "courseManagementDesc": "新增课程、维护教室与上课班级（课表页点空格子就能排课）",
   "statisticsSettings": "统计设置",
   "statisticsSettingsDesc": "高风险判定与出勤预警线",
   "studentGender": "性别",
@@ -550,8 +549,8 @@
   "statsColumnNo": "学号",
   "statsColumnStatus": "考勤",
   "toolStatisticsDesc": "出勤率趋势与排名",
-  "toolTodoDesc": "智能待办与通用清单",
-  "toolFocusDesc": "锁屏专注计时,坐满给成果卡",
+  "toolTodoDesc": "考勤自动生成的待办与手动清单",
+  "toolFocusDesc": "锁屏专注计时，坐满给成果卡",
   "toolCalendarDesc": "日程与课前提醒",
   "importReasonMissingClass": "缺少班级",
   "noStudentNo": "未填学号",
@@ -602,12 +601,12 @@
   "importFileUnreadable": "这份表格读不出来。请确认是未加密的 .xlsx 文件，或用 Excel/WPS 打开后另存为 .xlsx 再试。",
   "scheduleNoClassHint": "还没有班级，当前显示默认作息",
   "cellNoCourseTitle": "这一格还没有课程",
-  "cellNoCourseBody": "先在课程管理里建好课程，回来点这一格就能左右滑动挑选并排进课表。",
+  "cellNoCourseBody": "先在课程管理里建好课程，再回来点这一格挑一门排进去。",
   "cellNeedsClassBody": "还没有班级，先建一个班级并导入学生名单，才能往格子里排课。",
   "goAddCourse": "去添加课程",
   "goCreateClass": "去建班级",
   "pickCourseTitle": "选一门课放进这一格",
-  "pickCourseHint": "上下滑动浏览，点一下选中，再放进这一格",
+  "pickCourseHint": "上下滑动挑一门，点它就选中",
   "placeHere": "放进这一格",
   "noCourseYet": "还没有课程",
   "lessonDetailTitle": "课程信息",
@@ -663,7 +662,7 @@
   "classStatFemale": "女生",
   "classStatUnset": "未填性别",
   "classDetailStudents": "本班学生",
-  "classDetailStudentsDesc": "点学生即可修改，右侧图标可删除",
+  "classDetailStudentsDesc": "点学生就能改，右边的图标能删",
   "classDetailNoStudents": "这个班还没有学生，点右下角添加",
   "classDetailCourses": "这个班的课程",
   "classDetailCoursesDesc": "维护课程名称、教室与上课班级",
@@ -793,7 +792,6 @@
   "shareCaptureFailed": "截图失败，请重试",
   "shareQrPlaceholder": "二维码位",
   "copyAction": "复制",
-  "summaryNoAbnormal": "全员出勤，无异常",
   "courseFilterLabel": "按课程筛选",
   "eventRecurrence": "重复周期",
   "eventRecurrenceOnce": "单次",
@@ -1332,16 +1330,16 @@
   "focusExitTitle": "要结束这次专注吗？",
   "focusExitElapsed": "你已经坚持了 {duration}",
   "focusExitRemaining": "距离目标只差 {duration}",
-  "focusExitAlmostThere": "就差最后一点点了，真的舍得吗？",
-  "focusExitEncourage": "碎片化夺不走你的生活。再撑一下，这一段就完整了。",
+  "focusExitAlmostThere": "就剩一点了",
+  "focusExitEncourage": "手机不差这几分钟，这一段先留给自己。",
   "focusExitKeepGoing": "继续专注",
   "focusExitConfirm": "结束本次",
   "focusAbandonedHint": "本次专注 {duration}，已记下来",
   "focusDoneHeadline": "你做到了",
   "focusPraiseFragments": "碎片化夺不走你的生活。",
-  "focusPraiseSteady": "稳住这一段，比什么都强。",
-  "focusPraiseComeback": "每一次坐回来，都是一次重新开始。",
-  "focusPraiseTime": "你把这段时间，还给了自己。",
+  "focusPraiseSteady": "这一段很稳。",
+  "focusPraiseComeback": "回来了，就接着走。",
+  "focusPraiseTime": "这段时间没白花。",
   "focusStatThisSession": "本次",
   "focusStatToday": "今日累计",
   "focusStatStreak": "连续专注",
@@ -1379,5 +1377,62 @@
       }
     }
   },
-  "focusBreakDone": "休息结束，随时可以开始下一段"
+  "focusBreakDone": "休息结束，随时可以开始下一段",
+  "attendanceSummaryDate": "{month}月{day}日（{weekday}）{time}",
+  "attendanceSummaryHeader": "{date}，{course}，应到：{expected}人。实到：{actual}人",
+  "attendanceSummaryAbnormal": "异常出勤：",
+  "attendanceSummaryStatusCount": "{status}：{count}人",
+  "attendanceSummaryClassGroup": "{className}：{names}",
+  "@attendanceSummaryDate": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "weekday": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@attendanceSummaryHeader": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "course": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "int"
+      },
+      "actual": {
+        "type": "int"
+      }
+    }
+  },
+  "@attendanceSummaryStatusCount": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@attendanceSummaryClassGroup": {
+    "placeholders": {
+      "className": {
+        "type": "String"
+      },
+      "names": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -62,7 +62,8 @@ NEW_KEYS = {
     "shareQrPlaceholder": {"zh": "二维码位", "en": "QR code"},
     # ---- 第 9 轮：考勤异常摘要 / 统计按课程 / 工具箱两页 / 日程重复周期 ----
     "copyAction": {"zh": "复制", "en": "Copy"},
-    "summaryNoAbnormal": {"zh": "全员出勤，无异常", "en": "All present, nothing abnormal"},
+    # "summaryNoAbnormal" 已删（第 26 轮 DROP_KEYS）：出勤摘要改为永远有头部，
+    # "全员出勤"没有独占的展示位了。
     "courseFilterLabel": {"zh": "按课程筛选", "en": "Filter by course"},
     "eventRecurrence": {"zh": "重复周期", "en": "Repeats"},
     "eventRecurrenceOnce": {"zh": "单次", "en": "Once"},
@@ -651,6 +652,26 @@ NEW_KEYS = {
     "focusAgain": {"zh": "再来一次", "en": "Go again"},
     "focusFinishAction": {"zh": "完成", "en": "Done"},
     "focusStatEmpty": {"zh": "—", "en": "—"},
+    # ---- 第 26 轮：复制出勤摘要改版（头部应到/实到 + 班级去重） ----
+    # 日期走星期简称（周一…周日复用 mon..sun），time 是这节课的起止时间。
+    "attendanceSummaryDate": {
+        "zh": "{month}月{day}日（{weekday}）{time}",
+        "en": "{month}/{day} ({weekday}) {time}",
+    },
+    # 头部一段拼完；应到/实到的口径注释见 attendance_page._buildSummary。
+    "attendanceSummaryHeader": {
+        "zh": "{date}，{course}，应到：{expected}人。实到：{actual}人",
+        "en": "{date}, {course}, expected: {expected}, actual: {actual}",
+    },
+    "attendanceSummaryAbnormal": {"zh": "异常出勤：", "en": "abnormal: "},
+    "attendanceSummaryStatusCount": {
+        "zh": "{status}：{count}人",
+        "en": "{status}: {count}",
+    },
+    "attendanceSummaryClassGroup": {
+        "zh": "{className}：{names}",
+        "en": "{className}: {names}",
+    },
 }
 
 # 需要改口径的旧键（用户规格变了，文案必须跟着走，否则和界面行为对不上）
@@ -691,9 +712,74 @@ UPDATE_KEYS = {
     # 第 23 轮:工具箱那张卡片不再是"番茄钟"了 —— 现在会真锁屏、
     # 会记名字、完成之后给成果卡,副标题得跟上。
     "toolFocusDesc": {
-        "zh": "锁屏专注计时,坐满给成果卡",
+        "zh": "锁屏专注计时，坐满给成果卡",
         "en": "Focus timer that locks the screen — with a reward at the end",
     },
+    # ---- 第 26 轮：全局去 AI 味（用户规格：标签、按钮、提示都太「AI」了） ----
+    # 原则：说人话、说事实，不用感叹号、不写空泛的鼓励，也不用「一键 / 智能 / 即可」这类词。
+    # 统计页那张卡按出勤率给一句话，改成**陈述实情**而不是喊口号。
+    "emotionExcellent": {
+        "zh": "到得很齐，基本没人缺勤",
+        "en": "Good attendance — almost no absentees",
+    },
+    "emotionGood": {
+        "zh": "出勤正常，个别人请假",
+        "en": "Attendance is fine — a few people were out",
+    },
+    "emotionNormal": {
+        "zh": "出勤一般，有几个人常缺",
+        "en": "Attendance is so-so — a few students miss often",
+    },
+    "emotionEncourage": {
+        "zh": "出勤偏低，可以看看缺勤名单",
+        "en": "Attendance is low — worth checking the absent list",
+    },
+    # 「智能」是 AI 味最重的词，这个 Tab 其实就是「考勤联动自动生成」。
+    "todoSmart": {"zh": "自动待办", "en": "Auto"},
+    "toolTodoDesc": {
+        "zh": "考勤自动生成的待办与手动清单",
+        "en": "Todos created from attendance, plus your own lists",
+    },
+    "insightNoAttention": {"zh": "没有异常", "en": "No issues"},
+    # 「一键」是营销词，老师做的事是"批量生成"和"清空"。
+    "quickGenerateTitle": {"zh": "批量生成作息", "en": "Generate periods"},
+    "clearSchedule": {"zh": "清空课表", "en": "Clear schedule"},
+    # 课表页早就没有 FAB 了（第 7 轮删的），点空格子才是真实入口；
+    # 旧提示还在让人"点右下角 +"，属于指错路。
+    "emptyScheduleHint": {
+        "zh": "本周还没排课，点任意一格就能排",
+        "en": "No lessons this week. Tap any empty slot to add one",
+    },
+    # 点格子早就改成对话框了（不再"左右滑动挑选"），文案得跟上真实交互。
+    "cellNoCourseBody": {
+        "zh": "先在课程管理里建好课程，再回来点这一格挑一门排进去。",
+        "en": "Create a course in course management first, then tap this slot to pick one",
+    },
+    "pickCourseHint": {
+        "zh": "上下滑动挑一门，点它就选中",
+        "en": "Scroll to find a course, tap to pick it",
+    },
+    "classDetailStudentsDesc": {
+        "zh": "点学生就能改，右边的图标能删",
+        "en": "Tap a student to edit, tap the icon to delete",
+    },
+    "courseManagementDesc": {
+        "zh": "新增课程、维护教室与上课班级（课表页点空格子就能排课）",
+        "en": "Add courses, edit rooms and classes (tap an empty slot in the schedule to place one)",
+    },
+    "swapModeHint": {
+        "zh": "交换模式：把一个格子拖到另一个格子上，两格互换",
+        "en": "Swap mode: drag one block onto another to swap them",
+    },
+    # 专注模式的几句话原来写得太"用力"（反问、排比、文艺断句），改成平常口气。
+    "focusExitAlmostThere": {"zh": "就剩一点了", "en": "Almost there"},
+    "focusExitEncourage": {
+        "zh": "手机不差这几分钟，这一段先留给自己。",
+        "en": "The phone can wait a few minutes. Finish this stretch",
+    },
+    "focusPraiseSteady": {"zh": "这一段很稳。", "en": "That was a steady one"},
+    "focusPraiseComeback": {"zh": "回来了，就接着走。", "en": "Back again — keep going"},
+    "focusPraiseTime": {"zh": "这段时间没白花。", "en": "That time wasn't wasted"},
 }
 
 # 本轮不需要的键（避免留下没人用的文案）。默认状态就是"出勤"，
@@ -729,7 +815,12 @@ DROP_KEYS = ["attendanceMarkAllPresent", "attendanceStatusHint",
              # 小图标按钮的产物；新版是"准备态 → 专注态 → 成果态"的流程，
              # 按钮文案换成了 focusStartAction / focusTakeBreak 这些更明确的说法，
              # 下面三条全库已无引用。
-             "focusStart", "focusReset", "focusBreak"]
+             # 第 26 轮：出勤摘要改为"永远有头部（时间/课程/应到/实到）"，
+             # 没有异常时复制的就是头部本身，"全员出勤"这句没有独占的展示位了。
+             # 同一轮："情绪价值卡片"这个标题键全库已无引用（统计页那张卡只显示
+             # emotionExcellent 等四句本身），删掉免得留个没人用的营销词。
+             "focusStart", "focusReset", "focusBreak",
+             "summaryNoAbnormal", "emotionCard"]
 
 PLACEHOLDERS = {
     "gridMakeupHint": {
@@ -858,6 +949,27 @@ PLACEHOLDERS = {
     "focusExitRemaining": {"placeholders": {"duration": {"type": "String"}}},
     "focusAbandonedHint": {"placeholders": {"duration": {"type": "String"}}},
     "focusStreakDays": {"placeholders": {"days": {"type": "int"}}},
+    # ---- 第 26 轮：出勤摘要 ----
+    "attendanceSummaryDate": {"placeholders": {
+        "month": {"type": "String"},
+        "day": {"type": "String"},
+        "weekday": {"type": "String"},
+        "time": {"type": "String"},
+    }},
+    "attendanceSummaryHeader": {"placeholders": {
+        "date": {"type": "String"},
+        "course": {"type": "String"},
+        "expected": {"type": "int"},
+        "actual": {"type": "int"},
+    }},
+    "attendanceSummaryStatusCount": {"placeholders": {
+        "status": {"type": "String"},
+        "count": {"type": "int"},
+    }},
+    "attendanceSummaryClassGroup": {"placeholders": {
+        "className": {"type": "String"},
+        "names": {"type": "String"},
+    }},
 }
 
 
@@ -886,6 +998,11 @@ def main():
             data[key] = values[locale]
         added = []
         for key, values in NEW_KEYS.items():
+            if key in UPDATE_KEYS:
+                # 同一个键同时出现在两个 dict 里时，UPDATE_KEYS 就是权威
+                # （它本来就是"改口径"的地方）；再拿 NEW_KEYS 的旧文案来断言，
+                # 会导致"只要改这一条的文案，脚本就永远跑不过"。
+                continue
             if key in data:
                 assert data[key] == values[locale], (
                     "键 %s 已存在但内容不同：%r != %r" % (key, data[key], values[locale])

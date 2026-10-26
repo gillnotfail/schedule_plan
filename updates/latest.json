@@ -3,6 +3,54 @@
   "assetsBase": "https://gitee.com/jeo-xie/schedule_plan/releases/download",
   "releases": [
     {
+      "versionCode": 10,
+      "versionName": "1.0.9",
+      "tag": "v1.0.9",
+      "publishedAt": "2026-10-26T21:49:59+08:00",
+      "notes": [
+        "**复制出勤摘要时班级名重复了**：以前一个班有几个人，班名就重复几遍，比如 \"请假：高一1班 张三、高一1班 李四\"。现在同一个班只写一次：\"请假：2人，高一1班：张三、李四\"",
+        "**摘要开头补上了日期、星期、这节课的起止时间、课程名、应到几人、实到几人**，复制出去不用再自己补说明。应到不算休学的学生，实到只算点了\"出勤\"的",
+        "**课表页那句\"点击右下角 + 新增一节\"改掉了**：右下角那个按钮早就没有了，现在提示\"点任意一格就能排\"",
+        "**全应用文案改了口气**：去掉了喊口号式的鼓励和感叹号。统计页那张卡片现在直接说实情，比如\"到得很齐，基本没人缺勤\"\"出勤偏低，可以看看缺勤名单\"",
+        "「智能待办」改叫「自动待办」；「一键生成作息」「一键清空课表」改成「批量生成作息」「清空课表」",
+        "专注模式的退出提醒和完成后的鼓励改平实了，不再用反问句"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24286467,
+          "sha256": "52b53d9d403037af15b347e861032a15ade2a330d1f38f40c68c5b7b1b8dd483"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22269003,
+          "sha256": "b5aa85443e8ff16ac33746c7feacd027e5c89be5de709abc193985b6a3bf8d68"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 9,
+          "abi": "arm64-v8a",
+          "file": "patch-9-10-arm64-v8a.spdp",
+          "size": 4086771,
+          "targetSize": 24286467,
+          "sha256": "3e73e32714265d6eef21a7fdff044d028a2721127d9e8afe063ee56e21d81dbd",
+          "baseSha256": "0d89af99ac69e9adb92d836bb454ff2c70722206ee89e6ccd72651671217fd83"
+        },
+        {
+          "fromVersionCode": 9,
+          "abi": "armeabi-v7a",
+          "file": "patch-9-10-armeabi-v7a.spdp",
+          "size": 4526366,
+          "targetSize": 22269003,
+          "sha256": "2d07da0557f98e7dca768ae55d10b09067ba463b573581a77f54de151bd2f650",
+          "baseSha256": "4b0d8ea4f43495f1841d428813e060c37ba7ede50e267681f4bfff8ccaba475f"
+        }
+      ]
+    },
+    {
       "versionCode": 9,
       "versionName": "1.0.8",
       "tag": "v1.0.8",
@@ -435,7 +483,7 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-10-07T13:31:18+08:00",
+  "generatedAt": "2026-10-26T21:49:59+08:00",
   "assetsBases": [
     "https://gitee.com/jeo-xie/schedule_plan/releases/download",
     "https://github.com/gillnotfail/schedule_plan/releases/download"

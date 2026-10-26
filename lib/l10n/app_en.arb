@@ -32,7 +32,7 @@
   "scheduleAggregateView": "Timeline",
   "scheduleClassView": "Class grid",
   "selectClass": "Select class",
-  "emptyScheduleHint": "No lessons this week. Tap + to add one.",
+  "emptyScheduleHint": "No lessons this week. Tap any empty slot to add one",
   "addLesson": "Add lesson",
   "editLesson": "Edit lesson",
   "deleteLesson": "Delete lesson",
@@ -43,7 +43,7 @@
   "slotOccupied": "This slot is already taken",
   "noTemplatePeriod": "The bound schedule template has no matching period",
   "quickAddLessonHint": "Pick class, then course, then weekday and period to schedule it",
-  "swapModeHint": "Swap mode: drag a block onto another to swap",
+  "swapModeHint": "Swap mode: drag one block onto another to swap them",
   "swapForbidden": "Cannot swap across classes or templates",
   "swapDone": "Lessons swapped",
   "editLessonTime": "Adjust time",
@@ -123,17 +123,16 @@
   "courseRateChart": "Rate by course",
   "abnormalList": "Abnormal records",
   "riskRanking": "High-risk ranking",
-  "emotionCard": "Encouragement",
   "exportExcel": "Export Excel",
   "exportSuccess": "Workbook generated",
   "filterByStatus": "Filter by status",
   "attendanceRateLabel": "Attendance rate",
-  "emotionExcellent": "This class is doing amazingly well!",
-  "emotionGood": "Solid attendance, keep it up!",
-  "emotionNormal": "Every step forward counts.",
-  "emotionEncourage": "New week, new chances to shine.",
+  "emotionExcellent": "Good attendance — almost no absentees",
+  "emotionGood": "Attendance is fine — a few people were out",
+  "emotionNormal": "Attendance is so-so — a few students miss often",
+  "emotionEncourage": "Attendance is low — worth checking the absent list",
   "todoTitle": "To-do",
-  "todoSmart": "Smart",
+  "todoSmart": "Auto",
   "todoGeneral": "Personal",
   "todoAdd": "Add to-do",
   "todoTitleRequired": "Title cannot be empty",
@@ -421,7 +420,7 @@
   "insightDoneLessons": "Lessons done",
   "insightLeftLessons": "Remaining",
   "insightAttention": "Needs attention",
-  "insightNoAttention": "All good, keep it up",
+  "insightNoAttention": "No issues",
   "insightAttendanceRate": "Attendance rate",
   "insightCheer": "{done} lessons done this week. Nice work.",
   "@insightCheer": {
@@ -550,7 +549,7 @@
   "statsColumnNo": "Student no.",
   "statsColumnStatus": "Status",
   "toolStatisticsDesc": "Attendance trends and ranking",
-  "toolTodoDesc": "Smart todos and general lists",
+  "toolTodoDesc": "Todos created from attendance, plus your own lists",
   "toolFocusDesc": "Focus timer that locks the screen — with a reward at the end",
   "toolCalendarDesc": "Events and reminders",
   "importReasonMissingClass": "Missing class",
@@ -602,12 +601,12 @@
   "importFileUnreadable": "This file cannot be read. Make sure it is an unencrypted .xlsx file, or open it in Excel/WPS and save it as .xlsx, then try again.",
   "scheduleNoClassHint": "No class yet - showing the default bell schedule",
   "cellNoCourseTitle": "No course in this slot",
-  "cellNoCourseBody": "Create a course in course management first, then tap this slot again and swipe to place it.",
+  "cellNoCourseBody": "Create a course in course management first, then tap this slot to pick one",
   "cellNeedsClassBody": "You have no class yet. Create a class and import its roster before scheduling.",
   "goAddCourse": "Add course",
   "goCreateClass": "Create class",
   "pickCourseTitle": "Pick a course for this slot",
-  "pickCourseHint": "Scroll to browse, tap to pick, then place it here",
+  "pickCourseHint": "Scroll to find a course, tap to pick it",
   "placeHere": "Place here",
   "noCourseYet": "No course yet",
   "lessonDetailTitle": "Course details",
@@ -663,7 +662,7 @@
   "classStatFemale": "Girls",
   "classStatUnset": "Unset",
   "classDetailStudents": "Students in this class",
-  "classDetailStudentsDesc": "Tap a student to edit; use the icon to delete",
+  "classDetailStudentsDesc": "Tap a student to edit, tap the icon to delete",
   "classDetailNoStudents": "No students yet - tap + to add",
   "classDetailCourses": "Courses of this class",
   "classDetailCoursesDesc": "Maintain course names, rooms and classes",
@@ -793,7 +792,6 @@
   "shareCaptureFailed": "Couldn't capture, try again",
   "shareQrPlaceholder": "QR code",
   "copyAction": "Copy",
-  "summaryNoAbnormal": "All present, nothing abnormal",
   "courseFilterLabel": "Filter by course",
   "eventRecurrence": "Repeats",
   "eventRecurrenceOnce": "Once",
@@ -1332,16 +1330,16 @@
   "focusExitTitle": "End this session?",
   "focusExitElapsed": "You've held on for {duration}",
   "focusExitRemaining": "Only {duration} to go",
-  "focusExitAlmostThere": "You're nearly there — sure you want to stop?",
-  "focusExitEncourage": "Fragmented time can't take this from you. Hold on and this stretch is whole.",
+  "focusExitAlmostThere": "Almost there",
+  "focusExitEncourage": "The phone can wait a few minutes. Finish this stretch",
   "focusExitKeepGoing": "Keep going",
   "focusExitConfirm": "End session",
   "focusAbandonedHint": "Recorded {duration} for this session",
   "focusDoneHeadline": "You did it",
   "focusPraiseFragments": "Fragmented time can't take this from you.",
-  "focusPraiseSteady": "Holding this steady beats everything.",
-  "focusPraiseComeback": "Every return is a fresh start.",
-  "focusPraiseTime": "You gave this time back to yourself.",
+  "focusPraiseSteady": "That was a steady one",
+  "focusPraiseComeback": "Back again — keep going",
+  "focusPraiseTime": "That time wasn't wasted",
   "focusStatThisSession": "This session",
   "focusStatToday": "Today",
   "focusStatStreak": "Streak",
@@ -1379,5 +1377,62 @@
       }
     }
   },
-  "focusBreakDone": "Break's over — start the next stretch whenever you like"
+  "focusBreakDone": "Break's over — start the next stretch whenever you like",
+  "attendanceSummaryDate": "{month}/{day} ({weekday}) {time}",
+  "attendanceSummaryHeader": "{date}, {course}, expected: {expected}, actual: {actual}",
+  "attendanceSummaryAbnormal": "abnormal: ",
+  "attendanceSummaryStatusCount": "{status}: {count}",
+  "attendanceSummaryClassGroup": "{className}: {names}",
+  "@attendanceSummaryDate": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "weekday": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@attendanceSummaryHeader": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "course": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "int"
+      },
+      "actual": {
+        "type": "int"
+      }
+    }
+  },
+  "@attendanceSummaryStatusCount": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@attendanceSummaryClassGroup": {
+    "placeholders": {
+      "className": {
+        "type": "String"
+      },
+      "names": {
+        "type": "String"
+      }
+    }
+  }
 }
