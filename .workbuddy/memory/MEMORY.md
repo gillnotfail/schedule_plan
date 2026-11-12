@@ -9,7 +9,7 @@
 - 只做 Android APK（iOS 不验证、不加鸿蒙）；**Windows 上 `README.md`/`readme.md` 是同一文件**。
 
 ## 工具链
-- 提交前 `flutter analyze --no-pub` 零 issue（含 `test/`）+ `flutter test` 全绿（当前 **517**）；
+- 提交前 `flutter analyze --no-pub` 零 issue（含 `test/`）+ `flutter test` 全绿（当前 **531**）；
   **跑前设 `NO_PROXY=localhost,127.0.0.1,::1`**（代理会劫持 flutter_tester 的 WebSocket）。
 - flutter 一律走 `C:\Users\jeo\AppData\Local\Temp\wb_run_flutter.py`（直调 `flutter.BAT`）；
   **以日志最后一行 `=== EXIT n ===` 为准**（PowerShell 承接输出时退出码不可信）。
@@ -34,7 +34,7 @@
 - 翻月走 `DateUtils.shiftMonth`（`DateTime(y,m±1,d)` 会进位）；加天用 `DateTime(y,m,d+n)`。
 
 ## i18n
-- 禁止硬编码，全走 `app_zh/en.arb` + `context.l10n`，zh/en 严格对齐（当前各 **754** 键）。
+- 禁止硬编码，全走 `app_zh/en.arb` + `context.l10n`，zh/en 严格对齐（当前各 **772** 键）。
 - **加键一律走 `.workbuddy/tools/add_l10n_keys.py`**（幂等）：`NEW_KEYS` 加、`UPDATE_KEYS` 改（内含 assert）、
   `PLACEHOLDERS` 加 `@key`；跑完 `gen-l10n` 再 analyze。**别拿 `"...元数据",\n}` 当锚点**（三个 dict 都以它结尾）。
 
@@ -83,6 +83,10 @@
   出勤率 = **1 − 缺勤 ÷ 应上**（迟到/早退/请假不进分子）；应上由 `countScheduledSessions` 按课表推算
   （放假日不算、调休走 `labelWeekdayOf`、休学跳过、**未点名按全勤**）；改课表会追溯重算、必须写在界面上；
   **不许把"没点名"伪造成 present 行**。口径文案只在 `attendance_formula_sheet.dart` 一处。
+  **未来还没上的课不计入应上**（`AttendanceAnalytics.build` 的 `asOf`，默认今天）—— 否则默认
+  "本学期"会把期中出勤率稀释成六七成。**工具箱第 3 页「学生追踪」**（`student_track_panel.dart`）
+  按人看流水：异常次数降序、点姓名进详情（日期/课程/出勤情况），**正常出勤也列**（与档案页
+  "默认只列异常"刻意不同）；两页导出各管各的显示状态，走 `exportTrackWorkbook`。
 - **专注模式只有专注态锁屏**（暂停/休息不锁），`isBreak` 必须进快照；**计时必须墙钟口径**；统计只算 `completed`；
   休息段不写 `focus_session`；`label` 落库稳定 id。**释放锁定必须无条件**（靠"我记得锁过"判断会漏掉
   `stopLockTask()`，用户被钉在 App 里 —— 第 28 轮真事故）。准备态一屏与滚轮细则见 DETAIL。
