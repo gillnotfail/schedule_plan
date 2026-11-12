@@ -3,6 +3,53 @@
   "assetsBase": "https://gitee.com/jeo-xie/schedule_plan/releases/download",
   "releases": [
     {
+      "versionCode": 14,
+      "versionName": "1.0.13",
+      "tag": "v1.0.13",
+      "publishedAt": "2026-11-12T20:31:53+08:00",
+      "notes": [
+        "**工具箱多了第三页「学生追踪」**：左右滑到最右边就是。先选时间段（本周 / 本月 / 本学期 / 自定义），再选课程，下面立刻列出学生名单 —— 每个人后面写着「几次异常」和出勤率，异常次数多的排在最前面，一眼看出这段时间该找谁谈。名字底下还有一行小字，把缺勤、迟到、早退、迟到+早退、请假各几次拆开写清楚",
+        "点名字进去是**这个孩子的每一节课**：日期、课程、出勤情况三列，缺勤、迟到、早退会标出来，**正常出勤也一条条列着**，不会只挑毛病给你看",
+        "两页都能导出：名单页导出当前筛选出的整份名单，详情页导出这个孩子的全部课次，导出的就是屏幕上正显示的内容",
+        "**出勤率不再被\"还没上的课\"拉低**：以前默认看整个学期，学期才过一半，后半学期还没上的课先被算进\"应上课次\"，谁看都是六七成。现在只算到今天为止，后面还没上的课不再计入。「考勤率怎么算」那张说明也补上了这一条",
+        "工具箱底部那句「左右滑动 · 共 2 页」改成了按实际页数显示"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24548735,
+          "sha256": "0351b5fa563e66b0185d3fad6943f1967611767905e55b7452f985fcf78ccc45"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22580423,
+          "sha256": "630cf8b80a43b3e461cdc42e35327edad0745f9a65097e3042984911f548fdd9"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 13,
+          "abi": "arm64-v8a",
+          "file": "patch-13-14-arm64-v8a.spdp",
+          "size": 4179433,
+          "targetSize": 24548735,
+          "sha256": "5175da68eaf6c730582720d95216e06f662b86c0e72c4682472ff9b9ec330c1b",
+          "baseSha256": "f86a222ea8080c9085d7afc08f8859a372c18d18cf6b620499ed675d862ef2d3"
+        },
+        {
+          "fromVersionCode": 13,
+          "abi": "armeabi-v7a",
+          "file": "patch-13-14-armeabi-v7a.spdp",
+          "size": 4626189,
+          "targetSize": 22580423,
+          "sha256": "c8663ebbb0e8a295bbed9ed1943656a6181acd3e8d2d5c6dc870b78d876d63fb",
+          "baseSha256": "b844d91645ac82b9e69cee3692764d6fd6cd3b28ed0446ab9d31ff05d97bdcb6"
+        }
+      ]
+    },
+    {
       "versionCode": 13,
       "versionName": "1.0.12",
       "tag": "v1.0.12",
@@ -621,7 +668,7 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-11-12T18:21:00+08:00",
+  "generatedAt": "2026-11-12T20:31:53+08:00",
   "assetsBases": [
     "https://gitee.com/jeo-xie/schedule_plan/releases/download",
     "https://github.com/gillnotfail/schedule_plan/releases/download"
