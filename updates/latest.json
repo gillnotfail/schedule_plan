@@ -3,6 +3,54 @@
   "assetsBase": "https://gitee.com/jeo-xie/schedule_plan/releases/download",
   "releases": [
     {
+      "versionCode": 15,
+      "versionName": "1.0.14",
+      "tag": "v1.0.14",
+      "publishedAt": "2026-11-12T20:43:10+08:00",
+      "notes": [
+        "**导出的 Excel 文件名好认了**：以前是 `attendance_2026-09-01_2027-01-31.xlsx` 这种，几个文件放在一起只能挨个点开看。现在统一成「导出时间-给谁导的-导的什么」：",
+        "统计页导出 → `20261112-2038-数学-出勤情况.xlsx`（没筛课程就是「全部课程」，同时筛了班级会接上班级名）",
+        "学生档案页导出 → `20261112-2038-张三-出勤档案.xlsx`",
+        "学生追踪详情页导出 → `20261112-2038-张三-出勤记录.xlsx`",
+        "学生追踪名单页导出 → `20261112-2038-数学-学生追踪.xlsx`",
+        "时间放在文件名最前面，按名字排序就等于按导出时间排序；课程名或学生名里带`/ : *` 这类符号也能正常导出（会自动换成横线），不会出现分享失败"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24548735,
+          "sha256": "2f044a99e12f621b95e9bcf52cbabbcb617b3505e609d006f22f6810b4ffe321"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22580423,
+          "sha256": "da723c2bc13e7f81f2fe3113254b9ee2ccd2536cc2acd7472e51f3040b21bdd6"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 14,
+          "abi": "arm64-v8a",
+          "file": "patch-14-15-arm64-v8a.spdp",
+          "size": 4153181,
+          "targetSize": 24548735,
+          "sha256": "f3913a2177313044671e4196552f68c6e6185d9f5d7ed8fef24413d1179dbf7b",
+          "baseSha256": "0351b5fa563e66b0185d3fad6943f1967611767905e55b7452f985fcf78ccc45"
+        },
+        {
+          "fromVersionCode": 14,
+          "abi": "armeabi-v7a",
+          "file": "patch-14-15-armeabi-v7a.spdp",
+          "size": 4598519,
+          "targetSize": 22580423,
+          "sha256": "5f5e06188d863719f2b2b3be6edb2bc60eb6a345126d5d53ffb7099baa8f1c32",
+          "baseSha256": "630cf8b80a43b3e461cdc42e35327edad0745f9a65097e3042984911f548fdd9"
+        }
+      ]
+    },
+    {
       "versionCode": 14,
       "versionName": "1.0.13",
       "tag": "v1.0.13",
@@ -668,7 +716,7 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-11-12T20:31:53+08:00",
+  "generatedAt": "2026-11-12T20:43:10+08:00",
   "assetsBases": [
     "https://gitee.com/jeo-xie/schedule_plan/releases/download",
     "https://github.com/gillnotfail/schedule_plan/releases/download"
