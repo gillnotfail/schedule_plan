@@ -3,6 +3,56 @@
   "assetsBase": "https://gitee.com/jeo-xie/schedule_plan/releases/download",
   "releases": [
     {
+      "versionCode": 13,
+      "versionName": "1.0.12",
+      "tag": "v1.0.12",
+      "publishedAt": "2026-11-12T18:21:00+08:00",
+      "notes": [
+        "**能查每个孩子的出勤记录了**：学生名单里每一行右边多了一个「出勤」，点进去就是他这段时间的出勤档案 —— 最上面一行是出勤率，下面按「缺勤 / 迟到 / 早退 / 迟到+早退 / 请假」分组，每组写清几次、分别是哪天哪节课，还能一键导出成表",
+        "**班级出勤率排行**：统计页新增「班级排行」，选好时间段，一个班一张表，出勤率低的排在最前面，谁该谈一眼就看出来。点名字直接进他的档案",
+        "统计页顶部现在能选时间段了：**本周 / 本月 / 本学期 / 自定义**，还能按班级、按课程筛；以前固定只看最近 90 天，翻不了",
+        "**考勤率怎么算，界面上直接写清楚**：概览、档案、排行三处的百分比旁边都有一个小问号，点开就是算式（出勤率 = 1 − 缺勤课次 ÷ 应上课次；迟到、早退、请假都不扣；没点名的课次按全勤算）",
+        "**迟到和早退可以同时标了**：一节课点两次名的时候（连堂、课前课后各点一次），有的孩子上课迟到了、下课又提前走了。以前点完「迟」再点「早」，迟到就被顶掉了，另一头记不下来。现在这两枚能同时亮着，两个状态都记着（按钮没多、也没变复杂）",
+        "这种孩子在统计里**只算一次异常**，不会因为状态多就多记一笔；但「迟到次数」「早退次数」两栏都会算上他，数字和明细对得上",
+        "复制出去的出勤摘要里，他单独归在「迟到+早退」这一段，同一个名字不会报两遍",
+        "导出的 Excel 多了「出勤率排行」和「个人流水」两个页签，表头第一行写着算法说明"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24483143,
+          "sha256": "f86a222ea8080c9085d7afc08f8859a372c18d18cf6b620499ed675d862ef2d3"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22514831,
+          "sha256": "b844d91645ac82b9e69cee3692764d6fd6cd3b28ed0446ab9d31ff05d97bdcb6"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 12,
+          "abi": "arm64-v8a",
+          "file": "patch-12-13-arm64-v8a.spdp",
+          "size": 4154595,
+          "targetSize": 24483143,
+          "sha256": "61bd000d6a00e9463dc60cd14212de69a08b62bb8f1f53ab7738b47356dffefd",
+          "baseSha256": "d29810f7d4d5e517153b1ffb5bdad44f10d16251050e37f8a89ae78bfff6718c"
+        },
+        {
+          "fromVersionCode": 12,
+          "abi": "armeabi-v7a",
+          "file": "patch-12-13-armeabi-v7a.spdp",
+          "size": 4607657,
+          "targetSize": 22514831,
+          "sha256": "04bb232e3fd4862497546eb5990088789b398f53c4407783838bd8a75a600508",
+          "baseSha256": "d803c5dfdd6c841483a50c5228ee055942111f5d8e365ad72a7ec7354279a280"
+        }
+      ]
+    },
+    {
       "versionCode": 12,
       "versionName": "1.0.11",
       "tag": "v1.0.11",
@@ -571,7 +621,7 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-10-26T22:31:28+08:00",
+  "generatedAt": "2026-11-12T18:21:00+08:00",
   "assetsBases": [
     "https://gitee.com/jeo-xie/schedule_plan/releases/download",
     "https://github.com/gillnotfail/schedule_plan/releases/download"
