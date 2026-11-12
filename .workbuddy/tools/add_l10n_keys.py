@@ -70,9 +70,9 @@ NEW_KEYS = {
     "eventRecurrenceWeekly": {"zh": "每周", "en": "Weekly"},
     "eventRecurrenceBiweekly": {"zh": "隔周", "en": "Biweekly"},
     "eventRecurrenceMonthly": {"zh": "每月", "en": "Monthly"},
-    # ---- 第 10 轮：受益学生数 + 工具箱滑动提示 ----
+    # ---- 第 10 轮：受益学生数 ----
+    # （第 33 轮：工具箱从 2 页变 3 页，"共 2 页"的 toolboxSwipeHint 已移入 DROP_KEYS）
     "insightBenefitedStudents": {"zh": "受益学生", "en": "Students reached"},
-    "toolboxSwipeHint": {"zh": "左右滑动 · 共 2 页", "en": "Swipe · 2 pages"},
     # ---- 第 11 轮：拍照识别课表（本地 OCR，不依赖任何 LLM 服务商）----
     "ocrTitle": {"zh": "拍照识别课表", "en": "Scan schedule photo"},
     "ocrEntryTitle": {"zh": "拍照生成课表", "en": "Schedule from photo"},
@@ -744,6 +744,49 @@ NEW_KEYS = {
         "zh": "改过课表之后，以前的出勤率会跟着重算",
         "en": "Editing the timetable recalculates past rates",
     },
+    # ---- 第 33 轮：工具箱第 3 页「学生追踪」----
+    # 用户规格：选时间 + 选课程 → 跳出学生名单（二级行显示异常次数）→
+    # 点姓名进详情页看"日期-课程-出勤情况"，每页都能导出当前显示状态。
+    "statFormulaLine6": {
+        "zh": "只算到今天为止，后面还没上的课不计入应上课次",
+        "en": "Only lessons up to today are counted; future lessons are excluded",
+    },
+    "trackTitle": {"zh": "学生追踪", "en": "Student tracking"},
+    "trackSortHint": {"zh": "按异常次数从多到少", "en": "Most issues first"},
+    "trackAbnormalTimes": {"zh": "{count} 次异常", "en": "{count} issue(s)"},
+    "trackAllPresent": {"zh": "全勤", "en": "All present"},
+    "trackRatePercent": {"zh": "{rate}%", "en": "{rate}%"},
+    "trackStudentCount": {"zh": "{count} 人", "en": "{count} students"},
+    "trackTallyLine": {
+        "zh": "缺 {absent} · 迟 {late} · 早 {early} · 迟早 {both} · 假 {leave}",
+        "en": "Absent {absent} · Late {late} · Early {early} · Both {both} · Leave {leave}",
+    },
+    "trackListEmpty": {
+        "zh": "这段时间没有出勤记录",
+        "en": "No attendance records in this period",
+    },
+    "trackDetailTitle": {"zh": "出勤记录", "en": "Attendance records"},
+    "trackDetailEmpty": {
+        "zh": "这段时间没有出勤记录",
+        "en": "No attendance records in this period",
+    },
+    "trackColDate": {"zh": "日期", "en": "Date"},
+    "trackColCourse": {"zh": "课程", "en": "Course"},
+    "trackColStatus": {"zh": "出勤情况", "en": "Status"},
+    "trackExportList": {"zh": "导出学生列表", "en": "Export student list"},
+    "trackExportDetail": {"zh": "导出出勤明细", "en": "Export records"},
+    "trackRangeCourse": {
+        "zh": "{from} 至 {to} · {course}",
+        "en": "{from} – {to} · {course}",
+    },
+    "trackUnmarkedNote": {
+        "zh": "另有 {count} 节课没点名，按全勤计入出勤率，不逐条列出",
+        "en": "{count} lesson(s) were never marked and count as present, so they are not listed",
+    },
+    "toolboxSwipeHintTotal": {
+        "zh": "左右滑动 · 共 {count} 页",
+        "en": "Swipe · {count} pages",
+    },
 }
 
 # 需要改口径的旧键（用户规格变了，文案必须跟着走，否则和界面行为对不上）
@@ -860,6 +903,9 @@ UPDATE_KEYS = {
 DROP_KEYS = ["attendanceMarkAllPresent", "attendanceStatusHint",
              # 第 10 轮：工具箱去掉了「工具 / 教学成果」两个文字 Tab，改用滑动 + 圆点
              "toolboxToolsTab", "toolboxAchievementsTab",
+             # 第 33 轮：工具箱从 2 页变 3 页，写死"共 2 页"的那条作废，
+             # 换成带 {count} 的 toolboxSwipeHintTotal
+             "toolboxSwipeHint",
              # 第 18 轮：考勤日历不再有长按提示（命中率低），这几条只服务于
              # 旧长按提示的文案随之作废；图例那一版也从"已点名"改成四项（见 NEW_KEYS）
              "attendanceRingNoRecord", "attendanceRingRate",
@@ -1053,6 +1099,24 @@ PLACEHOLDERS = {
         "className": {"type": "String"},
         "names": {"type": "String"},
     }},
+    # ---- 第 33 轮：学生追踪 ----
+    "trackAbnormalTimes": {"placeholders": {"count": {"type": "int"}}},
+    "trackRatePercent": {"placeholders": {"rate": {"type": "String"}}},
+    "trackStudentCount": {"placeholders": {"count": {"type": "int"}}},
+    "trackTallyLine": {"placeholders": {
+        "absent": {"type": "int"},
+        "late": {"type": "int"},
+        "early": {"type": "int"},
+        "both": {"type": "int"},
+        "leave": {"type": "int"},
+    }},
+    "trackRangeCourse": {"placeholders": {
+        "from": {"type": "String"},
+        "to": {"type": "String"},
+        "course": {"type": "String"},
+    }},
+    "trackUnmarkedNote": {"placeholders": {"count": {"type": "int"}}},
+    "toolboxSwipeHintTotal": {"placeholders": {"count": {"type": "int"}}},
 }
 
 

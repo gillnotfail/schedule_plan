@@ -799,7 +799,6 @@
   "eventRecurrenceBiweekly": "隔周",
   "eventRecurrenceMonthly": "每月",
   "insightBenefitedStudents": "受益学生",
-  "toolboxSwipeHint": "左右滑动 · 共 2 页",
   "ocrTitle": "拍照识别课表",
   "ocrEntryTitle": "拍照生成课表",
   "ocrEntryDesc": "拍一张课表照片，本机识别后自动排进课表",
@@ -1484,5 +1483,91 @@
       }
     }
   },
-  "statUnmarkedCounted": "没点名的课次按全勤计，不单独列出"
+  "statUnmarkedCounted": "没点名的课次按全勤计，不单独列出",
+  "trackTitle": "学生追踪",
+  "trackSortHint": "按异常次数从多到少",
+  "trackAbnormalTimes": "{count} 次异常",
+  "trackAllPresent": "全勤",
+  "trackRatePercent": "{rate}%",
+  "trackStudentCount": "{count} 人",
+  "trackTallyLine": "缺 {absent} · 迟 {late} · 早 {early} · 迟早 {both} · 假 {leave}",
+  "trackListEmpty": "这段时间没有出勤记录",
+  "trackDetailTitle": "出勤记录",
+  "trackDetailEmpty": "这段时间没有出勤记录",
+  "trackColDate": "日期",
+  "trackColCourse": "课程",
+  "trackColStatus": "出勤情况",
+  "trackExportList": "导出学生列表",
+  "trackExportDetail": "导出出勤明细",
+  "trackRangeCourse": "{from} 至 {to} · {course}",
+  "trackUnmarkedNote": "另有 {count} 节课没点名，按全勤计入出勤率，不逐条列出",
+  "toolboxSwipeHintTotal": "左右滑动 · 共 {count} 页",
+  "@trackAbnormalTimes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@trackRatePercent": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "@trackStudentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@trackTallyLine": {
+    "placeholders": {
+      "absent": {
+        "type": "int"
+      },
+      "late": {
+        "type": "int"
+      },
+      "early": {
+        "type": "int"
+      },
+      "both": {
+        "type": "int"
+      },
+      "leave": {
+        "type": "int"
+      }
+    }
+  },
+  "@trackRangeCourse": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      },
+      "course": {
+        "type": "String"
+      }
+    }
+  },
+  "@trackUnmarkedNote": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@toolboxSwipeHintTotal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statFormulaLine6": "只算到今天为止，后面还没上的课不计入应上课次"
 }

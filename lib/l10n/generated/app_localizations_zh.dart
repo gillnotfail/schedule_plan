@@ -1495,9 +1495,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insightBenefitedStudents => '受益学生';
 
   @override
-  String get toolboxSwipeHint => '左右滑动 · 共 2 页';
-
-  @override
   String get ocrTitle => '拍照识别课表';
 
   @override
@@ -2468,4 +2465,75 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statUnmarkedCounted => '没点名的课次按全勤计，不单独列出';
+
+  @override
+  String get trackTitle => '学生追踪';
+
+  @override
+  String get trackSortHint => '按异常次数从多到少';
+
+  @override
+  String trackAbnormalTimes(int count) {
+    return '$count 次异常';
+  }
+
+  @override
+  String get trackAllPresent => '全勤';
+
+  @override
+  String trackRatePercent(String rate) {
+    return '$rate%';
+  }
+
+  @override
+  String trackStudentCount(int count) {
+    return '$count 人';
+  }
+
+  @override
+  String trackTallyLine(int absent, int late, int early, int both, int leave) {
+    return '缺 $absent · 迟 $late · 早 $early · 迟早 $both · 假 $leave';
+  }
+
+  @override
+  String get trackListEmpty => '这段时间没有出勤记录';
+
+  @override
+  String get trackDetailTitle => '出勤记录';
+
+  @override
+  String get trackDetailEmpty => '这段时间没有出勤记录';
+
+  @override
+  String get trackColDate => '日期';
+
+  @override
+  String get trackColCourse => '课程';
+
+  @override
+  String get trackColStatus => '出勤情况';
+
+  @override
+  String get trackExportList => '导出学生列表';
+
+  @override
+  String get trackExportDetail => '导出出勤明细';
+
+  @override
+  String trackRangeCourse(String from, String to, String course) {
+    return '$from 至 $to · $course';
+  }
+
+  @override
+  String trackUnmarkedNote(int count) {
+    return '另有 $count 节课没点名，按全勤计入出勤率，不逐条列出';
+  }
+
+  @override
+  String toolboxSwipeHintTotal(int count) {
+    return '左右滑动 · 共 $count 页';
+  }
+
+  @override
+  String get statFormulaLine6 => '只算到今天为止，后面还没上的课不计入应上课次';
 }

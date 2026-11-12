@@ -36,6 +36,7 @@ class _AttendanceFormulaSheet extends StatelessWidget {
       l10n.statFormulaLine3,
       l10n.statFormulaLine4,
       l10n.statFormulaLine5,
+      l10n.statFormulaLine6,
     ];
     return SafeArea(
       child: Padding(

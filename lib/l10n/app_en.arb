@@ -799,7 +799,6 @@
   "eventRecurrenceBiweekly": "Biweekly",
   "eventRecurrenceMonthly": "Monthly",
   "insightBenefitedStudents": "Students reached",
-  "toolboxSwipeHint": "Swipe · 2 pages",
   "ocrTitle": "Scan schedule photo",
   "ocrEntryTitle": "Schedule from photo",
   "ocrEntryDesc": "Snap a timetable, recognize it on-device, build the schedule",
@@ -1484,5 +1483,91 @@
       }
     }
   },
-  "statUnmarkedCounted": "Unmarked lessons count as present and are not listed"
+  "statUnmarkedCounted": "Unmarked lessons count as present and are not listed",
+  "trackTitle": "Student tracking",
+  "trackSortHint": "Most issues first",
+  "trackAbnormalTimes": "{count} issue(s)",
+  "trackAllPresent": "All present",
+  "trackRatePercent": "{rate}%",
+  "trackStudentCount": "{count} students",
+  "trackTallyLine": "Absent {absent} · Late {late} · Early {early} · Both {both} · Leave {leave}",
+  "trackListEmpty": "No attendance records in this period",
+  "trackDetailTitle": "Attendance records",
+  "trackDetailEmpty": "No attendance records in this period",
+  "trackColDate": "Date",
+  "trackColCourse": "Course",
+  "trackColStatus": "Status",
+  "trackExportList": "Export student list",
+  "trackExportDetail": "Export records",
+  "trackRangeCourse": "{from} – {to} · {course}",
+  "trackUnmarkedNote": "{count} lesson(s) were never marked and count as present, so they are not listed",
+  "toolboxSwipeHintTotal": "Swipe · {count} pages",
+  "@trackAbnormalTimes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@trackRatePercent": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "@trackStudentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@trackTallyLine": {
+    "placeholders": {
+      "absent": {
+        "type": "int"
+      },
+      "late": {
+        "type": "int"
+      },
+      "early": {
+        "type": "int"
+      },
+      "both": {
+        "type": "int"
+      },
+      "leave": {
+        "type": "int"
+      }
+    }
+  },
+  "@trackRangeCourse": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      },
+      "course": {
+        "type": "String"
+      }
+    }
+  },
+  "@trackUnmarkedNote": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@toolboxSwipeHintTotal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statFormulaLine6": "Only lessons up to today are counted; future lessons are excluded"
 }

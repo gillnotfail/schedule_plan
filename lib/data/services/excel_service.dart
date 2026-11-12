@@ -191,14 +191,121 @@ class ExcelService {
     if (bytes == null) {
       throw const FormatException('Excel 编码失败');
     }
+    return _save(bytes, 'attendance_${fromDate}_$toDate.xlsx');
+  }
+
+  /// 工具箱「学生追踪」页的导出（用户规格第 33 轮）。
+  ///
+  /// 两个页签按调用方给的数据出现，**"导出当前的显示状态"**：
+  /// - 名单页只传 [studentRows] → 只出「学生追踪」一个页签；
+  /// - 详情页只传 [detailRows] → 只出「个人出勤明细」一个页签。
+  ///
+  /// 和 [exportAttendanceWorkbook] 分开而不是继续加可选参数：那张工作簿固定带
+  /// 「考勤汇总 / 异常明细 / 学生排名」三个页签，从追踪页导出时会多出三张空表。
+  Future<String> exportTrackWorkbook({
+    required String fromDate,
+    required String toDate,
+    String? courseName,
+    String? studentName,
+    List<Map<String, Object?>> studentRows = const <Map<String, Object?>>[],
+    List<Map<String, Object?>> detailRows = const <Map<String, Object?>>[],
+    String? formulaNote,
+  }) async {
+    final book = Excel.createExcel();
+    final firstSheet = studentRows.isNotEmpty ? '学生追踪' : '个人出勤明细';
+    book.rename(book.getDefaultSheet() ?? 'Sheet1', firstSheet);
+    var used = false;
+
+    if (studentRows.isNotEmpty) {
+      used = true;
+      final sheet = book['学生追踪'];
+      if (formulaNote != null && formulaNote.isNotEmpty) {
+        sheet.appendRow(<CellValue?>[TextCellValue('口径：$formulaNote')]);
+      }
+      sheet.appendRow(<CellValue?>[
+        TextCellValue('学生'),
+        TextCellValue('学号'),
+        TextCellValue('班级'),
+        TextCellValue('应上课次'),
+        TextCellValue('缺勤'),
+        TextCellValue('迟到'),
+        TextCellValue('早退'),
+        TextCellValue('迟到+早退'),
+        TextCellValue('请假'),
+        TextCellValue('异常合计'),
+        TextCellValue('出勤率'),
+      ]);
+      for (final row in studentRows) {
+        final rate = row['rate'];
+        sheet.appendRow(<CellValue?>[
+          TextCellValue('${row['student_name'] ?? ''}'),
+          TextCellValue('${row['student_no'] ?? ''}'),
+          TextCellValue('${row['class_name'] ?? ''}'),
+          IntCellValue((row['expected'] as int?) ?? 0),
+          IntCellValue((row['absent'] as int?) ?? 0),
+          IntCellValue((row['late'] as int?) ?? 0),
+          IntCellValue((row['early_leave'] as int?) ?? 0),
+          IntCellValue((row['late_early'] as int?) ?? 0),
+          IntCellValue((row['leave'] as int?) ?? 0),
+          IntCellValue((row['abnormal'] as int?) ?? 0),
+          TextCellValue(
+            rate is double ? '${(rate * 100).toStringAsFixed(1)}%' : '—',
+          ),
+        ]);
+      }
+    }
+
+    if (detailRows.isNotEmpty) {
+      used = true;
+      final sheet = book['个人出勤明细'];
+      final header = <String>[
+        if (studentName != null && studentName.isNotEmpty) studentName,
+        '$fromDate 至 $toDate',
+        if (courseName != null && courseName.isNotEmpty) '课程：$courseName',
+        '（含正常出勤；没点名的课次按全勤计，不逐条列出）',
+      ].join(' · ');
+      sheet.appendRow(<CellValue?>[TextCellValue(header)]);
+      sheet.appendRow(<CellValue?>[
+        TextCellValue('日期'),
+        TextCellValue('星期'),
+        TextCellValue('课程'),
+        TextCellValue('上课时间'),
+        TextCellValue('出勤情况'),
+        TextCellValue('备注'),
+      ]);
+      for (final row in detailRows) {
+        sheet.appendRow(<CellValue?>[
+          TextCellValue('${row['date'] ?? ''}'),
+          TextCellValue('周${row['weekday'] ?? ''}'),
+          TextCellValue('${row['course_name'] ?? ''}'),
+          TextCellValue('${row['time'] ?? ''}'),
+          TextCellValue('${row['status'] ?? ''}'),
+          TextCellValue('${row['note'] ?? ''}'),
+        ]);
+      }
+    }
+
+    if (!used) {
+      // 一页都没数据时也留一张表，别给用户一个空文件
+      final sheet = book['学生追踪'];
+      sheet.appendRow(<CellValue?>[TextCellValue('这段时间没有出勤记录')]);
+    }
+
+    final bytes = book.encode();
+    if (bytes == null) {
+      throw const FormatException('Excel 编码失败');
+    }
+    return _save(bytes, 'track_${fromDate}_$toDate.xlsx');
+  }
+
+  /// 落盘到 `exports/` 并返回路径（两张工作簿共用）。
+  Future<String> _save(List<int> bytes, String fileName) async {
     final directory = await getApplicationDocumentsDirectory();
     final exportDir = Directory(p.join(directory.path, 'exports'));
     if (!exportDir.existsSync()) {
       exportDir.createSync(recursive: true);
     }
-    final file = File(
-      p.join(exportDir.path, 'attendance_${fromDate}_$toDate.xlsx'),
-    );
+    final file = File(p.join(exportDir.path, fileName));
     await file.writeAsBytes(Uint8List.fromList(bytes), flush: true);
     AppLogger.i('Excel 导出成功：${file.path}');
     return file.path;

@@ -1535,9 +1535,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insightBenefitedStudents => 'Students reached';
 
   @override
-  String get toolboxSwipeHint => 'Swipe · 2 pages';
-
-  @override
   String get ocrTitle => 'Scan schedule photo';
 
   @override
@@ -2557,4 +2554,76 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get statUnmarkedCounted =>
       'Unmarked lessons count as present and are not listed';
+
+  @override
+  String get trackTitle => 'Student tracking';
+
+  @override
+  String get trackSortHint => 'Most issues first';
+
+  @override
+  String trackAbnormalTimes(int count) {
+    return '$count issue(s)';
+  }
+
+  @override
+  String get trackAllPresent => 'All present';
+
+  @override
+  String trackRatePercent(String rate) {
+    return '$rate%';
+  }
+
+  @override
+  String trackStudentCount(int count) {
+    return '$count students';
+  }
+
+  @override
+  String trackTallyLine(int absent, int late, int early, int both, int leave) {
+    return 'Absent $absent · Late $late · Early $early · Both $both · Leave $leave';
+  }
+
+  @override
+  String get trackListEmpty => 'No attendance records in this period';
+
+  @override
+  String get trackDetailTitle => 'Attendance records';
+
+  @override
+  String get trackDetailEmpty => 'No attendance records in this period';
+
+  @override
+  String get trackColDate => 'Date';
+
+  @override
+  String get trackColCourse => 'Course';
+
+  @override
+  String get trackColStatus => 'Status';
+
+  @override
+  String get trackExportList => 'Export student list';
+
+  @override
+  String get trackExportDetail => 'Export records';
+
+  @override
+  String trackRangeCourse(String from, String to, String course) {
+    return '$from – $to · $course';
+  }
+
+  @override
+  String trackUnmarkedNote(int count) {
+    return '$count lesson(s) were never marked and count as present, so they are not listed';
+  }
+
+  @override
+  String toolboxSwipeHintTotal(int count) {
+    return 'Swipe · $count pages';
+  }
+
+  @override
+  String get statFormulaLine6 =>
+      'Only lessons up to today are counted; future lessons are excluded';
 }

@@ -70,6 +70,12 @@ class LedgerTally {
   /// 区间内的异常课次 = 五个互斥数之和。
   int get abnormal => absent + late + earlyLeave + lateAndEarly + leave;
 
+  /// 真实记录过的课次（出勤 + 异常）。
+  ///
+  /// 「应上 − 真实记录」才是**没点名的**课次 —— 用 [unmarkedSessions] 取，
+  /// 别在界面上自己减（课表改过时会出现负数，要统一截断）。
+  int get recordedSessions => present + abnormal;
+
   /// 迟到类课次（含「迟到+早退」），只给文案用，不参与互斥加总。
   int get anyLate => late + lateAndEarly;
 
@@ -213,6 +219,61 @@ List<MapEntry<String, List<StudentLedger>>> groupLedgersByClass(
     for (final key in keys)
       MapEntry<String, List<StudentLedger>>(key, buckets[key]!),
   ];
+}
+
+/// 学生追踪详情页的行序：**日期倒序**（最近的在最上面），同一天按上课时间正序。
+///
+/// 和 [groupLedgerRows] 的组内排序同一套规则，但这里不分状态组 ——
+/// 详情页要的是"一条时间线"，出勤和异常混在同一列里往下读。
+List<AttendanceLedgerRow> sortLedgerRowsByDate(
+  Iterable<AttendanceLedgerRow> rows,
+) {
+  final sorted = List<AttendanceLedgerRow>.of(rows);
+  sorted.sort((a, b) {
+    final byDate = b.date.compareTo(a.date);
+    if (byDate != 0) {
+      return byDate;
+    }
+    return (a.startTime ?? '').compareTo(b.startTime ?? '');
+  });
+  return sorted;
+}
+
+/// 学生追踪页（工具箱第 3 页）的排序：**异常次数多的先看到**。
+///
+/// 这一页是"该找谁谈"的入口，不是给分表 —— 所以异常次数优先于出勤率。
+/// 异常次数相同的，出勤率低的排前面；再相同按姓名，保证每次打开顺序稳定。
+/// 全勤的学生不会消失，只是沉在最后（老师仍然要能点进去看记录）。
+List<StudentLedger> sortLedgersForTrack(List<StudentLedger> ledgers) {
+  final sorted = List<StudentLedger>.of(ledgers);
+  sorted.sort((a, b) {
+    final byAbnormal = b.tally.abnormal.compareTo(a.tally.abnormal);
+    if (byAbnormal != 0) {
+      return byAbnormal;
+    }
+    final rateA = a.attendanceRate;
+    final rateB = b.attendanceRate;
+    if (rateA != null && rateB != null && rateA != rateB) {
+      return rateA.compareTo(rateB);
+    }
+    if (rateA == null && rateB != null) {
+      return 1;
+    }
+    if (rateA != null && rateB == null) {
+      return -1;
+    }
+    return a.student.name.compareTo(b.student.name);
+  });
+  return sorted;
+}
+
+/// 没点名的课次 = 应上 − 真实记录条数（不小于 0）。
+///
+/// 课表后来改过时「应上」可能比实际记录还少，这时截断到 0，
+/// 界面上不要出现「−3 节没点名」这种数字。
+int unmarkedSessions(StudentLedger ledger) {
+  final rest = ledger.expectedSessions - ledger.tally.recordedSessions;
+  return rest < 0 ? 0 : rest;
 }
 
 /// 一个班整体的出勤率 = 1 − Σ缺勤 ÷ Σ应上。

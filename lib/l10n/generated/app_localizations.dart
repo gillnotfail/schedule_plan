@@ -2906,12 +2906,6 @@ abstract class AppLocalizations {
   /// **'Students reached'**
   String get insightBenefitedStudents;
 
-  /// No description provided for @toolboxSwipeHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Swipe · 2 pages'**
-  String get toolboxSwipeHint;
-
   /// No description provided for @ocrTitle.
   ///
   /// In en, this message translates to:
@@ -4631,6 +4625,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unmarked lessons count as present and are not listed'**
   String get statUnmarkedCounted;
+
+  /// No description provided for @trackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Student tracking'**
+  String get trackTitle;
+
+  /// No description provided for @trackSortHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Most issues first'**
+  String get trackSortHint;
+
+  /// No description provided for @trackAbnormalTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} issue(s)'**
+  String trackAbnormalTimes(int count);
+
+  /// No description provided for @trackAllPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'All present'**
+  String get trackAllPresent;
+
+  /// No description provided for @trackRatePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{rate}%'**
+  String trackRatePercent(String rate);
+
+  /// No description provided for @trackStudentCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} students'**
+  String trackStudentCount(int count);
+
+  /// No description provided for @trackTallyLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent {absent} · Late {late} · Early {early} · Both {both} · Leave {leave}'**
+  String trackTallyLine(int absent, int late, int early, int both, int leave);
+
+  /// No description provided for @trackListEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No attendance records in this period'**
+  String get trackListEmpty;
+
+  /// No description provided for @trackDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance records'**
+  String get trackDetailTitle;
+
+  /// No description provided for @trackDetailEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No attendance records in this period'**
+  String get trackDetailEmpty;
+
+  /// No description provided for @trackColDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get trackColDate;
+
+  /// No description provided for @trackColCourse.
+  ///
+  /// In en, this message translates to:
+  /// **'Course'**
+  String get trackColCourse;
+
+  /// No description provided for @trackColStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get trackColStatus;
+
+  /// No description provided for @trackExportList.
+  ///
+  /// In en, this message translates to:
+  /// **'Export student list'**
+  String get trackExportList;
+
+  /// No description provided for @trackExportDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Export records'**
+  String get trackExportDetail;
+
+  /// No description provided for @trackRangeCourse.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} – {to} · {course}'**
+  String trackRangeCourse(String from, String to, String course);
+
+  /// No description provided for @trackUnmarkedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} lesson(s) were never marked and count as present, so they are not listed'**
+  String trackUnmarkedNote(int count);
+
+  /// No description provided for @toolboxSwipeHintTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe · {count} pages'**
+  String toolboxSwipeHintTotal(int count);
+
+  /// No description provided for @statFormulaLine6.
+  ///
+  /// In en, this message translates to:
+  /// **'Only lessons up to today are counted; future lessons are excluded'**
+  String get statFormulaLine6;
 }
 
 class _AppLocalizationsDelegate

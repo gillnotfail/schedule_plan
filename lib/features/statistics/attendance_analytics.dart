@@ -92,6 +92,11 @@ class AttendanceAnalytics {
   }
 
   /// 构造：先把"该上几节"按天摊开，再用台账填分子。
+  ///
+  /// **[asOf] 是出勤率能不能看的关键**：区间常常一直排到学期末（"本学期"就是
+  /// 9/1 ~ 次年 1/31），如果未来还没上的课也算进"应上"，期中打开统计时
+  /// 每个人的出勤率都会被稀释成六七成 —— 那是日历的错，不是孩子的错。
+  /// 所以只把**今天（含）之前**的课算进应上；不传就用现在。
   factory AttendanceAnalytics.build({
     required List<WeeklySlot> slots,
     required List<Student> students,
@@ -101,6 +106,7 @@ class AttendanceAnalytics {
     required DateTime to,
     required int Function(DateTime date) labelWeekday,
     required bool Function(DateTime date) isRestDay,
+    DateTime? asOf,
     Map<int, String> classNames = const <int, String>{},
     int? courseId,
     int? studentId,
@@ -153,9 +159,15 @@ class AttendanceAnalytics {
 
     final start = DateTime(from.year, from.month, from.day);
     final end = DateTime(to.year, to.month, to.day);
+    // 未来还没上的课不算"应上"（见构造注释）
+    final now = asOf ?? DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     for (var day = start;
         !day.isAfter(end);
         day = DateTime(day.year, day.month, day.day + 1)) {
+      if (day.isAfter(today)) {
+        break;
+      }
       if (isRestDay(day)) {
         continue;
       }

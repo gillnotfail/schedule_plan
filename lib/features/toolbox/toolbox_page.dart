@@ -19,6 +19,7 @@ import 'package:schedule_plan/data/models/schedule_event.dart';
 import 'package:schedule_plan/data/services/teaching_insight_service.dart';
 import 'package:schedule_plan/features/settings/statistics_settings_page.dart';
 import 'package:schedule_plan/features/statistics/statistics_page.dart';
+import 'package:schedule_plan/features/statistics/student_track_panel.dart';
 import 'package:schedule_plan/features/toolbox/calendar_page.dart';
 import 'package:schedule_plan/features/toolbox/focus_timer_page.dart';
 import 'package:schedule_plan/features/toolbox/quote_card.dart';
@@ -27,11 +28,12 @@ import 'package:schedule_plan/l10n/generated/app_localizations.dart';
 
 /// 教师工具箱（模块五 + 用户规格第 9 / 10 / 13 轮）。
 ///
-/// 版式：**两页**——第 1 页是所有工具卡片（2 列网格可滚动），第 2 页是教学成果。
+/// 版式：**三页**——第 1 页是所有工具卡片（2 列网格可滚动），第 2 页是教学成果，
+/// 第 3 页是**学生追踪**（第 33 轮用户规格：按人查异常出勤，点姓名看流水）。
 /// 用户规格（第 10 轮）："不需要工具-教学成果这两个标题……提示用户直接滑动
 /// 或者告知有2页即可，这个标题太丑了。" 所以顶部**不放文字 Tab**，
-/// 用 PageView 左右滑动 + 底部圆点指示（圆点本身就在说"有 2 页"），
-/// 圆点旁一句「左右滑动 · 共 2 页」做引导。
+/// 用 PageView 左右滑动 + 底部圆点指示（圆点本身就在说"有几页"），
+/// 圆点旁一句「左右滑动 · 共 N 页」做引导。
 ///
 /// 第 13 轮两处改版：
 /// 1. **工具卡片改成实色卡**（[ToolCardTone]）：参考图里是一排彩色卡片，
@@ -70,6 +72,13 @@ class _ToolboxPageState extends State<ToolboxPage> {
 
   /// 跨 Tab 导航状态：用来感知"老师从别的 Tab 回到工具箱了"。
   AppNavigationState? _navigation;
+
+  /// 第 3 页（学生追踪）的刷新信号。
+  ///
+  /// 那一页在 `PageView` 里保持存活，`IndexedStack` 切回来既不 `initState`
+  /// 也不重读库 —— 考勤可能在考勤页被改过，所以切回工具箱 / 滑到第 3 页时
+  /// 自增这个信号，让它自己重新拉一遍。
+  int _trackRefreshToken = 0;
 
   /// 上一个可见的 Tab 下标。
   int _lastTabIndex = AppNavigationState.toolboxTabIndex;
@@ -122,6 +131,11 @@ class _ToolboxPageState extends State<ToolboxPage> {
     setState(() => _quoteSeed++);
     if (_page == 0) {
       // 停在第 1 页时成果页看不见，没必要跟着重算
+      return;
+    }
+    if (_page == 2) {
+      // 学生追踪页：考勤可能刚在考勤 Tab 被改过，重拉一遍
+      setState(() => _trackRefreshToken++);
       return;
     }
     // ignore: discarded_futures — 由 setState 驱动 UI
@@ -229,16 +243,21 @@ class _ToolboxPageState extends State<ToolboxPage> {
                   if (index == 0 && _page != 0) {
                     _quoteSeed++;
                   }
+                  // 滑到学生追踪页时重拉一次（别让名单停在旧数据上）
+                  if (index == 2) {
+                    _trackRefreshToken++;
+                  }
                   _page = index;
                 });
               },
               children: <Widget>[
                 _buildTools(context),
                 _buildAchievements(context),
+                StudentTrackPanel(refreshToken: _trackRefreshToken),
               ],
             ),
           ),
-          _PageHint(current: _page, total: 2, l10n: l10n),
+          _PageHint(current: _page, total: 3, l10n: l10n),
         ],
       ),
     );
@@ -522,7 +541,7 @@ class _PageHint extends StatelessWidget {
             ),
           const SizedBox(width: AppConstants.spaceS),
           Text(
-            l10n.toolboxSwipeHint,
+            l10n.toolboxSwipeHintTotal(total),
             style: theme.textTheme.labelSmall?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
