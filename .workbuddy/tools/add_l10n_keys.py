@@ -751,6 +751,8 @@ NEW_KEYS = {
         "zh": "只算到今天为止，后面还没上的课不计入应上课次",
         "en": "Only lessons up to today are counted; future lessons are excluded",
     },
+    # 第 35 轮：导出文件名要用「全部课程」这段文字
+    "statAllCourses": {"zh": "全部课程", "en": "All courses"},
     "trackTitle": {"zh": "学生追踪", "en": "Student tracking"},
     "trackSortHint": {"zh": "按异常次数从多到少", "en": "Most issues first"},
     "trackAbnormalTimes": {"zh": "{count} 次异常", "en": "{count} issue(s)"},

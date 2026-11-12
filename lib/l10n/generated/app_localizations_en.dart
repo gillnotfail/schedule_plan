@@ -2626,4 +2626,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get statFormulaLine6 =>
       'Only lessons up to today are counted; future lessons are excluded';
+
+  @override
+  String get statAllCourses => 'All courses';
 }

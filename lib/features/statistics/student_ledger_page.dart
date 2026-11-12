@@ -409,6 +409,9 @@ class _StudentLedgerPageState extends State<StudentLedgerPage> {
             },
         ],
         formulaNote: l10n.statFormulaLine1,
+        // 文件名：`20261112-2038-张三-出勤档案.xlsx`
+        fileSubject: data.student.name,
+        fileKind: '出勤档案',
       );
       if (!mounted) {
         return;

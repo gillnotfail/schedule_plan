@@ -561,7 +561,7 @@ class _StudentTrackPanelState extends State<StudentTrackPanel>
       final path = await ExcelService().exportTrackWorkbook(
         fromDate: app_dates.DateUtils.formatDate(data.from),
         toDate: app_dates.DateUtils.formatDate(data.to),
-        courseName: data.courseName,
+        courseName: data.courseName ?? l10n.statAllCourses,
         studentRows: <Map<String, Object?>>[
           for (final ledger in data.ledgers)
             <String, Object?>{

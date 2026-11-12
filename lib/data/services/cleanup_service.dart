@@ -8,6 +8,7 @@ import 'package:schedule_plan/core/constants/app_constants.dart';
 import 'package:schedule_plan/core/constants/setting_keys.dart';
 import 'package:schedule_plan/core/logging/app_logger.dart';
 import 'package:schedule_plan/core/utils/date_utils.dart';
+import 'package:schedule_plan/core/utils/file_naming.dart';
 import 'package:schedule_plan/data/repositories/attendance_repository.dart';
 import 'package:schedule_plan/data/repositories/import_log_repository.dart';
 import 'package:schedule_plan/data/repositories/settings_repository.dart';
@@ -88,7 +89,15 @@ class CleanupService {
         backupDir.createSync(recursive: true);
       }
       final file = File(
-        p.join(backupDir.path, 'attendance_before_$cutoffDate.json'),
+        p.join(
+          backupDir.path,
+          // `20261112-2038-考勤清理备份-截止2026-05-16.json`
+          buildExportFileName(
+            subject: '考勤清理备份',
+            kind: '截止$cutoffDate',
+            extension: 'json',
+          ),
+        ),
       );
       await file.writeAsString(
         jsonEncode(<String, Object?>{

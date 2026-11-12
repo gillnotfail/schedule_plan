@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import 'package:schedule_plan/core/logging/app_logger.dart';
+import 'package:schedule_plan/core/utils/file_naming.dart';
 import 'package:schedule_plan/data/models/attendance.dart';
 import 'package:schedule_plan/data/models/import_log.dart';
 import 'package:schedule_plan/data/models/student.dart';
@@ -41,6 +42,9 @@ class ExcelService {
   /// 导出三个 Sheet：考勤汇总 / 异常明细 / 学生排名。
   ///
   /// 返回生成的文件路径，调用方再交给系统分享面板。
+  ///
+  /// [fileSubject] 决定文件名开头那个"给谁导的"：统计页传课程名，
+  /// 学生档案页传学生名（不传就只留时间和内容，见 [buildExportFileName]）。
   Future<String> exportAttendanceWorkbook({
     required List<Map<String, Object?>> summaryRows,
     required List<Map<String, Object?>> abnormalRows,
@@ -50,6 +54,8 @@ class ExcelService {
     List<Map<String, Object?>> rateRows = const <Map<String, Object?>>[],
     List<Map<String, Object?>> studentRows = const <Map<String, Object?>>[],
     String? formulaNote,
+    String? fileSubject,
+    String fileKind = '出勤情况',
   }) async {
     final book = Excel.createExcel();
     book.rename(book.getDefaultSheet() ?? 'Sheet1', '考勤汇总');
@@ -191,7 +197,10 @@ class ExcelService {
     if (bytes == null) {
       throw const FormatException('Excel 编码失败');
     }
-    return _save(bytes, 'attendance_${fromDate}_$toDate.xlsx');
+    return _save(
+      bytes,
+      buildExportFileName(kind: fileKind, subject: fileSubject),
+    );
   }
 
   /// 工具箱「学生追踪」页的导出（用户规格第 33 轮）。
@@ -295,7 +304,14 @@ class ExcelService {
     if (bytes == null) {
       throw const FormatException('Excel 编码失败');
     }
-    return _save(bytes, 'track_${fromDate}_$toDate.xlsx');
+    return _save(
+      bytes,
+      buildExportFileName(
+        // 详情页有学生名（个人流水），名单页只有课程名（整班名单）
+        subject: studentName ?? courseName,
+        kind: detailRows.isNotEmpty ? '出勤记录' : '学生追踪',
+      ),
+    );
   }
 
   /// 落盘到 `exports/` 并返回路径（两张工作簿共用）。

@@ -2536,4 +2536,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statFormulaLine6 => '只算到今天为止，后面还没上的课不计入应上课次';
+
+  @override
+  String get statAllCourses => '全部课程';
 }

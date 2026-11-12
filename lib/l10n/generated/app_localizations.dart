@@ -4739,6 +4739,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only lessons up to today are counted; future lessons are excluded'**
   String get statFormulaLine6;
+
+  /// No description provided for @statAllCourses.
+  ///
+  /// In en, this message translates to:
+  /// **'All courses'**
+  String get statAllCourses;
 }
 
 class _AppLocalizationsDelegate

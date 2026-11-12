@@ -1569,5 +1569,6 @@
       }
     }
   },
-  "statFormulaLine6": "Only lessons up to today are counted; future lessons are excluded"
+  "statFormulaLine6": "Only lessons up to today are counted; future lessons are excluded",
+  "statAllCourses": "All courses"
 }

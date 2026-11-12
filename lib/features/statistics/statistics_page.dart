@@ -235,6 +235,26 @@ class _StatisticsPageState extends State<StatisticsPage> {
         classId: classId,
         courseId: courseId,
       );
+      // 文件名：`20261112-2038-数学-出勤情况.xlsx`；没筛课程就写「全部课程」，
+      // 筛了班级再接一段班级名，免得同分钟导出的几个班互相覆盖。
+      var courseName = l10n.statAllCourses;
+      if (courseId != null) {
+        for (final course in data.courses) {
+          if (course.id == courseId) {
+            courseName = course.name;
+            break;
+          }
+        }
+      }
+      var className = '';
+      if (classId != null) {
+        for (final item in data.classes) {
+          if (item.id == classId) {
+            className = item.name;
+            break;
+          }
+        }
+      }
       final path = await ExcelService().exportAttendanceWorkbook(
         summaryRows: summary,
         abnormalRows: data.abnormal,
@@ -257,6 +277,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
             },
         ],
         formulaNote: l10n.statFormulaLine1,
+        fileSubject: className.isEmpty ? courseName : '$courseName-$className',
+        fileKind: '出勤情况',
       );
       if (!mounted) {
         return;
