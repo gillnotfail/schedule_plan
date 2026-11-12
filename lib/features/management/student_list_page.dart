@@ -8,6 +8,7 @@ import 'package:schedule_plan/core/theme/app_motion.dart';
 import 'package:schedule_plan/core/utils/color_utils.dart';
 import 'package:schedule_plan/core/theme/app_page_route.dart';
 import 'package:schedule_plan/core/utils/pinyin_utils.dart';
+import 'package:schedule_plan/core/utils/date_utils.dart' as app_dates;
 import 'package:schedule_plan/core/widgets/app_card.dart';
 import 'package:schedule_plan/core/widgets/app_snackbar.dart';
 import 'package:schedule_plan/core/widgets/confirm_dialog.dart';
@@ -18,6 +19,8 @@ import 'package:schedule_plan/data/repositories/class_repository.dart';
 import 'package:schedule_plan/data/repositories/student_repository.dart';
 import 'package:schedule_plan/features/management/student_form_sheet.dart';
 import 'package:schedule_plan/features/management/student_import_page.dart';
+import 'package:schedule_plan/features/statistics/attendance_ledger.dart';
+import 'package:schedule_plan/features/statistics/student_ledger_page.dart';
 import 'package:schedule_plan/l10n/generated/app_localizations.dart';
 
 /// 学生名单（模块六 6.2 / 6.3 + 用户规格）。
@@ -263,11 +266,39 @@ class _StudentListPageState extends State<StudentListPage> {
               ),
             ),
             IconButton(
+              tooltip: l10n.statLedgerShort,
+              icon: const Icon(Icons.fact_check_outlined, size: 20),
+              onPressed: () => _openLedger(student),
+            ),
+            IconButton(
               tooltip: l10n.delete,
               icon: const Icon(Icons.delete_outline, size: 20),
               onPressed: () => _delete(student),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// 学生名单 → 出勤档案（`docs/SPEC.md` 6.5）。
+  ///
+  /// **整行点击仍然是"编辑学生"**，这里只是行尾多出来的一个入口 ——
+  /// 名单是老师改名字、改学号的地方，不能因为加了统计就把编辑路径顶掉。
+  void _openLedger(Student student) {
+    final id = student.id;
+    if (id == null) {
+      return;
+    }
+    // 区间与统计页「本学期」同一个来源，避免两处显示不同区间
+    final term = schoolTermRange(DateTime.now());
+    Navigator.of(context).push(
+      AppPageRoute<void>(
+        child: StudentLedgerPage(
+          studentId: id,
+          studentName: student.name,
+          fromDate: app_dates.DateUtils.formatDate(term.start),
+          toDate: app_dates.DateUtils.formatDate(term.end),
         ),
       ),
     );

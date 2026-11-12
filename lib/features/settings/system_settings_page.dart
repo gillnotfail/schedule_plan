@@ -412,7 +412,8 @@ class _SystemSettingsPageState extends State<SystemSettingsPage> {
     );
   }
 
-  /// 「默认考勤状态」下拉的可选项：日常五态 + 未标记。
+  /// 「默认考勤状态」下拉的可选项：日常五种单一状态 + 未标记。
+  /// 刻意不含「迟到+早退」（组合态设成默认值没有意义）。
   static const List<AttendanceStatus> _defaultStatusChoices =
       <AttendanceStatus>[
     ...AttendanceStatus.dailyChoices,

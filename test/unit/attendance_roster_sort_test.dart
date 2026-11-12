@@ -145,12 +145,13 @@ void main() {
   });
 
   group('长期状态本身就是长期状态', () {
-    test('休学 / 免修被识别为长期状态，日常五态不是', () {
+    test('休学 / 免修被识别为长期状态，日常六态（含组合态）不是', () {
       expect(AttendanceStatus.suspended.isLongTerm, isTrue);
       expect(AttendanceStatus.exempt.isLongTerm, isTrue);
       for (final status in AttendanceStatus.dailyChoices) {
         expect(status.isLongTerm, isFalse, reason: '${status.name} 是日常状态');
       }
+      expect(AttendanceStatus.lateAndEarly.isLongTerm, isFalse);
     });
 
     test('长期状态不算"异常出勤"（不污染异常明细）', () {
@@ -159,15 +160,59 @@ void main() {
       expect(AttendanceStatus.absent.isAbnormal, isTrue);
     });
 
-    test('一键胶囊平铺七个状态：日常五个 + 长期两个', () {
-      expect(AttendanceStatus.choices.length, 7);
+    test('组合态：迟到 / 早退两个口径都认，但只算一次异常', () {
+      const both = AttendanceStatus.lateAndEarly;
+      expect(both.isLate, isTrue, reason: '迟到次数里要含它');
+      expect(both.isEarlyLeave, isTrue, reason: '早退次数里要含它');
+      expect(both.isAbnormal, isTrue);
       expect(
-        AttendanceStatus.choices.take(5),
-        AttendanceStatus.dailyChoices,
+        AttendanceStatus.late.isEarlyLeave,
+        isFalse,
+        reason: '只迟到的人不能被算成早退',
       );
+      expect(AttendanceStatus.earlyLeave.isLate, isFalse);
+      // 组合态不是缺勤：它不会把整行标红
+      expect(both.countsAsAbsence, isFalse);
+    });
+
+    test('两枚胶囊的开关合成一个落库状态（and 语义）', () {
+      expect(
+        AttendanceStatus.fromLateEarly(late: true, earlyLeave: true),
+        AttendanceStatus.lateAndEarly,
+      );
+      expect(
+        AttendanceStatus.fromLateEarly(late: true, earlyLeave: false),
+        AttendanceStatus.late,
+      );
+      expect(
+        AttendanceStatus.fromLateEarly(late: false, earlyLeave: true),
+        AttendanceStatus.earlyLeave,
+      );
+      expect(
+        AttendanceStatus.fromLateEarly(late: false, earlyLeave: false),
+        AttendanceStatus.present,
+      );
+    });
+
+    test('一键胶囊平铺七个状态：日常五个 + 长期两个（组合态不占格子）', () {
+      expect(AttendanceStatus.choices.length, 7);
+      expect(AttendanceStatus.choices.take(5), AttendanceStatus.dailyChoices);
       expect(
         AttendanceStatus.choices.skip(5),
         AttendanceStatus.longTermChoices,
+      );
+      expect(
+        AttendanceStatus.choices.contains(AttendanceStatus.lateAndEarly),
+        isFalse,
+        reason: '组合态由「迟」「早」两枚同亮表示，不再单独占一格',
+      );
+    });
+
+    test('组合态的库内键名是 late_early，能被读回来', () {
+      expect(AttendanceStatus.lateAndEarly.storageKey, 'late_early');
+      expect(
+        AttendanceStatus.fromStorage('late_early'),
+        AttendanceStatus.lateAndEarly,
       );
     });
   });

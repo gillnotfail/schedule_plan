@@ -2448,4 +2448,113 @@ class AppLocalizationsEn extends AppLocalizations {
   String attendanceSummaryClassGroup(String className, String names) {
     return '$className: $names';
   }
+
+  @override
+  String get statusLateAndEarly => 'Late + left early';
+
+  @override
+  String get statusShortLateAndEarly => 'LE';
+
+  @override
+  String get statOverview => 'Overview';
+
+  @override
+  String get statClassRanking => 'Class ranking';
+
+  @override
+  String get statRangeWeek => 'This week';
+
+  @override
+  String get statRangeMonth => 'This month';
+
+  @override
+  String get statRangeTerm => 'This term';
+
+  @override
+  String get statRangeCustom => 'Custom';
+
+  @override
+  String statRangeLabel(String from, String to) {
+    return '$from – $to';
+  }
+
+  @override
+  String get statClassFilter => 'Filter by class';
+
+  @override
+  String get statRate => 'Attendance';
+
+  @override
+  String get statExpected => 'Expected';
+
+  @override
+  String get statAbsent => 'Absent';
+
+  @override
+  String get statLate => 'Late';
+
+  @override
+  String get statEarlyLeave => 'Left early';
+
+  @override
+  String get statLateAndEarly => 'L+E';
+
+  @override
+  String get statLeave => 'Leave';
+
+  @override
+  String get statAbnormalSessions => 'Abnormal';
+
+  @override
+  String get statClassAverage => 'Class average';
+
+  @override
+  String get statLedgerTitle => 'Attendance record';
+
+  @override
+  String get statLedgerShort => 'Record';
+
+  @override
+  String get statShowAllLessons => 'Show all lessons';
+
+  @override
+  String get statLedgerEmpty => 'No absences in this period';
+
+  @override
+  String get statRankingHint => 'Tap a name for the full record';
+
+  @override
+  String get statNoTimetable =>
+      'No lessons scheduled, so there is no rate to show';
+
+  @override
+  String statSessionCount(int count) {
+    return '$count lessons';
+  }
+
+  @override
+  String get statFormulaTitle => 'How attendance is calculated';
+
+  @override
+  String get statFormulaLine1 => 'Rate = 1 − absences ÷ expected lessons';
+
+  @override
+  String get statFormulaLine2 =>
+      'Expected lessons come from the current timetable; unmarked lessons count as present';
+
+  @override
+  String get statFormulaLine3 =>
+      'Late, early leave and approved leave do not lower the rate; leave is listed separately';
+
+  @override
+  String get statFormulaLine4 =>
+      'Suspended days are excluded from expected lessons; exempt students still count';
+
+  @override
+  String get statFormulaLine5 =>
+      'Editing the timetable recalculates past rates';
+
+  @override
+  String get statUnmarkedCounted =>
+      'Unmarked lessons count as present and are not listed';
 }

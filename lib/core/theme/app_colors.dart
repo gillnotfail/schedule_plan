@@ -23,12 +23,15 @@ enum AppThemeKind {
 
 /// 亮色主题下共享的「考勤状态语义色」。
 ///
-/// 五种考勤状态在全国范围内有稳定认知（出勤=绿、迟到=橙、缺勤=红…），
+/// 考勤状态在全国范围内有稳定认知（出勤=绿、迟到=橙、缺勤=红…），
 /// 不随主题色漂移，只随明暗模式切换，避免用户换主题后看不懂。
 const AttendancePalette _lightAttendance = AttendancePalette(
   present: Color(0xFF1B8A4B),
   late: Color(0xFFE8710A),
   earlyLeave: Color(0xFF8E4BC0),
+  // 「迟到 + 早退」是迟到（橙）与早退（紫）的中间色：既不属于任何一头，
+  // 也不会和缺勤红（#D63B3B）撞眼。白字压上去对比度 4.9:1。
+  lateAndEarly: Color(0xFFB4488F),
   absent: Color(0xFFD63B3B),
   leave: Color(0xFF2A6FD9),
   unmarked: Color(0xFF8C9296),
@@ -48,6 +51,7 @@ const AttendancePalette _darkAttendance = AttendancePalette(
   present: Color(0xFF6BD98F),
   late: Color(0xFFFFB454),
   earlyLeave: Color(0xFFD6A3F0),
+  lateAndEarly: Color(0xFFE58FCB),
   absent: Color(0xFFFF8080),
   leave: Color(0xFF7FB3FF),
   unmarked: Color(0xFF8A9296),
@@ -66,6 +70,7 @@ class AttendancePalette {
     required this.present,
     required this.late,
     required this.earlyLeave,
+    required this.lateAndEarly,
     required this.absent,
     required this.leave,
     required this.unmarked,
@@ -81,6 +86,9 @@ class AttendancePalette {
   final Color present;
   final Color late;
   final Color earlyLeave;
+
+  /// 迟到 + 早退（同一节课两头都占了，见 `AttendanceStatus.lateAndEarly`）
+  final Color lateAndEarly;
   final Color absent;
   final Color leave;
   final Color unmarked;
@@ -251,6 +259,7 @@ class AppColorTokens {
   Color get attendancePresent => attendance.present;
   Color get attendanceLate => attendance.late;
   Color get attendanceEarlyLeave => attendance.earlyLeave;
+  Color get attendanceLateAndEarly => attendance.lateAndEarly;
   Color get attendanceAbsent => attendance.absent;
   Color get attendanceLeave => attendance.leave;
   Color get attendanceUnmarked => attendance.unmarked;

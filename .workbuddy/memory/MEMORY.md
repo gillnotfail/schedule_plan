@@ -1,151 +1,88 @@
 # schedule_plan 长期约定
 
-> **只记「改错会出事」的硬约束**。**注入上限约 10k 字符**，超出部分后续会话**看不到** → 只留**红线**；
-> **细则/常量/文件清单在 `MEMORY-DETAIL.md`**；过程记录在 `YYYY-MM-DD.md`。
-> **动这些子系统前先读 `MEMORY-DETAIL.md`**：课表格子与曲线布局、考勤名单与日历圆环、表单与名单、节假日与调休、
-> 日程与统计、「每日一句」语录卡片、**专注模式**、全局动效与配色、机械表盘、拍照识别课表、**发布与差分升级**。
-> 需求唯一来源 `docs/SPEC.md`；发布手册 `docs/RELEASE.md`。
+> **只记「改错会出事」的硬约束**（注入上限约 10k 字节，超了后续会话看不到 → 只留红线）。
+> **细则/常量/文件清单在 `MEMORY-DETAIL.md`**（工具链故障、发布链路、课表格子与曲线、考勤、统计、专注模式等章节）。
+> 过程记录在 `YYYY-MM-DD.md`；需求唯一来源 `docs/SPEC.md`；发布手册 `docs/RELEASE.md`。
 
 ## 平台 / 需求
-- 唯一规格 `docs/SPEC.md`（原 README.md，第 15 轮改名）。**别用「更好的设计」覆盖**。
-- **Windows 上 `README.md`/`readme.md` 是同一文件**：别照抄 GitHub 的 `echo "# x" >> README.md`。
-- 只做 Android APK；iOS 只留默认模板，不验证。**暂不加鸿蒙（ohos）代码**。
+- 唯一规格 `docs/SPEC.md`，**别用「更好的设计」覆盖**。
+- 只做 Android APK（iOS 不验证、不加鸿蒙）；**Windows 上 `README.md`/`readme.md` 是同一文件**。
 
-## 质量门槛与工具链（提交前必跑）
-- `flutter analyze --no-pub` 零 issue（**含 test/**）；`flutter test` 全绿（当前 +487）。
-- **跑前设 `NO_PROXY=localhost,127.0.0.1,::1`**，否则代理劫持 flutter_tester 的 WebSocket。
-- 找文件用 Glob、找内容用 Grep；Bash 里 managed Python/Node 走绝对路径（`ls`/`grep`/`tail` 实测可用）。
-- **flutter 一律走 `C:\Users\jeo\AppData\Local\Temp\wb_run_flutter.py`**（直调 `flutter.BAT`，绕开 PowerShell 管道）：
-  `<py> wb_run_flutter.py <项目绝对路径> analyze --no-pub`。末尾自打 `=== EXIT n ===`，**以日志最后一行结论为准**
-  （PowerShell 承接 flutter 输出时退出码不可信；`*>` 重定向是 UTF-16LE，要用 `Out-File -Encoding utf8`）。
-- **同一时刻只跑一个 flutter 命令**：并发会让 native assets 拷贝撞车（`PathExistsException ... sqlite3.dll`），
-  删 `build/native_assets` 重跑。
-- **长命令必须显式给 `timeout`**：默认 **120s 就掐，`run_in_background` 也不豁免**。症状 = `failed` +
-  `Duration: 2m 1s` + **日志停在中间**（输出先缓存、结束才落盘）。`build apk --release` 实测 ~1m56s。
-- **Python 脚本里调 flutter 必须解析出 `.bat`**（`shutil.which`），否则 `[WinError 2]`。
-- **`flutter`/`dart` 全线废** 时报错是 `CreateFile failed 231`（`ERROR_PIPE_BUSY`，**不是权限问题**）。
-  **根因是 WorkBuddy 的进程环境**：同一探针在用户自己 cmd 里 20/20 成功、本机 100% 失败；环境变量/沙箱/
-  Job/控制台/管道全排除过，**重启电脑也没用**（别让人再重启）。**判据只有一条：当场起一个 Dart 子进程**
-  （`%TEMP%\wb_spawn_probe.dart`）——「刚才能跑」不算证据。处置：请用户在自家终端里跑（样板
-  `%TEMP%\release_v1.0.8.bat`），别杀进程、别改代码。两个假象：**Bash 照样能用**（长驻 shell 复用管道）；
-  **PowerShell 工具静默返回空输出**（exit 0）。全部排查见 `MEMORY-DETAIL.md`「工具链故障」。
-- **写 .bat 包 flutter 时禁止用 `if errorlevel 1` 当门禁**：`flutter.BAT` **成功也返回非 0**，一个"环境自检"
-  会把**整个后续流程静默跳过**（第 24 轮实测：窗口只打出 `flutter --version` 就退出，看着像"跑完了"）。
-  自检只做展示，**别拿退出码决定走不走下一步**。
-- **同一文件多处改动要一条条 Edit**（并行写会互相覆盖：日志 success 但没落盘），改完复核。
-  **Edit 替换「注释+紧邻声明」后立刻 analyze**（曾连注释删掉 `enum _TipTone` → 9 个 undefined_identifier）。
-- 批量改代码走**独立 .py 脚本**（shell 单行会吃掉中文+三引号+`$`）；每处 replace 前 `assert 旧串 in s`；
-  注意 CRLF，用 `newline=''` 读。`bash` heredoc 被安全策略拦，长文本用 Write/Edit。
-- widget 测试改窗口走 `tester.view.devicePixelRatio/physicalSize` + `addTearDown(tester.view.reset)`，
-  别给 `MaterialApp` 套 `SizedBox`；测试 `main()` 内局部函数**不加下划线前缀**。
-- widget 测试 `find.text` 会撞时间轴刻度，断言浮层用 `find.descendant(of: 浮层)` 限定。
-- widget 测试里**组件 `initState` 去读 sqlite** 时，`pumpAndSettle` 推假时钟 → 查询跑不完，内部锁超时 Timer
-  挂到测试结束被判 pending；用 `tester.runAsync(() => Future.delayed(...))` 放它们跑完。
-- 单测要真实亮度/对比度用 `dart:math` 的 `math.pow(...).toDouble()`，别手写 Taylor 展开。
-- 断言日期前想清楚：**假期里的周六不是 weekend**（2026-09-26 在中秋假期内 → `holiday`）。
+## 工具链
+- 提交前 `flutter analyze --no-pub` 零 issue（含 `test/`）+ `flutter test` 全绿（当前 **517**）；
+  **跑前设 `NO_PROXY=localhost,127.0.0.1,::1`**（代理会劫持 flutter_tester 的 WebSocket）。
+- flutter 一律走 `C:\Users\jeo\AppData\Local\Temp\wb_run_flutter.py`（直调 `flutter.BAT`）；
+  **以日志最后一行 `=== EXIT n ===` 为准**（PowerShell 承接输出时退出码不可信）。
+- **同一时刻只跑一个 flutter 命令**（并发撞 `sqlite3.dll`，删 `build/native_assets` 重跑）；
+  **长命令必须显式给 `timeout`**（默认 120s 就掐，`run_in_background` 不豁免）。
+- **`CreateFile failed 231`（管道耗尽）是 WorkBuddy 进程环境问题，重启电脑无效**：判据只有
+  「当场起一个 Dart 子进程」；处置是请用户在自家终端跑 .bat。假象：Bash 看似正常、PowerShell 静默返回空。
+- **.bat 里禁止用 `if errorlevel 1` 当门禁**（`flutter.BAT` 成功也返回非 0，会静默跳过后续全部流程）。
+- 批量改代码走独立 .py（每处 `assert 旧串 in s`；CRLF 用 `newline=''` 读）；**同一文件多处改动一条条 Edit**。
+- widget 测试：改窗口用 `tester.view.devicePixelRatio/physicalSize` + `addTearDown(tester.view.reset)`；
+  `find.text` 撞刻度用 `find.descendant` 限定；`initState` 读 sqlite 要用 `tester.runAsync` 放它跑完；
+  **统计页有常驻动画 → 不能 `pumpAndSettle`**，改 `tester.pump(400ms)`。
 
 ## 数据模型
-- `lesson.period_index` 相对 `class.template_id`；真实时间靠 `lesson JOIN class JOIN template_period`。
-  **冲突检测按真实时间区间重叠，禁止比 period_index**（多模板聚合会误判）。
-- 时间存 `"HH:mm"`、日期存 `"YYYY-MM-DD"`，不存时间戳。考勤唯一键 `(student_id, lesson_id, date)`。
-- 外键显式 ON DELETE；迁移包事务 + 校验 `class.template_id` 无悬空。
-- DB `version=9`，**16 张表**（`schema_test.dart` 断言数量/顺序，加表/删表必须同步改）。加表一律是**纯加表加列**、
-  可重复执行、不重建表；**逐版明细见 `MEMORY-DETAIL.md`「数据库」**。**不动 `migrate()` 的 `rebuildingCourse` 段**
-  （只服务 v1→v2，须临时关外键，否则 DROP course 级联清空 lesson）。
-- **删功能模块前按 import 路径全库 grep（下划线形式，如 `note_repository`），别只搜驼峰类名** ——
-  本项目有**一文件多类**的仓库（`note_repository.dart` 里还装着 `ScheduleEventRepository`），只搜类名会漏
-  import，删完 analyze 才炸一片 undefined。
-- 桌面 sqflite 必须先初始化 FFI（`AppDatabase._ensureDatabaseFactory()`）；`sqflite_common_ffi` +
-  `sqlite3_flutter_libs` 必须在 `dependencies`；ff 包 import 要 `hide DatabaseException`，且别与 `sqflite`
-  同时 import（analyzer 判 unnecessary）。
-- 课程配色唯一口径 `CourseDetail.color`：课程自选 > 挂载班级里第一个 > 主题兜底。只走 `parseHexColor`
-  （`core/utils/color_utils.dart`），**禁止 `int.parse` 裸转**。**凡是"把课程色铺满一块"的地方都必须再过一个
-  `solidFillColor`**（把过亮的色压到白字对比度 ≥ 3.2）。课表格子第 19 轮起是**整格铺满 + 白字**。
-- 翻月走 `DateUtils.shiftMonth`（`DateTime(y,m±1,d)` 会进位：3/31 往前变 3/3）；加天用 `DateTime(y,m,d+n)`。
+- `lesson.period_index` 相对 `class.template_id`；**冲突检测按真实时间重叠，禁止比 period_index**。
+- 时间存 `"HH:mm"`、日期存 `"YYYY-MM-DD"`；考勤唯一键 `(student_id, lesson_id, date)`。
+- DB `version=9`、**16 张表**（`schema_test.dart` 断言数量/顺序，加删表同步改）；加表一律**纯加表加列**；
+  **不动 `migrate()` 的 `rebuildingCourse` 段**（否则 DROP course 级联清空 lesson）。
+- **删模块前按 import 路径全库 grep（下划线形式）**，别只搜驼峰类名（有一文件多类的仓库）。
+- 桌面 sqflite 先 `AppDatabase._ensureDatabaseFactory()`；ff 包 import 要 `hide DatabaseException`，别与 `sqflite` 同时 import。
+- 课程配色唯一口径 `CourseDetail.color`，只走 `parseHexColor`；**铺满一块的地方都要再过 `solidFillColor`**（白字对比度 ≥ 3.2）。
+- 翻月走 `DateUtils.shiftMonth`（`DateTime(y,m±1,d)` 会进位）；加天用 `DateTime(y,m,d+n)`。
 
 ## i18n
-- 禁止硬编码，全走 `lib/l10n/app_zh.arb`/`app_en.arb` + `context.l10n`，zh/en 严格对齐。
-- **加键一律走 `.workbuddy/tools/add_l10n_keys.py`**（幂等）：`NEW_KEYS` 加键、`UPDATE_KEYS` 改已存在键口径（脚本内
-  `assert key in data`）、`PLACEHOLDERS` 加 `@key`；末尾自带对齐断言。跑完 `flutter gen-l10n`（有 `l10n.yaml` 时命令行参数被忽略，
-  属预期）再 analyze。当前 zh/en 各 **721** 键。
-  **改这个脚本别拿 `"...元数据",\n}` 当尾部锚点**：`NEW_KEYS` / `PLACEHOLDERS` / `UPDATE_KEYS` 三个 dict 都以它结尾，
-  会串到另一个 dict 里去。锚点要带上前一条**完整的键名**。
+- 禁止硬编码，全走 `app_zh/en.arb` + `context.l10n`，zh/en 严格对齐（当前各 **754** 键）。
+- **加键一律走 `.workbuddy/tools/add_l10n_keys.py`**（幂等）：`NEW_KEYS` 加、`UPDATE_KEYS` 改（内含 assert）、
+  `PLACEHOLDERS` 加 `@key`；跑完 `gen-l10n` 再 analyze。**别拿 `"...元数据",\n}` 当锚点**（三个 dict 都以它结尾）。
 
-## 发布与更新链路（**细则见 `MEMORY-DETAIL.md` 同名章节；这一节只留红线**）
-- **仓库必须公开**（私有 → 手机永远看不到更新，raw 与 jsDelivr 都 404）。**别把 token 塞进 App**（可反编译）。
-- **`release.py` 顺序不能反**：先「提交 → 打标签 → 推送」→ 再建 Release（反过来 GitHub 会自造同名标签挂到旧提交）。
-  要建 Release 就必须带 `--push`。仓库：`gillnotfail/schedule_plan`（GitHub）+ **`jeo-xie/schedule_plan`（Gitee，首选）**。
-- `CHANGELOG.md` **必须写用户能看懂的话**（`release.py` 原样抽最新一节进 `updates/latest.json` 给应用内展示；
-  条目可折行、缩进续行会接回同一条，**别用空行续写同一条**）。`updates/latest.json` **入库**，APK 与补丁**不入库**。
-- `pubspec.yaml` 的 `version: x.y.z+N`，**`N`（versionCode）每次发版必须递增**，否则拒绝覆盖安装。
-  **CHANGELOG 没有对应版本节时直接拒绝发布**（设计如此，不是 bug）。
-- **双仓库分发**：每次发布往 Gitee 与 GitHub **各发一份**同一批 APK/补丁；清单 `assetsBases=[Gitee, GitHub]`，
-  客户端取清单 **Gitee raw 第一**（带 `?t=` 破 60s 缓存）→ GitHub raw → jsDelivr → 用户自配镜像。
-  **`schemaVersion` 绝不因加字段而 +1**（老客户端见更高版本会判"清单不可用"，等于把已装机用户锁死）。
-  **单数 `assetsBase` 必须保留**且指向当场回验过能匿名下载的源（≤1.0.5 的旧客户端只读它）。
-- **回验里「本机连不上」≠「源坏了」**：只有明确回 4xx/5xx 才剔源；超时 / 重置 / `000` 一律**保留兜底**
-  （发布机在国内时 `github.com` 时通时断，剔掉等于让用户没了退路）。
-- **发布最后一步是清 jsDelivr 缓存**（`release.py` 自动做，别绕过；`@main` 对分支最长缓存 12h）。
-  `status == "finished"` **不代表清成功**，要看 `paths[...].throttled`（连发两版必被限流，约 6 分钟）；
-  这个端点**必须走 curl**（本机 urllib 必 `WinError 10054`）。
-- **令牌只放 `~/.schedule_plan-release.env`**（`GITHUB_TOKEN` / `GITEE_TOKEN`），**绝不进仓库**；
-  别让用户把 token 贴进对话（实测两次都被截到 31 字符）。
-- **分差掩码取高 15 位（bits 17..31）**；**三层安全网**：清单 SHA-256 → 合成后与整包指纹交叉校验 →
-  生成端 `--verify`，任一步失败就换源、最终回落整包。
-- **安装走 `PackageInstaller`**（`androidx.core` 由 share_plus `compileOnly` 引入 → 自建 FileProvider 编不过）。
-- **`RandomAccessFile.writeFrom(list, start, end)` 第三参是下标 `end` 不是长度**（只有多条命令才暴露）。
+## 发布（细则见 DETAIL）
+- **仓库必须公开**；**token 只放 `~/.schedule_plan-release.env`**，不进仓库、不进对话。
+- **`release.py` 顺序不能反**：提交 → 打标签 → 推送 → 再建 Release（要建 Release 必须带 `--push`）。
+- `version: x.y.z+N`，**N 必须递增**；**CHANGELOG 没对应版本节直接拒绝发布**（设计如此）；条目写用户看得懂的话。
+- **双仓库**（Gitee 首选 + GitHub，各发一份）；清单必须保留单数 `assetsBase`；
+  **`schemaVersion` 绝不因加字段 +1**（老客户端会判清单不可用 = 锁死已装机用户）。
+- 回验「本机连不上」≠「源坏了」（只有明确 4xx/5xx 才剔源）；发布最后清 jsDelivr 缓存（必须走 curl，
+  `status==finished` 不代表清成功，看 `throttled`）。
+- 分差掩码取高 15 位（bits 17..31）；三层安全网：清单 SHA-256 → 合成后交叉校验 → 生成端 `--verify`。
+- 安装走 `PackageInstaller`；`RandomAccessFile.writeFrom(list,start,end)` 第三参是**下标 end** 不是长度。
+- 构建 `flutter build apk --release`（签名 `android/key.properties` + `keystore.jks`，不入库）；
+  改 proguard 别删 `-dontwarn com.google.android.play.core.**`。
 
-## 构建
-- `flutter build apk --release`；签名走 `android/key.properties` → `android/keystore.jks`（不入库）。
-  体积：arm64 ~24 MB / armeabi-v7a ~22 MB / universal ~69 MB。
-- 改 proguard 别删 `-dontwarn com.google.android.play.core.**`，R8 会失败。
-
-## 红线速查（**细则、常量、文件清单全在 `MEMORY-DETAIL.md`**）
-- **课表骨架：表永远是满的**。出厂作息唯一来源 `DatabaseSchema.generatePeriodRows`，禁止第二份循环；三层兜底缺一不可
-  （`TemplateRepository.ensureFactorySchedule` 补整份 / 无班级时用**默认作息模板**渲染不走 `EmptyView` /
-  `ClassGridView._periods` 整份为空时用出厂骨架渲染且**不落库**）。「一键清空课表」**只清 `lesson`**，不动 `template_period`；
-  「一键生成作息」`clearUnselected: true` 会把**没勾的星期一并清空**。「在看哪套作息」必须**冷存储**
-  （`scheduleDisplayTemplateId` + `scheduleSelectedClassId`），**禁止按 `is_default`/第一个模板临时推导**。
-  改节次时间时结束时间默认跟随=开始+**本节自己的课堂时长**（早读/晚自习不能用全局 40 分钟）。
-- **课表页：不按班级切分**，表格上方永远没有班级切换条；**没有 FAB**（第 7 轮：遮挡内容）；空格子点击判定只有一条
-  ——「全库有没有课程」（`listCourses()` 全量，**禁止再按班级过滤**，那正是「建好课程回来点还提示去添加课程」的根因）；
-  **换课只改 `courseId` 不动 `classId`**（`updateLesson(copyWith(courseId:))`，不要 clearSlot 再 placeLesson）；
-  点格子一律**对话框**（空格 `showCoursePickerDialog` / 有课 `lesson_detail_dialog.dart`），不退底部抽屉；
-  「去点名」名单 = 这门课**全部班级的并集**，不是 `lesson.class_id` 那一个班。
-- **表格与曲线档都必须一屏铺满**：禁止写死 `gridDayMinWidth × 天数` + 横向滚动；曲线档 `dayWidth = 可用宽 / 7`、
-  像素密度走 `TimeAxis.fitted`，**不许有任何 `Scrollable`**（回归 `test/widget/timeline_view_test.dart`）。
-- **考勤记录不随课表变动删除**（`lesson_id` 可空 + `ON DELETE SET NULL` + 冗余快照列，查询一律 LEFT JOIN + `COALESCE`）；
-  状态是**平铺胶囊**，**不要退回「点击循环切换状态」**；**七态**（日常五态 + 休学/免修，后者是**课程级 180 天**长期状态，
-  命中者自动沉底）。**休学 ≠ 免修**：**休学锁死日常五态**（唯一出口=再点休学胶囊→「复学」确认）；**免修只作角标、不锁**
-  （免修学生仍会来上课，迟到早退照常标）。**考勤日历格子上只有四样标记，且全部由日历下方那行图例解释**
-  （口径唯一来源 `features/attendance/calendar_marks.dart` 的 `CalendarMark` + `AttendanceCalendarLegend`）：
-  **放假 = 红点**、**调休上班 = 紫点**、**有课未点名 = 淡圈**、**点过名 = 红弧**（弧长=出勤人次 ÷ 应点名人次）。
-  **这四样之外禁止再加标记**（长按提示已被老师判为"命中率太低"去掉）。**改任何一种标记的颜色或可见条件，
-  必须同步改图例的文案/符号**——否则"图例说的"和"格子画的"对不上，老师就回到"看不懂"。
-- **跨 Tab 只能走 `AppNavigationState`**；`IndexedStack` 切回来**既不 `initState` 也不重读库**——凡可能在别的 Tab 被改掉的
-  数据都要在切回本 Tab 时重载，**推子页面返回后也要 `_load()`**。
-- **节假日两个正交维度绝不能合并**：`DateTime.weekday`（天然）vs `CalendarDayKind`（国家安排）；所有「这天休息吗」
-  必须查 `CalendarDayKind`，**禁止只判 `weekday == 6 || 7`**（否则课时算少）。**「调休那天上周几的课」必须老师确认、
-  不准猜**（存 `app_settings`，值 `'1'..'7'` 或空串，**没有任何默认猜测**）。课时结算**走日历而非 weekday**。
-  **「这天该上哪一套课」只有一个入口：`HolidayService.dayOf(date).labelWeekday`** —— 考勤页取当日课程、圆环
-  `dayStats` 的应点名、课表表头「今天」落列全都要走它，**禁止裸用 `date.weekday`/`DateUtils.isoWeekday`**
-  （漏一处就是「调休日照常上课，界面却显示当天没课」）。
-- **动效时长/曲线只有 `AppMotion` 一个来源**，禁止裸写 `Duration(milliseconds: ...)`；**过冲只用于位移/缩放**，
-  喂给 `Interval.transform`/`lerpDouble` 的值必须 `.clamp(0.0, 1.0)`；**颜色/描边/阴影/透明度用单调的 `effects`**。
-- **`FilledButton`/`ElevatedButton`/`OutlinedButton` 不能直接放进 `Row`**（全局 `minimumSize: Size.fromHeight(52)`
-  → `BoxConstraints forces an infinite width`）。**所有 SnackBar 一律 2 秒**。
-- **Android `INTERNET` 权限必须写在 `AndroidManifest.xml`**：debug/profile 由 Flutter 自动补，**release 不会**。
-- **设置页第一页只有四块**（第 22 轮用户规格，`test/widget/settings_page_test.dart` 盯着）：课表与名单 /
-  **系统设置（一条入口）** / 显示与语言 / 关于；**彩色标题卡在最底部**，不是顶部。原来平铺的
-  「教学参数 / 权限 / 数据维护」三块整体搬进 `features/settings/system_settings_page.dart`，页内顺序 =
-  未记录日期的默认状态 → 调休(3) → 通知权限(4) → 时间列级联更新 → 清空数据(2)。
-  **「拍照生成课表」与「统计设置」不允许再回设置页**（前者与课表页重复，后者在工具箱「教学成果」标题右侧齿轮）。
-- **专注模式只有专注态锁屏**，暂停与休息一律不锁；`isBreak` 必须进快照（否则恢复时把休息当专注锁上）。
-  **计时必须墙钟口径**（"每次 tick 减 1 秒"会让 25 分钟 5 分钟跑完）；`started_at` = **开始**时刻；
-  统计**只算 `completed`**；**休息段不写 `focus_session`**；`label` 落库**稳定 id**、显示时查 l10n。
-  增强档「屏幕固定」**先做后验**、失败如实提示，**绝不假装锁上**。
-  **释放锁定必须无条件**：首进「屏幕固定」会弹确认框，那刻读到的仍是未锁定，靠"我记得锁过"判断
-  就会漏掉 `stopLockTask()`，用户被钉在 App 里（第 28 轮真事故）。释放三件事**谁也不等谁**，
-  任何一步卡住都不能拖住最后一步。
-  **准备态一屏装下**（411×850 断言 `maxScrollExtent == 0`）；**时长滚轮禁止把「自己刚上报的值」
-  当外部改动 `jumpToItem`**（「滚一格被拽停」的根因）。这两处细则见 `MEMORY-DETAIL.md`。
+## 红线速查（常量与文件清单在 DETAIL）
+- **课表骨架：表永远是满的**。出厂作息唯一来源 `DatabaseSchema.generatePeriodRows`（禁止第二份循环），三层兜底缺一不可。
+  「一键清空课表」**只清 `lesson`**；「在看哪套作息」必须**冷存储**，禁止按 `is_default`/第一个模板推导；
+  改节次时间时结束时间 = **本节自己的课堂时长**。
+- **课表页不按班级切分、没有 FAB**；空格子点击判定只有一条「全库有没有课程」；**换课只改 `courseId` 不动 `classId`**；
+  点格子一律**对话框**；「去点名」名单 = 该课**全部班级的并集**。
+- **表格与曲线档都必须一屏铺满**：禁止 `gridDayMinWidth × 天数` + 横向滚动；曲线档 `dayWidth = 可用宽 / 7`、
+  走 `TimeAxis.fitted`，**不许有任何 `Scrollable`**。
+- **考勤记录不随课表变动删除**（`lesson_id` 可空 + `ON DELETE SET NULL` + 快照列，查询 LEFT JOIN + `COALESCE`）。
+  状态是**平铺胶囊**，**不要退回「点击循环切换」**；**七枚胶囊 / 八种状态**：出 迟 早 缺 假 ｜ 休 免，
+  「迟到+早退」= **迟、早两枚同时亮**（用户明确否掉加第八枚）→ 一个枚举 `lateAndEarly`（库内 `late_early`）、
+  一条记录；单迟到再点「迟」**不写库**；统计**只算一次异常**但 `isLate`/`isEarlyLeave` 都认它（SQL 用 `IN (...)`）；
+  摘要按**枚举声明顺序**输出（`choices` 没有组合态，照它遍历会漏人）。
+  **休学 ≠ 免修**：休学**锁死日常状态**（出口=再点休学→「复学」确认）；免修只作角标、**不锁**。
+  **考勤日历格子只有四样标记**（唯一来源 `calendar_marks.dart`）：放假红点、调休上班紫点、未点名淡圈、
+  点过名红弧；**不许再加**，改任一标记必须同步改图例，否则"图例说的"和"格子画的"对不上。
+- **跨 Tab 只能走 `AppNavigationState`**；`IndexedStack` 切回来既不 `initState` 也不重读库，凡可能被别处改的
+  数据都要在切回时重载，**推子页面返回后也要 `_load()`**。
+- **节假日两个维度绝不能合并**：`weekday`（天然）vs `CalendarDayKind`（国家安排），「这天休息吗」必须查后者，
+  **禁止只判 `weekday == 6 || 7`**。「调休那天上周几的课」**必须老师确认、不准猜**（存 `app_settings`）。
+  **「这天该上哪一套课」唯一入口 `HolidayService.dayOf(date).labelWeekday`**，禁止裸用 `date.weekday`。
+- **动效只有 `AppMotion` 一个来源**，禁止裸写 `Duration(milliseconds:)`；过冲只用于位移/缩放，
+  喂给 `Interval.transform`/`lerpDouble` 必须 `.clamp(0,1)`；颜色/描边/透明度用单调的 `effects`。
+- **`FilledButton`/`ElevatedButton`/`OutlinedButton` 不能直接放进 `Row`**（全局 `minimumSize` 撑成无限宽）；
+  **所有 SnackBar 一律 2 秒**；**Android `INTERNET` 权限必须写在 `AndroidManifest.xml`**（release 不自动补）。
+- **设置页第一页只有四块**：课表与名单 / 系统设置（一条入口）/ 显示与语言 / 关于，**彩色标题卡在最底部**；
+  「拍照生成课表」与「统计设置」不许回设置页（后者在工具箱「教学成果」齿轮）。
+- **统计 = 两本台账**（SPEC 3.8~3.11）：干预台账（`riskRanking` 加权分）迟到/早退**各计一次**；评价台账
+  （出勤率排行 + 学生档案）五个状态数**互斥**、组合态单列 —— **口径不同是刻意的，不许统一**。
+  出勤率 = **1 − 缺勤 ÷ 应上**（迟到/早退/请假不进分子）；应上由 `countScheduledSessions` 按课表推算
+  （放假日不算、调休走 `labelWeekdayOf`、休学跳过、**未点名按全勤**）；改课表会追溯重算、必须写在界面上；
+  **不许把"没点名"伪造成 present 行**。口径文案只在 `attendance_formula_sheet.dart` 一处。
+- **专注模式只有专注态锁屏**（暂停/休息不锁），`isBreak` 必须进快照；**计时必须墙钟口径**；统计只算 `completed`；
+  休息段不写 `focus_session`；`label` 落库稳定 id。**释放锁定必须无条件**（靠"我记得锁过"判断会漏掉
+  `stopLockTask()`，用户被钉在 App 里 —— 第 28 轮真事故）。准备态一屏与滚轮细则见 DETAIL。

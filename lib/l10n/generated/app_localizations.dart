@@ -4433,6 +4433,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{className}: {names}'**
   String attendanceSummaryClassGroup(String className, String names);
+
+  /// No description provided for @statusLateAndEarly.
+  ///
+  /// In en, this message translates to:
+  /// **'Late + left early'**
+  String get statusLateAndEarly;
+
+  /// No description provided for @statusShortLateAndEarly.
+  ///
+  /// In en, this message translates to:
+  /// **'LE'**
+  String get statusShortLateAndEarly;
+
+  /// No description provided for @statOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get statOverview;
+
+  /// No description provided for @statClassRanking.
+  ///
+  /// In en, this message translates to:
+  /// **'Class ranking'**
+  String get statClassRanking;
+
+  /// No description provided for @statRangeWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get statRangeWeek;
+
+  /// No description provided for @statRangeMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get statRangeMonth;
+
+  /// No description provided for @statRangeTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'This term'**
+  String get statRangeTerm;
+
+  /// No description provided for @statRangeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get statRangeCustom;
+
+  /// No description provided for @statRangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} – {to}'**
+  String statRangeLabel(String from, String to);
+
+  /// No description provided for @statClassFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by class'**
+  String get statClassFilter;
+
+  /// No description provided for @statRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get statRate;
+
+  /// No description provided for @statExpected.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected'**
+  String get statExpected;
+
+  /// No description provided for @statAbsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent'**
+  String get statAbsent;
+
+  /// No description provided for @statLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get statLate;
+
+  /// No description provided for @statEarlyLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Left early'**
+  String get statEarlyLeave;
+
+  /// No description provided for @statLateAndEarly.
+  ///
+  /// In en, this message translates to:
+  /// **'L+E'**
+  String get statLateAndEarly;
+
+  /// No description provided for @statLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get statLeave;
+
+  /// No description provided for @statAbnormalSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Abnormal'**
+  String get statAbnormalSessions;
+
+  /// No description provided for @statClassAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Class average'**
+  String get statClassAverage;
+
+  /// No description provided for @statLedgerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance record'**
+  String get statLedgerTitle;
+
+  /// No description provided for @statLedgerShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get statLedgerShort;
+
+  /// No description provided for @statShowAllLessons.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all lessons'**
+  String get statShowAllLessons;
+
+  /// No description provided for @statLedgerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No absences in this period'**
+  String get statLedgerEmpty;
+
+  /// No description provided for @statRankingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a name for the full record'**
+  String get statRankingHint;
+
+  /// No description provided for @statNoTimetable.
+  ///
+  /// In en, this message translates to:
+  /// **'No lessons scheduled, so there is no rate to show'**
+  String get statNoTimetable;
+
+  /// No description provided for @statSessionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} lessons'**
+  String statSessionCount(int count);
+
+  /// No description provided for @statFormulaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How attendance is calculated'**
+  String get statFormulaTitle;
+
+  /// No description provided for @statFormulaLine1.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate = 1 − absences ÷ expected lessons'**
+  String get statFormulaLine1;
+
+  /// No description provided for @statFormulaLine2.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected lessons come from the current timetable; unmarked lessons count as present'**
+  String get statFormulaLine2;
+
+  /// No description provided for @statFormulaLine3.
+  ///
+  /// In en, this message translates to:
+  /// **'Late, early leave and approved leave do not lower the rate; leave is listed separately'**
+  String get statFormulaLine3;
+
+  /// No description provided for @statFormulaLine4.
+  ///
+  /// In en, this message translates to:
+  /// **'Suspended days are excluded from expected lessons; exempt students still count'**
+  String get statFormulaLine4;
+
+  /// No description provided for @statFormulaLine5.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing the timetable recalculates past rates'**
+  String get statFormulaLine5;
+
+  /// No description provided for @statUnmarkedCounted.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmarked lessons count as present and are not listed'**
+  String get statUnmarkedCounted;
 }
 
 class _AppLocalizationsDelegate

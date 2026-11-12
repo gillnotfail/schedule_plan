@@ -47,6 +47,9 @@ class ExcelService {
     required List<RiskStudent> ranking,
     required String fromDate,
     required String toDate,
+    List<Map<String, Object?>> rateRows = const <Map<String, Object?>>[],
+    List<Map<String, Object?>> studentRows = const <Map<String, Object?>>[],
+    String? formulaNote,
   }) async {
     final book = Excel.createExcel();
     book.rename(book.getDefaultSheet() ?? 'Sheet1', '考勤汇总');
@@ -117,6 +120,71 @@ class ExcelService {
         IntCellValue(item.riskScore),
       ]);
       index++;
+    }
+
+    // 评价台账（SPEC 3.9）：出勤率排行。首行写口径 —— 这张表会被拿去当
+    // 给分依据，得让人一眼知道"出勤率"是怎么来的。
+    if (rateRows.isNotEmpty) {
+      final sheet = book['出勤率排行'];
+      if (formulaNote != null && formulaNote.isNotEmpty) {
+        sheet.appendRow(<CellValue?>[TextCellValue('口径：$formulaNote')]);
+      }
+      sheet.appendRow(<CellValue?>[
+        TextCellValue('班级'),
+        TextCellValue('学生'),
+        TextCellValue('学号'),
+        TextCellValue('应上课次'),
+        TextCellValue('缺勤'),
+        TextCellValue('迟到'),
+        TextCellValue('早退'),
+        TextCellValue('迟到+早退'),
+        TextCellValue('请假'),
+        TextCellValue('出勤率'),
+      ]);
+      for (final row in rateRows) {
+        final rate = row['rate'];
+        sheet.appendRow(<CellValue?>[
+          TextCellValue('${row['class_name'] ?? ''}'),
+          TextCellValue('${row['student_name'] ?? ''}'),
+          TextCellValue('${row['student_no'] ?? ''}'),
+          IntCellValue((row['expected'] as int?) ?? 0),
+          IntCellValue((row['absent'] as int?) ?? 0),
+          IntCellValue((row['late'] as int?) ?? 0),
+          IntCellValue((row['early_leave'] as int?) ?? 0),
+          IntCellValue((row['late_early'] as int?) ?? 0),
+          IntCellValue((row['leave'] as int?) ?? 0),
+          // 没有应上课次时留空，别写成 100%
+          TextCellValue(
+            rate is double ? '${(rate * 100).toStringAsFixed(1)}%' : '—',
+          ),
+        ]);
+      }
+    }
+
+    // 个人流水（SPEC 3.8）：只在从学生档案页导出时才有数据。
+    if (studentRows.isNotEmpty) {
+      final sheet = book['个人流水'];
+      if (formulaNote != null && formulaNote.isNotEmpty) {
+        sheet.appendRow(<CellValue?>[TextCellValue('口径：$formulaNote')]);
+      }
+      sheet.appendRow(<CellValue?>[
+        TextCellValue('日期'),
+        TextCellValue('星期'),
+        TextCellValue('上课时间'),
+        TextCellValue('课程'),
+        TextCellValue('状态'),
+        TextCellValue('备注'),
+      ]);
+      for (final row in studentRows) {
+        sheet.appendRow(<CellValue?>[
+          TextCellValue('${row['date'] ?? ''}'),
+          TextCellValue('周${row['weekday'] ?? ''}'),
+          TextCellValue('${row['time'] ?? ''}'),
+          TextCellValue('${row['course_name'] ?? ''}'),
+          TextCellValue('${row['status'] ?? ''}'),
+          TextCellValue('${row['note'] ?? ''}'),
+        ]);
+      }
     }
 
     final bytes = book.encode();

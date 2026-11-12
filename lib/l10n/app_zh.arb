@@ -1434,5 +1434,55 @@
         "type": "String"
       }
     }
-  }
+  },
+  "statusLateAndEarly": "迟到+早退",
+  "statusShortLateAndEarly": "迟早",
+  "statOverview": "概览",
+  "statClassRanking": "班级排行",
+  "statRangeWeek": "本周",
+  "statRangeMonth": "本月",
+  "statRangeTerm": "本学期",
+  "statRangeCustom": "自定义",
+  "statRangeLabel": "{from} 至 {to}",
+  "statClassFilter": "按班级筛选",
+  "statRate": "出勤率",
+  "statExpected": "应上",
+  "statAbsent": "缺勤",
+  "statLate": "迟到",
+  "statEarlyLeave": "早退",
+  "statLateAndEarly": "迟早",
+  "statLeave": "请假",
+  "statAbnormalSessions": "异常课次",
+  "statClassAverage": "班级出勤率",
+  "statLedgerTitle": "出勤档案",
+  "statLedgerShort": "出勤",
+  "statShowAllLessons": "显示全部课次",
+  "statLedgerEmpty": "这段时间没有异常，真不错",
+  "statRankingHint": "点姓名看出勤档案",
+  "statNoTimetable": "课表里没有排课，暂时算不出出勤率",
+  "statSessionCount": "{count} 节",
+  "statFormulaTitle": "考勤率怎么算",
+  "statFormulaLine1": "出勤率 = 1 − 缺勤课次 ÷ 应上课次",
+  "statFormulaLine2": "应上课次按当前课表推算，没点名的课次按全勤算",
+  "statFormulaLine3": "迟到、早退、请假都不扣出勤率；请假次数单列",
+  "statFormulaLine4": "休学期间不计入应上课次；免修照常计入",
+  "statFormulaLine5": "改过课表之后，以前的出勤率会跟着重算",
+  "@statRangeLabel": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "@statSessionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statUnmarkedCounted": "没点名的课次按全勤计，不单独列出"
 }

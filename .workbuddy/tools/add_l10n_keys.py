@@ -672,6 +672,78 @@ NEW_KEYS = {
         "zh": "{className}：{names}",
         "en": "{className}: {names}",
     },
+    # ---- 第 29 轮：「迟到 + 早退」组合态（同一节课两头都占了）----
+    # 一节课点名两次时，学生可能上课迟到了、下课又提前走。
+    # 组合态是**一个**状态值（一条记录），统计上只算一次异常，
+    # 但明细里两种行为都写着，老师一眼能定位到人。
+    "statusLateAndEarly": {"zh": "迟到+早退", "en": "Late + left early"},
+    "statusShortLateAndEarly": {"zh": "迟早", "en": "LE"},
+    # ---- 第 30 轮：统计拓展成「两本台账」（干预 + 评价）----
+    # 评价台账的六个数字是**互斥**的课次数（组合态单列），
+    # 与干预台账「迟/早各计一次」的口径不同，这是刻意的（见 SPEC 3.11）。
+    "statOverview": {"zh": "概览", "en": "Overview"},
+    "statClassRanking": {"zh": "班级排行", "en": "Class ranking"},
+    "statRangeWeek": {"zh": "本周", "en": "This week"},
+    "statRangeMonth": {"zh": "本月", "en": "This month"},
+    "statRangeTerm": {"zh": "本学期", "en": "This term"},
+    "statRangeCustom": {"zh": "自定义", "en": "Custom"},
+    "statRangeLabel": {"zh": "{from} 至 {to}", "en": "{from} – {to}"},
+    "statClassFilter": {"zh": "按班级筛选", "en": "Filter by class"},
+    "statRate": {"zh": "出勤率", "en": "Attendance"},
+    "statExpected": {"zh": "应上", "en": "Expected"},
+    "statAbsent": {"zh": "缺勤", "en": "Absent"},
+    "statLate": {"zh": "迟到", "en": "Late"},
+    "statEarlyLeave": {"zh": "早退", "en": "Left early"},
+    "statLateAndEarly": {"zh": "迟早", "en": "L+E"},
+    "statLeave": {"zh": "请假", "en": "Leave"},
+    "statAbnormalSessions": {"zh": "异常课次", "en": "Abnormal"},
+    "statClassAverage": {"zh": "班级出勤率", "en": "Class average"},
+    "statLedgerTitle": {"zh": "出勤档案", "en": "Attendance record"},
+    "statLedgerShort": {"zh": "出勤", "en": "Record"},
+    "statShowAllLessons": {"zh": "显示全部课次", "en": "Show all lessons"},
+    "statLedgerEmpty": {
+        "zh": "这段时间没有异常，真不错",
+        "en": "No absences in this period",
+    },
+    "statRankingHint": {
+        "zh": "点姓名看出勤档案",
+        "en": "Tap a name for the full record",
+    },
+    "statNoTimetable": {
+        "zh": "课表里没有排课，暂时算不出出勤率",
+        "en": "No lessons scheduled, so there is no rate to show",
+    },
+    "statSessionCount": {"zh": "{count} 节", "en": "{count} lessons"},
+    # 「显示全部课次」只补**真实标记过**的出勤记录；没点名的课次是按全勤推算的，
+    # 不当证据列出来（推算不是证据，拿去给分会被质疑）。
+    "statUnmarkedCounted": {
+        "zh": "没点名的课次按全勤计，不单独列出",
+        "en": "Unmarked lessons count as present and are not listed",
+    },
+    # 口径说明：这五条是**界面上要出现的文案**（用户规格：要在功能上说明
+    # 考勤率是怎么算的）。第 5 条不许删 —— 改课表会追溯重算，这是这套
+    # 算法唯一的硬伤，藏起来比说出来更伤信任。
+    "statFormulaTitle": {"zh": "考勤率怎么算", "en": "How attendance is calculated"},
+    "statFormulaLine1": {
+        "zh": "出勤率 = 1 − 缺勤课次 ÷ 应上课次",
+        "en": "Rate = 1 − absences ÷ expected lessons",
+    },
+    "statFormulaLine2": {
+        "zh": "应上课次按当前课表推算，没点名的课次按全勤算",
+        "en": "Expected lessons come from the current timetable; unmarked lessons count as present",
+    },
+    "statFormulaLine3": {
+        "zh": "迟到、早退、请假都不扣出勤率；请假次数单列",
+        "en": "Late, early leave and approved leave do not lower the rate; leave is listed separately",
+    },
+    "statFormulaLine4": {
+        "zh": "休学期间不计入应上课次；免修照常计入",
+        "en": "Suspended days are excluded from expected lessons; exempt students still count",
+    },
+    "statFormulaLine5": {
+        "zh": "改过课表之后，以前的出勤率会跟着重算",
+        "en": "Editing the timetable recalculates past rates",
+    },
 }
 
 # 需要改口径的旧键（用户规格变了，文案必须跟着走，否则和界面行为对不上）
@@ -823,6 +895,17 @@ DROP_KEYS = ["attendanceMarkAllPresent", "attendanceStatusHint",
              "summaryNoAbnormal", "emotionCard"]
 
 PLACEHOLDERS = {
+    "statRangeLabel": {
+        "placeholders": {
+            "from": {"type": "String"},
+            "to": {"type": "String"},
+        },
+    },
+    "statSessionCount": {
+        "placeholders": {
+            "count": {"type": "int"},
+        },
+    },
     "gridMakeupHint": {
         "placeholders": {
             "date": {"type": "String"},

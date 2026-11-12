@@ -1434,5 +1434,55 @@
         "type": "String"
       }
     }
-  }
+  },
+  "statusLateAndEarly": "Late + left early",
+  "statusShortLateAndEarly": "LE",
+  "statOverview": "Overview",
+  "statClassRanking": "Class ranking",
+  "statRangeWeek": "This week",
+  "statRangeMonth": "This month",
+  "statRangeTerm": "This term",
+  "statRangeCustom": "Custom",
+  "statRangeLabel": "{from} – {to}",
+  "statClassFilter": "Filter by class",
+  "statRate": "Attendance",
+  "statExpected": "Expected",
+  "statAbsent": "Absent",
+  "statLate": "Late",
+  "statEarlyLeave": "Left early",
+  "statLateAndEarly": "L+E",
+  "statLeave": "Leave",
+  "statAbnormalSessions": "Abnormal",
+  "statClassAverage": "Class average",
+  "statLedgerTitle": "Attendance record",
+  "statLedgerShort": "Record",
+  "statShowAllLessons": "Show all lessons",
+  "statLedgerEmpty": "No absences in this period",
+  "statRankingHint": "Tap a name for the full record",
+  "statNoTimetable": "No lessons scheduled, so there is no rate to show",
+  "statSessionCount": "{count} lessons",
+  "statFormulaTitle": "How attendance is calculated",
+  "statFormulaLine1": "Rate = 1 − absences ÷ expected lessons",
+  "statFormulaLine2": "Expected lessons come from the current timetable; unmarked lessons count as present",
+  "statFormulaLine3": "Late, early leave and approved leave do not lower the rate; leave is listed separately",
+  "statFormulaLine4": "Suspended days are excluded from expected lessons; exempt students still count",
+  "statFormulaLine5": "Editing the timetable recalculates past rates",
+  "@statRangeLabel": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "@statSessionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statUnmarkedCounted": "Unmarked lessons count as present and are not listed"
 }

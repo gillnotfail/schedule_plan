@@ -4,16 +4,28 @@ import 'package:schedule_plan/data/models/student.dart';
 /// 考勤状态（readme 3.7 表 / 模块二 2.5 + 用户规格）。
 ///
 /// 分两类：
-/// - **日常状态**：[present] / [late] / [earlyLeave] / [absent] / [leave]，
-///   逐节课点名，一次点击落一条 `attendance_record`；
+/// - **日常状态**：[present] / [late] / [earlyLeave] / [lateAndEarly] /
+///   [absent] / [leave]，逐节课点名，一次点击落一条 `attendance_record`；
 /// - **长期状态**（用户规格）：[suspended] 休学 / [exempt] 免修，
 ///   点一次就在**这门课**上生效 180 天（见 [CourseStudentStatus]），
 ///   期间该生沉到名单末尾、不用每节课重复标记；
 /// - [unmarked] 只是"还没有记录"的显示态，不作为可选项。
+///
+/// **为什么有一个"迟到+早退"的组合态**（第 29 轮用户规格）：
+/// 一节课点名两次（连堂、课前课后各点一次）时，同一个学生完全可能
+/// 上课迟到了、下课又提前走。旧模型一节课只能存一个状态，老师只能二选一，
+/// 另一头的信息就丢了。所以把它做成**一个**状态值而不是两条记录 ——
+/// `attendance_record` 的唯一键是 `(student_id, lesson_id, date)`，
+/// 一节课一名学生只有一条记录；组合态同样是"一条记录"，
+/// 统计上仍然只算**一次异常**，但明细里两种行为都写着，方便老师定位。
+///
+/// 界面上**没有**专门的一枚"迟早"胶囊：行内「迟」「早」两枚可以同时点亮
+/// （迟到 and 早退），落库时由 [fromLateEarly] 合成这一个值。
 enum AttendanceStatus {
   present,
   late,
   earlyLeave,
+  lateAndEarly,
   absent,
   leave,
   suspended,
@@ -24,6 +36,7 @@ enum AttendanceStatus {
         AttendanceStatus.present => 'present',
         AttendanceStatus.late => 'late',
         AttendanceStatus.earlyLeave => 'early_leave',
+        AttendanceStatus.lateAndEarly => 'late_early',
         AttendanceStatus.absent => 'absent',
         AttendanceStatus.leave => 'leave',
         AttendanceStatus.suspended => 'suspended',
@@ -35,7 +48,20 @@ enum AttendanceStatus {
   bool get isLongTerm =>
       this == AttendanceStatus.suspended || this == AttendanceStatus.exempt;
 
-  /// 日常可点名的五种状态（不含长期状态与"未标记"）。
+  /// 这一天**迟到了**：组合态 [lateAndEarly] 也算。
+  ///
+  /// 统计口径就靠这两个 getter：组合态在「迟到次数」和「早退次数」里
+  /// 各算一次（它确实是迟到 + 早退），但在「异常次数」里只算一次
+  /// （一节课一名学生只有一条记录，见 [isAbnormal]）。
+  bool get isLate => this == AttendanceStatus.late || this == lateAndEarly;
+
+  /// 这一天**早退了**：组合态 [lateAndEarly] 也算。
+  bool get isEarlyLeave =>
+      this == AttendanceStatus.earlyLeave || this == lateAndEarly;
+
+  /// 日常可点名的**单一**状态（不含组合态与长期状态）。
+  ///
+  /// 设置页「默认状态」只从这里选：把"迟到+早退"设成默认值没有意义。
   static const List<AttendanceStatus> dailyChoices = <AttendanceStatus>[
     AttendanceStatus.present,
     AttendanceStatus.late,
@@ -51,6 +77,10 @@ enum AttendanceStatus {
   ];
 
   /// 一键胶囊上平铺的全部七种状态：日常五种 + 长期两种。
+  ///
+  /// 注意它**不是**"全部可落库的状态"：组合态 [lateAndEarly] 没有自己的胶囊 ——
+  /// 它由「迟」「早」两枚同时点亮表示（见 `AttendanceStatusStrip`），
+  /// 想按状态顺序输出报表请直接遍历 [values]（枚举声明顺序就是输出顺序）。
   static const List<AttendanceStatus> choices = <AttendanceStatus>[
     ...dailyChoices,
     ...longTermChoices,
@@ -62,14 +92,31 @@ enum AttendanceStatus {
         orElse: () => AttendanceStatus.unmarked,
       );
 
+  /// 「迟到 / 早退」两个开关合成**一个**落库状态。
+  ///
+  /// 界面上是两枚可以同时点亮的胶囊（迟到 and 早退，不是 or），
+  /// 但 `attendance_record` 一节课一名学生只有一条记录，所以点击时要先算出
+  /// "合起来是哪个状态"：都占 = [lateAndEarly]、只占一头 = 对应单状态、
+  /// 都不占 = [present]。
+  static AttendanceStatus fromLateEarly({
+    required bool late,
+    required bool earlyLeave,
+  }) => switch ((late, earlyLeave)) {
+    (true, true) => AttendanceStatus.lateAndEarly,
+    (true, false) => AttendanceStatus.late,
+    (false, true) => AttendanceStatus.earlyLeave,
+    (false, false) => AttendanceStatus.present,
+  };
+
   /// 点击学生条目时循环切换的顺序（模块二 2.5：点击快速切换）。
   ///
-  /// 长期状态自成一个小环（休学 ⇄ 免修），不会混进日常五态的循环里 ——
+  /// 长期状态自成一个小环（休学 ⇄ 免修），不会混进日常状态的循环里 ——
   /// 否则顺着点一圈就会莫名其妙把学生标成休学。
   AttendanceStatus get next => switch (this) {
         AttendanceStatus.present => AttendanceStatus.late,
         AttendanceStatus.late => AttendanceStatus.earlyLeave,
-        AttendanceStatus.earlyLeave => AttendanceStatus.absent,
+        AttendanceStatus.earlyLeave => AttendanceStatus.lateAndEarly,
+        AttendanceStatus.lateAndEarly => AttendanceStatus.absent,
         AttendanceStatus.absent => AttendanceStatus.leave,
         AttendanceStatus.leave => AttendanceStatus.present,
         AttendanceStatus.suspended => AttendanceStatus.exempt,
@@ -81,9 +128,12 @@ enum AttendanceStatus {
   ///
   /// 休学 / 免修**不算异常** —— 它们是有依据的长期状态，不是"这个学生出问题了"，
   /// 混进异常明细只会把真正需要关注的缺勤记录淹掉。
+  ///
+  /// 组合态 [lateAndEarly] 算**一次**异常：一节课一名学生只有一条记录，
+  /// 老师数"这周有几个异常"时不会被同一个学生重复计两遍。
   bool get isAbnormal => this != AttendanceStatus.present && !isLongTerm;
 
-  /// 是否计入缺勤次数（高风险检测口径）。
+  /// 标记它时要不要把这一行标红（高风险角标，只认真正的缺勤）。
   bool get countsAsAbsence => this == AttendanceStatus.absent;
 }
 

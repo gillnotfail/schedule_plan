@@ -163,3 +163,25 @@ abstract final class LessonConflictDetector {
       source.lesson.classId == target.lesson.classId &&
       source.templateId == target.templateId;
 }
+
+/// 课表按"一周"展开后的一节课（`{星期几, 节次, 课程}`）。
+///
+/// 统计页用它推算「应上课次」（`docs/SPEC.md` 3.10）：区间内每一天先按
+/// `HolidayService.labelWeekdayOf` 找到"该按周几的课表"，再把当天的 slot 数出来。
+///
+/// `classIds` 是该课挂载的**全部**班级 —— 合班课的名单是并集，
+/// 所以一节课对这几个班的学生都算"应上"。
+class WeeklySlot {
+  const WeeklySlot({
+    required this.weekday,
+    required this.periodIndex,
+    required this.courseId,
+    required this.classIds,
+  });
+
+  /// 1 = 周一 … 7 = 周日
+  final int weekday;
+  final int periodIndex;
+  final int courseId;
+  final Set<int> classIds;
+}

@@ -14,12 +14,13 @@ import 'package:schedule_plan/l10n/generated/app_localizations.dart';
 /// 不能让老师滑动或者循环点击一个一个去选 —— 那太浪费时间。
 /// 位置不够就简化成一个字。
 ///
-/// 这个用例守住四件事：
+/// 这个用例守住五件事：
 /// 1. 七个状态同时在场（日常五种 + 休学 / 免修）、名字够短（一个字）；
 /// 2. **一次点击 = 一次落库**，点哪个就是哪个，不需要"点三下才轮到请假"；
-/// 3. 在真机宽度下和「姓名 + 学号」并排也放得下，不会溢出；
-/// 4. 休学时日常五态与免修被锁住（点不动，只有休学胶囊可点、用于「复学」）；
-///    免修**不锁**日常五态，只作为角标与日常状态并存。
+/// 3. 「迟」「早」是 **and 不是 or**：点完迟到再点早退 = 两个都占（不会互相顶掉）；
+/// 4. 在真机宽度下和「姓名 + 学号」并排也放得下，不会溢出；
+/// 5. 休学时日常状态与免修被锁住（点不动，只有休学胶囊可点、用于「复学」）；
+///    免修**不锁**日常状态，只作为角标与日常状态并存。
 Widget _host(Widget child) {
   return MaterialApp(
     theme: AppTheme.build(AppColorTokens.of(AppThemeKind.mint)),
@@ -49,6 +50,136 @@ void main() {
     }
     // "未标记"只是显示态，不该作为一个可选项摊在行上
     expect(find.text('—'), findsNothing);
+    // 迟到+早退不单独占一枚胶囊（行内不臃肿），它由「迟」「早」两枚同亮表示
+    expect(find.text('迟早'), findsNothing);
+  });
+
+  testWidgets('迟到与早退是 and 不是 or：点完迟到再点早退 = 两个都占', (tester) async {
+    final picked = <AttendanceStatus>[];
+    await tester.pumpWidget(
+      _host(
+        AttendanceStatusStrip(
+          status: AttendanceStatus.present,
+          tokens: tokens,
+          onPick: picked.add,
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('迟'));
+    await tester.pump();
+    expect(picked.last, AttendanceStatus.late, reason: '第一次点是纯迟到');
+
+    // 换成"已经迟到"的行，再点早退：应该是**加上**早退，而不是切换成早退
+    await tester.pumpWidget(
+      _host(
+        AttendanceStatusStrip(
+          status: AttendanceStatus.late,
+          tokens: tokens,
+          onPick: picked.add,
+        ),
+      ),
+    );
+    await tester.tap(find.text('早'));
+    await tester.pump();
+    expect(
+      picked.last,
+      AttendanceStatus.lateAndEarly,
+      reason: '点早退不能把已经标好的迟到冲掉',
+    );
+  });
+
+  testWidgets('组合态时「迟」「早」两枚同时亮，出勤不亮', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        AttendanceStatusStrip(
+          status: AttendanceStatus.lateAndEarly,
+          tokens: tokens,
+          onPick: (_) {},
+        ),
+      ),
+    );
+
+    Color fillOf(String label) {
+      final box = tester.widget<AnimatedContainer>(
+        find
+            .ancestor(
+              of: find.text(label),
+              matching: find.byType(AnimatedContainer),
+            )
+            .first,
+      );
+      return (box.decoration! as BoxDecoration).color!;
+    }
+
+    expect(fillOf('迟'), tokens.attendanceLate);
+    expect(fillOf('早'), tokens.attendanceEarlyLeave);
+    expect(
+      fillOf('出'),
+      tokens.attendancePresent.withValues(alpha: 0.10),
+      reason: '两枚都亮才叫"迟到+早退"，出勤不该同时亮',
+    );
+  });
+
+  testWidgets('组合态下再点已亮的那一枚 = 减掉这一头', (tester) async {
+    final picked = <AttendanceStatus>[];
+    await tester.pumpWidget(
+      _host(
+        AttendanceStatusStrip(
+          status: AttendanceStatus.lateAndEarly,
+          tokens: tokens,
+          onPick: picked.add,
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('迟'));
+    await tester.pump();
+    expect(picked.last, AttendanceStatus.earlyLeave, reason: '去掉迟到，只剩早退');
+
+    await tester.tap(find.text('早'));
+    await tester.pump();
+    expect(picked.last, AttendanceStatus.late, reason: '去掉早退，只剩迟到');
+  });
+
+  testWidgets('单迟到再点「迟」不会把学生抹成出勤（只回传原状态）', (tester) async {
+    final picked = <AttendanceStatus>[];
+    await tester.pumpWidget(
+      _host(
+        AttendanceStatusStrip(
+          status: AttendanceStatus.late,
+          tokens: tokens,
+          onPick: picked.add,
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('迟'));
+    await tester.pump();
+    // 回传的仍是"迟到"，页面按"同状态再点"处理：只给一次触觉反馈、不写库。
+    // 手指抖一下就把迟到抹掉，代价太大；要恢复出勤请显式点「出」。
+    expect(picked, <AttendanceStatus>[AttendanceStatus.late]);
+  });
+
+  testWidgets('点「出」「缺」「假」仍是单选，迟到早退一起清掉', (tester) async {
+    final picked = <AttendanceStatus>[];
+    await tester.pumpWidget(
+      _host(
+        AttendanceStatusStrip(
+          status: AttendanceStatus.lateAndEarly,
+          tokens: tokens,
+          onPick: picked.add,
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('出'));
+    await tester.tap(find.text('缺'));
+    await tester.pump();
+    expect(picked, <AttendanceStatus>[
+      AttendanceStatus.present,
+      AttendanceStatus.absent,
+    ]);
   });
 
   testWidgets('休学期间：日常五态与免修都点不动，休学胶囊可点（复学）', (tester) async {

@@ -11,7 +11,10 @@ import '../../data/models/attendance.dart';
 /// - 异常段按「状态 → 班级」两级分组：**班级名只出现一次**，学生聚在班级名后面
 ///   （修掉旧版「高一1班 张三、高一1班 李四」里班级名跟着每个学生重复的问题）；
 /// - 状态之间的分隔是「；」，班级之间是「，」；
-/// - 状态按 [AttendanceStatus.choices] 的顺序输出；
+/// - 状态按枚举声明顺序输出（迟到 → 早退 → 迟到+早退 → 缺勤 → 请假 → 休学）；
+///   这里**不能**遍历 `AttendanceStatus.choices` —— 那是行内胶囊的顺序，
+///   里面没有组合态（它由「迟」「早」两枚同时点亮表示），照着输出会把
+///   既迟到又早退的学生整段漏掉；
 /// - 没有异常学生时不带「异常出勤」尾巴，只复制头部。
 class AttendanceSummaryBuilder {
   AttendanceSummaryBuilder({
@@ -51,7 +54,8 @@ class AttendanceSummaryBuilder {
           .add(entry.studentName);
     }
     final sections = <String>[];
-    for (final status in AttendanceStatus.choices) {
+    // 枚举声明顺序就是报表顺序（见类注释：不能用 choices）
+    for (final status in AttendanceStatus.values) {
       final byClass = byStatus[status];
       if (byClass == null) {
         continue;

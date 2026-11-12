@@ -18,6 +18,7 @@ AttendanceSummaryBuilder _builder() => AttendanceSummaryBuilder(
 String _label(AttendanceStatus status) => switch (status) {
   AttendanceStatus.late => '迟到',
   AttendanceStatus.earlyLeave => '早退',
+  AttendanceStatus.lateAndEarly => '迟到+早退',
   AttendanceStatus.absent => '缺勤',
   AttendanceStatus.leave => '请假',
   AttendanceStatus.suspended => '休学',
@@ -67,7 +68,7 @@ void main() {
       );
     });
 
-    test('状态按 choices 顺序输出（迟到在请假前），与传入顺序无关', () {
+    test('状态按枚举声明顺序输出（迟到在请假前），与传入顺序无关', () {
       final text = _builder().build(<AttendanceSummaryEntry>[
         _entry(AttendanceStatus.leave, '高一1班', '王五'),
         _entry(AttendanceStatus.late, '高一1班', '张三'),
@@ -106,6 +107,24 @@ void main() {
       ]);
       expect(text, contains('迟到：2人，张三、李四'));
       expect(text, isNot(contains('：张三、李四')));
+    });
+
+    test('迟到+早退是独立的一段，且只算一个人、不重复进迟到 / 早退', () {
+      final text = _builder().build(<AttendanceSummaryEntry>[
+        _entry(AttendanceStatus.lateAndEarly, '高一1班', '张三'),
+        _entry(AttendanceStatus.late, '高一1班', '李四'),
+      ]);
+      expect(
+        text,
+        '10月26日（周一）08:00-08:45，数学，应到：45人。实到：42人，'
+        '异常出勤：迟到：1人，高一1班：李四；'
+        '迟到+早退：1人，高一1班：张三',
+      );
+      // 同一名学生只出现一次：老师拿这段文字报数，不能被同一个人算两遍
+      expect('张三'.allMatches(text).length, 1);
+      // 「迟到」那一段里只有李四，张三没有同时被算进迟到和早退
+      final lateSection = RegExp('迟到：1人，([^；]*)').firstMatch(text);
+      expect(lateSection?.group(1), '高一1班：李四');
     });
   });
 }

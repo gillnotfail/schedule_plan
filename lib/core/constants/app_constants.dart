@@ -112,6 +112,8 @@ abstract final class AppConstants {
   /// + 两种**长期状态**（休学 / 免修）。
   ///
   /// "未标记"不是可选项（它只是"还没有记录"的显示态），所以不占格子。
+  /// 「迟到+早退」**也不占格子**：它由「迟」「早」两枚同时点亮表示，
+  /// 落库时才合成一个状态值（见 `AttendanceStatus.fromLateEarly`）。
   static const int attendanceStatusChoiceCount = 7;
 
   /// 其中「长期状态」（休学 / 免修）的个数。

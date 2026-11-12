@@ -306,4 +306,85 @@ class LessonRepository {
     );
     return (rows.first['cnt'] as int?) ?? 0;
   }
+
+  /// 课表按"一周"展开成若干节课，供统计页推算「应上课次」（`docs/SPEC.md` 3.10）。
+  ///
+  /// `classIds` 取 `course_class`（合班课的名单是并集）；**老数据里 `course_class`
+  /// 没有对应行时回落到 `lesson.class_id`** —— 否则这些课在统计里会凭空消失，
+  /// 老师会看到"我明明每周两节，怎么应上是 0"。
+  ///
+  /// 不去重"同一节课被多个班共用"的情况：一节课就是一次课，班级是它的属性。
+  Future<List<WeeklySlot>> weeklySlots({int? teacherId}) async {
+    final db = await _database;
+    final clauses = <String>[];
+    final args = <Object?>[];
+    if (teacherId != null) {
+      clauses.add('l.teacher_id = ?');
+      args.add(teacherId);
+    }
+    final rows = await db.rawQuery('''
+      SELECT l.weekday AS weekday,
+             l.period_index AS period_index,
+             l.course_id AS course_id,
+             l.class_id AS class_id,
+             cc.class_id AS linked_class_id
+      FROM lesson l
+      LEFT JOIN course_class cc ON cc.course_id = l.course_id
+      ${clauses.isEmpty ? '' : 'WHERE ${clauses.join(' AND ')}'}
+      ORDER BY l.weekday ASC, l.period_index ASC
+      ''', args);
+
+    // key = "weekday|period|course|ownerClass"，把同一节课的多条联表行收成一条
+    final merged = <String, _SlotAccum>{};
+    for (final row in rows) {
+      final weekday = (row['weekday'] as int?) ?? 0;
+      final period = (row['period_index'] as int?) ?? 0;
+      final courseId = (row['course_id'] as int?) ?? 0;
+      final ownerClass = (row['class_id'] as int?) ?? 0;
+      final key = '$weekday|$period|$courseId|$ownerClass';
+      final slot = merged.putIfAbsent(
+        key,
+        () => _SlotAccum(
+          weekday: weekday,
+          period: period,
+          courseId: courseId,
+          ownerClassId: ownerClass,
+        ),
+      );
+      final linked = row['linked_class_id'] as int?;
+      if (linked != null) {
+        slot.classIds.add(linked);
+      }
+    }
+    return <WeeklySlot>[
+      for (final slot in merged.values)
+        WeeklySlot(
+          weekday: slot.weekday,
+          periodIndex: slot.period,
+          courseId: slot.courseId,
+          classIds: slot.effective,
+        ),
+    ];
+  }
 }
+
+/// `weeklySlots()` 内部用来把联表行收成一节课的小累加器。
+class _SlotAccum {
+  _SlotAccum({
+    required this.weekday,
+    required this.period,
+    required this.courseId,
+    required this.ownerClassId,
+  });
+
+  final int weekday;
+  final int period;
+  final int courseId;
+  final int ownerClassId;
+  final Set<int> classIds = <int>{};
+
+  /// 落库时用的班级集合：`course_class` 为空就退回课程自己那个班。
+  Set<int> get effective =>
+      classIds.isEmpty ? <int>{ownerClassId} : classIds;
+}
+

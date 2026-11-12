@@ -2365,4 +2365,107 @@ class AppLocalizationsZh extends AppLocalizations {
   String attendanceSummaryClassGroup(String className, String names) {
     return '$className：$names';
   }
+
+  @override
+  String get statusLateAndEarly => '迟到+早退';
+
+  @override
+  String get statusShortLateAndEarly => '迟早';
+
+  @override
+  String get statOverview => '概览';
+
+  @override
+  String get statClassRanking => '班级排行';
+
+  @override
+  String get statRangeWeek => '本周';
+
+  @override
+  String get statRangeMonth => '本月';
+
+  @override
+  String get statRangeTerm => '本学期';
+
+  @override
+  String get statRangeCustom => '自定义';
+
+  @override
+  String statRangeLabel(String from, String to) {
+    return '$from 至 $to';
+  }
+
+  @override
+  String get statClassFilter => '按班级筛选';
+
+  @override
+  String get statRate => '出勤率';
+
+  @override
+  String get statExpected => '应上';
+
+  @override
+  String get statAbsent => '缺勤';
+
+  @override
+  String get statLate => '迟到';
+
+  @override
+  String get statEarlyLeave => '早退';
+
+  @override
+  String get statLateAndEarly => '迟早';
+
+  @override
+  String get statLeave => '请假';
+
+  @override
+  String get statAbnormalSessions => '异常课次';
+
+  @override
+  String get statClassAverage => '班级出勤率';
+
+  @override
+  String get statLedgerTitle => '出勤档案';
+
+  @override
+  String get statLedgerShort => '出勤';
+
+  @override
+  String get statShowAllLessons => '显示全部课次';
+
+  @override
+  String get statLedgerEmpty => '这段时间没有异常，真不错';
+
+  @override
+  String get statRankingHint => '点姓名看出勤档案';
+
+  @override
+  String get statNoTimetable => '课表里没有排课，暂时算不出出勤率';
+
+  @override
+  String statSessionCount(int count) {
+    return '$count 节';
+  }
+
+  @override
+  String get statFormulaTitle => '考勤率怎么算';
+
+  @override
+  String get statFormulaLine1 => '出勤率 = 1 − 缺勤课次 ÷ 应上课次';
+
+  @override
+  String get statFormulaLine2 => '应上课次按当前课表推算，没点名的课次按全勤算';
+
+  @override
+  String get statFormulaLine3 => '迟到、早退、请假都不扣出勤率；请假次数单列';
+
+  @override
+  String get statFormulaLine4 => '休学期间不计入应上课次；免修照常计入';
+
+  @override
+  String get statFormulaLine5 => '改过课表之后，以前的出勤率会跟着重算';
+
+  @override
+  String get statUnmarkedCounted => '没点名的课次按全勤计，不单独列出';
 }

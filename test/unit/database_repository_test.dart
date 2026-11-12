@@ -866,6 +866,70 @@ void main() {
       );
     });
 
+    test('「迟到+早退」在排名里两个计数各算一次，异常只算一条记录', () async {
+      final template = (await templates.listTemplates()).first;
+      final classId = await classes.createClass(
+        ClassInfo(
+          name: '高一(4)班',
+          grade: '高一',
+          color: '#2196F3',
+          templateId: template.id!,
+        ),
+      );
+      await courses.createCourse(
+        Course(name: '物理', teacherName: '李老师', classIds: <int>[classId]),
+      );
+      final course = (await courses.listCourses(classId: classId)).first;
+      final studentId = await students.createStudent(
+        Student(name: '周八', classId: classId),
+      );
+
+      // 三天：一天两头都占（一节课一条记录），一天只迟到，一天只早退
+      const statuses = <AttendanceStatus>[
+        AttendanceStatus.lateAndEarly,
+        AttendanceStatus.late,
+        AttendanceStatus.earlyLeave,
+      ];
+      for (var i = 0; i < statuses.length; i++) {
+        final lessonId = await lessons.addLesson(
+          Lesson(
+            courseId: course.id!,
+            classId: classId,
+            teacherId: 1,
+            weekday: i + 1,
+            periodIndex: i + 1,
+          ),
+        );
+        await attendance.upsert(
+          AttendanceRecord(
+            studentId: studentId,
+            lessonId: lessonId,
+            date: '2026-09-0${i + 1}',
+            status: statuses[i],
+          ),
+        );
+      }
+
+      final ranking = await attendance.riskRanking(
+        fromDate: '2026-09-01',
+        toDate: '2026-09-30',
+        weightAbsent: 3,
+        weightLate: 1,
+        weightEarlyLeave: 1,
+      );
+      expect(ranking, hasLength(1));
+      // 组合态确实是"迟到了"也是"早退了"，两个口径都要含它
+      expect(ranking.single.lateCount, 2);
+      expect(ranking.single.earlyLeaveCount, 2);
+      expect(ranking.single.riskScore, 4);
+      // 但异常明细里它只有一条：不会被同一个学生重复计两次
+      final details = await attendance.abnormalDetails(
+        fromDate: '2026-09-01',
+        toDate: '2026-09-30',
+      );
+      expect(details, hasLength(3));
+    });
+
     test('超期考勤记录可清理', () async {
       final template = (await templates.listTemplates()).first;
       final classId = await classes.createClass(

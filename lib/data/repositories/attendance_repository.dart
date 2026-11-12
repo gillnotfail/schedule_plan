@@ -6,6 +6,7 @@ import 'package:schedule_plan/core/logging/app_logger.dart';
 import 'package:schedule_plan/core/utils/date_utils.dart';
 import 'package:schedule_plan/data/db/app_database.dart';
 import 'package:schedule_plan/data/models/attendance.dart';
+import 'package:schedule_plan/data/models/attendance_ledger.dart';
 import 'package:schedule_plan/data/models/lesson.dart';
 import 'package:schedule_plan/data/models/student.dart';
 
@@ -177,6 +178,11 @@ class AttendanceRepository {
   /// 高风险学生排名（模块三 3.4）：按加权计分降序。
   ///
   /// 分数 = 缺勤 × wAbsent + 迟到 × wLate + 早退 × wEarly（权重来自设置）。
+  ///
+  /// 「迟到+早退」组合态（`late_early`）在**两个计数里各算一次**：
+  /// 它确实是这一天迟到了、也确实早退了，两个数字都得对得上明细；
+  /// 而"异常次数"是记录条数，组合态只有一条，自然只算一次 ——
+  /// 这正是用户要的"算一次异常缺勤，但是有两种状态"。
   Future<List<RiskStudent>> riskRanking({
     int? classId,
     int? courseId,
@@ -201,8 +207,8 @@ class AttendanceRepository {
     final rows = await db.rawQuery('''
       SELECT s.id, s.name, s.student_no, s.class_id,
              SUM(CASE WHEN a.status = 'absent' THEN 1 ELSE 0 END) AS absent_count,
-             SUM(CASE WHEN a.status = 'late' THEN 1 ELSE 0 END) AS late_count,
-             SUM(CASE WHEN a.status = 'early_leave' THEN 1 ELSE 0 END) AS early_count
+             SUM(CASE WHEN a.status IN ('late', 'late_early') THEN 1 ELSE 0 END) AS late_count,
+             SUM(CASE WHEN a.status IN ('early_leave', 'late_early') THEN 1 ELSE 0 END) AS early_count
       FROM student s
       JOIN attendance_record a ON a.student_id = s.id
       WHERE ${where.join(' AND ')}
@@ -334,6 +340,83 @@ class AttendanceRepository {
       WHERE ${clauses.join(' AND ')}
       ORDER BY a.date DESC, COALESCE(a.start_time, tp.start_time) ASC
       ''', args);
+  }
+
+  /// 出勤台账（`docs/SPEC.md` 3.8 / 3.9 的统一数据源）。
+  ///
+  /// 与 [abnormalDetails] 的区别只有两点：**不筛状态**（出勤记录也要，档案页
+  /// 「显示全部课次」用得上）、**可以只取一个学生**。其余口径完全一致 ——
+  /// 同一套 `COALESCE` 兜底，课表条目删了也还能显示课程名与时间。
+  ///
+  /// 聚合不在这里做：档案是"按日期分组"、排行是"按人分组"，同一批行换个分组而已，
+  /// 放到 Dart 纯函数里做才好单测（见 `features/statistics/attendance_ledger.dart`）。
+  Future<List<AttendanceLedgerRow>> ledger({
+    required String fromDate,
+    required String toDate,
+    int? classId,
+    int? courseId,
+    int? studentId,
+  }) async {
+    final db = await _database;
+    final clauses = <String>['a.date BETWEEN ? AND ?'];
+    final args = <Object?>[fromDate, toDate];
+    if (classId != null) {
+      clauses.add('COALESCE(a.class_id, l.class_id) = ?');
+      args.add(classId);
+    }
+    if (courseId != null) {
+      clauses.add('COALESCE(a.course_id, l.course_id) = ?');
+      args.add(courseId);
+    }
+    if (studentId != null) {
+      clauses.add('a.student_id = ?');
+      args.add(studentId);
+    }
+    final rows = await db.rawQuery('''
+      SELECT a.date AS date,
+             a.student_id AS student_id,
+             s.name AS student_name,
+             s.student_no AS student_no,
+             COALESCE(a.class_id, l.class_id) AS class_id,
+             COALESCE(a.class_name, c.name) AS class_name,
+             COALESCE(a.course_id, l.course_id) AS course_id,
+             COALESCE(a.course_name, co.name) AS course_name,
+             COALESCE(a.period_index, l.period_index) AS period_index,
+             COALESCE(a.start_time, tp.start_time) AS start_time,
+             COALESCE(a.end_time, tp.end_time) AS end_time,
+             a.status AS status,
+             a.note AS note
+      FROM attendance_record a
+      JOIN student s ON s.id = a.student_id
+      LEFT JOIN lesson l ON l.id = a.lesson_id
+      LEFT JOIN course co ON co.id = COALESCE(a.course_id, l.course_id)
+      LEFT JOIN class c ON c.id = COALESCE(a.class_id, l.class_id)
+      LEFT JOIN template_period tp
+        ON tp.template_id = c.template_id
+       AND tp.weekday = COALESCE(a.weekday, l.weekday)
+       AND tp.period_index = COALESCE(a.period_index, l.period_index)
+      WHERE ${clauses.join(' AND ')}
+      ORDER BY a.date ASC, COALESCE(a.start_time, tp.start_time) ASC
+      ''', args);
+    return rows
+        .map(
+          (row) => AttendanceLedgerRow(
+            date: (row['date'] as String?) ?? '',
+            studentId: (row['student_id'] as int?) ?? 0,
+            studentName: (row['student_name'] as String?) ?? '',
+            studentNo: row['student_no'] as String?,
+            classId: row['class_id'] as int?,
+            className: (row['class_name'] as String?) ?? '',
+            courseId: row['course_id'] as int?,
+            courseName: (row['course_name'] as String?) ?? '',
+            periodIndex: row['period_index'] as int?,
+            startTime: row['start_time'] as String?,
+            endTime: row['end_time'] as String?,
+            status: AttendanceStatus.fromStorage(row['status'] as String?),
+            note: row['note'] as String?,
+          ),
+        )
+        .toList(growable: false);
   }
 
   /// 「受益学生数」：给定区间内**被点过名的去重总人数**（教学成果的情绪价值指标）。
@@ -633,6 +716,19 @@ class AttendanceRepository {
       orderBy: 'course_id ASC',
     );
     return rows.map(CourseStudentStatus.fromMap).toList();
+  }
+
+  /// 全部长期状态（休学 / 免修），统计页一次取全。
+  ///
+  /// 统计页要为每个学生算"应上课次"，逐人调 [courseStatusesForStudent]
+  /// 就是一个班 40 次 query；这张表很小（一门课一人一条），一次取全更划算。
+  Future<List<CourseStudentStatus>> allCourseStatuses() async {
+    final db = await _database;
+    final rows = await db.query(
+      'student_course_status',
+      orderBy: 'student_id ASC, course_id ASC',
+    );
+    return rows.map(CourseStudentStatus.fromMap).toList(growable: false);
   }
 
   /// 设置（或覆盖）某个学生在某门课上的长期状态，返回落库后的那条记录。

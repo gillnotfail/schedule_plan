@@ -1383,7 +1383,7 @@ class _AttendancePageState extends State<AttendancePage> {
               longTerm: _longTerm[student.id!],
               risk: _highRisk[student.id!] ?? false,
               tokens: tokens,
-              // 只有休学才锁日常五态（免修仍可标记迟到早退），
+              // 只有休学才锁日常状态（免修仍可标记迟到早退），
               // 休学的唯一出口是「再点一次休学胶囊 → 复学」。
               locked:
                   _longTerm[student.id]?.status == AttendanceStatus.suspended,
@@ -1614,7 +1614,7 @@ class _SummaryDialog extends StatelessWidget {
 /// 一行学生：小号字姓名 / 学号 + **平铺的七个一键状态胶囊**。
 ///
 /// 用户规格（本次改动的核心）：考勤状态不要再让老师"滑动一个个选"，
-/// 也不要循环点击四五次才到"请假"。七种状态（日常五种 + 休学 / 免修）
+/// 也不要循环点击四五次才到"请假"。八种状态（日常六种 + 休学 / 免修）
 /// 摊开摆在学生信息后面（见 [AttendanceStatusStrip]），想点哪个点哪个，
 /// 日常状态点一下就落库，长期状态点一下就管 180 天。
 class _StudentRow extends StatelessWidget {
@@ -1643,7 +1643,7 @@ class _StudentRow extends StatelessWidget {
   /// 日常点名不受影响。
   final CourseStudentStatus? longTerm;
 
-  /// 休学时锁住日常五态与免修胶囊（只有"再点一次休学胶囊 → 复学"这一条出口）。
+  /// 休学时锁住日常状态与免修胶囊（只有"再点一次休学胶囊 → 复学"这一条出口）。
   /// 免修不锁：免修学生仍会来上课，迟到早退照常标记。
   final bool locked;
 
