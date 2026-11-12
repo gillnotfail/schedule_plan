@@ -9,7 +9,7 @@
 - 只做 Android APK（iOS 不验证、不加鸿蒙）；**Windows 上 `README.md`/`readme.md` 是同一文件**。
 
 ## 工具链
-- 提交前 `flutter analyze --no-pub` 零 issue（含 `test/`）+ `flutter test` 全绿（当前 **531**）；
+- 提交前 `flutter analyze --no-pub` 零 issue（含 `test/`）+ `flutter test` 全绿（当前 **543**）；
   **跑前设 `NO_PROXY=localhost,127.0.0.1,::1`**（代理会劫持 flutter_tester 的 WebSocket）。
 - flutter 一律走 `C:\Users\jeo\AppData\Local\Temp\wb_run_flutter.py`（直调 `flutter.BAT`）；
   **以日志最后一行 `=== EXIT n ===` 为准**（PowerShell 承接输出时退出码不可信）。
@@ -18,6 +18,8 @@
 - **`CreateFile failed 231`（管道耗尽）是 WorkBuddy 进程环境问题，重启电脑无效**：判据只有
   「当场起一个 Dart 子进程」；处置是请用户在自家终端跑 .bat。假象：Bash 看似正常、PowerShell 静默返回空。
 - **.bat 里禁止用 `if errorlevel 1` 当门禁**（`flutter.BAT` 成功也返回非 0，会静默跳过后续全部流程）。
+- **导出文件名统一走 `core/utils/file_naming.dart` 的 `buildExportFileName`**（`导出时间-对象-内容.xlsx`），
+  禁止在调用处手拼；课程名/学生名要过 `sanitizeFilePart`（`/:*?` 换横线、截断 40 字）。
 - 批量改代码走独立 .py（每处 `assert 旧串 in s`；CRLF 用 `newline=''` 读）；**同一文件多处改动一条条 Edit**。
 - widget 测试：改窗口用 `tester.view.devicePixelRatio/physicalSize` + `addTearDown(tester.view.reset)`；
   `find.text` 撞刻度用 `find.descendant` 限定；`initState` 读 sqlite 要用 `tester.runAsync` 放它跑完；
@@ -34,7 +36,7 @@
 - 翻月走 `DateUtils.shiftMonth`（`DateTime(y,m±1,d)` 会进位）；加天用 `DateTime(y,m,d+n)`。
 
 ## i18n
-- 禁止硬编码，全走 `app_zh/en.arb` + `context.l10n`，zh/en 严格对齐（当前各 **772** 键）。
+- 禁止硬编码，全走 `app_zh/en.arb` + `context.l10n`，zh/en 严格对齐（当前各 **773** 键）。
 - **加键一律走 `.workbuddy/tools/add_l10n_keys.py`**（幂等）：`NEW_KEYS` 加、`UPDATE_KEYS` 改（内含 assert）、
   `PLACEHOLDERS` 加 `@key`；跑完 `gen-l10n` 再 analyze。**别拿 `"...元数据",\n}` 当锚点**（三个 dict 都以它结尾）。
 
