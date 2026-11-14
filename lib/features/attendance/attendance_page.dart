@@ -47,7 +47,14 @@ import 'package:schedule_plan/features/attendance/student_tag_sheet.dart';
 /// [AppNavigationState.openAttendance]，本页消费后把日期切到
 /// **这节课所在周几最近的日期**，并把课程选中、拉出学生名单与已保存的考勤状态。
 class AttendancePage extends StatefulWidget {
-  const AttendancePage({super.key});
+  const AttendancePage({super.key, this.holidayService});
+
+  /// 可注入的节假日服务（测试用）。生产环境留空，页面自己造一个。
+  ///
+  /// 不注入时 `HolidayService()` 会去读**默认数据库**，widget 测试里
+  /// 一旦没走到真实的 `AppDatabase`，`shiftMap` 就会把 `pump` 挂住
+  /// （见 `test/widget/attendance_roster_refresh_test.dart` 的注释）。
+  final HolidayService? holidayService;
 
   @override
   State<AttendancePage> createState() => _AttendancePageState();
@@ -64,7 +71,8 @@ class _AttendancePageState extends State<AttendancePage> {
 
   /// 节假日 / 调休服务。`kindOf` / `infoOf` 是纯静态查表（判断这天是放假
   /// 还是调休上班），`shiftMap` 一次取回整段区间的「调休日上周几的课」。
-  final HolidayService _holidays = HolidayService();
+  late final HolidayService _holidays =
+      widget.holidayService ?? HolidayService();
 
   /// 节假日与调休总开关。关掉之后一律按「周六周日休息」看，日历不再标调休。
   bool _holidayAware = true;
@@ -101,6 +109,16 @@ class _AttendancePageState extends State<AttendancePage> {
 
   /// 高风险检测的世代号：数字一变，尚未返回的旧计算就作废（见 [_refreshRisk]）。
   int _riskToken = 0;
+
+  /// 当日课程 / 名单的加载世代号：数字一变，尚未返回的旧加载就作废。
+  ///
+  /// 两处会并发，没有令牌就会互相覆盖：
+  /// 1. 页面首次 [_loadAll] 还在读库时，老师已经从课表页点了「去点名」；
+  ///    先发起的那次**后**返回，会把已定位好的名单覆盖成"今天这节课"的，
+  ///    甚至因为今天是周末、没有课而直接清空（用户实测：跳过去是空名单）。
+  /// 2. 连续切日期 / 换课，前一次的查询比后一次慢。
+  int _lessonToken = 0;
+  int _studentToken = 0;
 
   StudentSortMode _sortMode = StudentSortMode.namePinyin;
   SortDirection _sortDirection = SortDirection.ascending;
@@ -164,8 +182,11 @@ class _AttendancePageState extends State<AttendancePage> {
   /// 从别的 Tab 回到考勤页时刷新一次。
   ///
   /// `IndexedStack` 切回来**既不 `initState` 也不重读库**，所以要显式刷。
-  /// 非刷不可的理由：调休映射可能在别的 Tab 被改掉（工具箱日历页 / 课表页的
-  /// 调休提醒条），不刷的话日历上"哪天调休、那天上周几的课"还是改之前的样子。
+  /// 非刷不可的理由：
+  /// 1. 调休映射可能在别的 Tab 被改掉（工具箱日历页 / 课表页的调休提醒条）；
+  /// 2. **学生名单可能在别的 Tab 刚被改过**（设置 → 学生名单 / 班级名单里
+  ///    改名、改学号、转班、增删学生）。名单是老师面对面点名用的那一屏，
+  ///    显示旧姓名等于让她照着错的名字点名 —— 用户规格第 36 轮就是这条。
   ///
   /// 只重算圆环与当日课程，**不置整页 `_loading`** —— 切个 Tab 就白屏一下太糙。
   void _reloadIfReturned() {
@@ -188,13 +209,17 @@ class _AttendancePageState extends State<AttendancePage> {
     _refreshHolidayContext();
   }
 
-  /// 重算调休相关的展示：日历标记 + 圆环 + 当日课程（不整页转圈）。
+  /// 重算调休相关的展示 + 重读名单（不整页转圈）。
+  ///
+  /// 名单必须跟着重读：`_loadDayLessons` 末尾会拉当前这节课的学生，
+  /// 而 `_loadClasses` 负责班级名/班级顺序（班级可能被改名或新增）。
   Future<void> _refreshHolidayContext() async {
     final aware = await _holidays.isEnabled();
     if (!mounted) {
       return;
     }
     setState(() => _holidayAware = aware);
+    await _loadClasses();
     await _loadDayStats(force: true);
     if (!mounted) {
       return;
@@ -338,6 +363,9 @@ class _AttendancePageState extends State<AttendancePage> {
   }
 
   Future<void> _loadDayLessons() async {
+    // 本次加载的世代号：await 期间如果又被调起一次（切日期 / 去点名 /
+    // 首次 _loadAll 与定位撞车），本次结果直接丢弃，不许写回 state。
+    final token = ++_lessonToken;
     final lessonsRepo = context.read<LessonRepository>();
     // **按调休映射取课**：这天若是调休上班日、学校通知上周三的课，那么要点名的
     // 就是周三排的那几节，而不是"周六的课"（周六通常压根没排课，会显示成
@@ -358,7 +386,8 @@ class _AttendancePageState extends State<AttendancePage> {
             (item) => item.lesson.id == wantedId,
             orElse: () => lessons.first,
           );
-    if (!mounted) {
+    if (!mounted || token != _lessonToken) {
+      // 已被更新的一次加载顶替（比如老师先点了「去点名」）
       return;
     }
     setState(() {
@@ -387,6 +416,9 @@ class _AttendancePageState extends State<AttendancePage> {
   /// 多个班时按「班级 → 姓名」排，老师可以一个班一个班地核对下去；
   /// 单班时退化成原来的 id 顺序（再由表格的排序开关决定展示顺序）。
   Future<void> _loadStudents(LessonWithTime lesson) async {
+    // 名单同样要带世代号：换课 / 切日期 / 切 Tab 回来都可能连着调两次，
+    // 慢的那次不许把新的名单盖回旧的（那就是"学生改名了考勤页还显示旧名"）。
+    final token = ++_studentToken;
     final studentRepo = context.read<StudentRepository>();
     final attendanceRepo = context.read<AttendanceRepository>();
     final courseRepo = context.read<CourseRepository>();
@@ -404,7 +436,7 @@ class _AttendancePageState extends State<AttendancePage> {
       courseId: lesson.lesson.courseId,
       date: date,
     );
-    if (!mounted) {
+    if (!mounted || token != _studentToken) {
       return;
     }
     setState(() {
