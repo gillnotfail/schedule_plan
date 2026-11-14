@@ -9,7 +9,7 @@
 - 只做 Android APK（iOS 不验证、不加鸿蒙）；**Windows 上 `README.md`/`readme.md` 是同一文件**。
 
 ## 工具链
-- 提交前 `flutter analyze --no-pub` 零 issue（含 `test/`）+ `flutter test` 全绿（当前 **543**）；
+- 提交前 `flutter analyze --no-pub` 零 issue（含 `test/`）+ `flutter test` 全绿（当前 **548**）；
   **跑前设 `NO_PROXY=localhost,127.0.0.1,::1`**（代理会劫持 flutter_tester 的 WebSocket）。
 - flutter 一律走 `C:\Users\jeo\AppData\Local\Temp\wb_run_flutter.py`（直调 `flutter.BAT`）；
   **以日志最后一行 `=== EXIT n ===` 为准**（PowerShell 承接输出时退出码不可信）。
@@ -70,25 +70,26 @@
   **考勤日历格子只有四样标记**（唯一来源 `calendar_marks.dart`）：放假红点、调休上班紫点、未点名淡圈、
   点过名红弧；**不许再加**，改任一标记必须同步改图例，否则"图例说的"和"格子画的"对不上。
 - **跨 Tab 只能走 `AppNavigationState`**；`IndexedStack` 切回来既不 `initState` 也不重读库，凡可能被别处改的
-  数据都要在切回时重载，**推子页面返回后也要 `_load()`**。
+  数据都要在切回时重载，**推子页面返回后也要 `_load()`**。考勤页切回要 `_loadClasses()` + `_loadDayLessons()`
+  （班名别只读一次）；加载带**世代号**，旧返回丢弃。
 - **节假日两个维度绝不能合并**：`weekday`（天然）vs `CalendarDayKind`（国家安排），「这天休息吗」必须查后者，
   **禁止只判 `weekday == 6 || 7`**。「调休那天上周几的课」**必须老师确认、不准猜**（存 `app_settings`）。
   **「这天该上哪一套课」唯一入口 `HolidayService.dayOf(date).labelWeekday`**，禁止裸用 `date.weekday`。
+- **名单必须实时**（SPEC 2.12）：改名/转班/增删后去点名与切回 Tab 都得是新名单。
 - **动效只有 `AppMotion` 一个来源**，禁止裸写 `Duration(milliseconds:)`；过冲只用于位移/缩放，
   喂给 `Interval.transform`/`lerpDouble` 必须 `.clamp(0,1)`；颜色/描边/透明度用单调的 `effects`。
 - **`FilledButton`/`ElevatedButton`/`OutlinedButton` 不能直接放进 `Row`**（全局 `minimumSize` 撑成无限宽）；
   **所有 SnackBar 一律 2 秒**；**Android `INTERNET` 权限必须写在 `AndroidManifest.xml`**（release 不自动补）。
-- **设置页第一页只有四块**：课表与名单 / 系统设置（一条入口）/ 显示与语言 / 关于，**彩色标题卡在最底部**；
-  「拍照生成课表」与「统计设置」不许回设置页（后者在工具箱「教学成果」齿轮）。
+- **设置页第一页只有四块**：课表与名单 / 系统设置 / 显示与语言 / 关于，**彩色标题卡在最底部**；
+  「拍照生成课表」与「统计设置」不许回设置页（在工具箱教学成果齿轮）。
 - **统计 = 两本台账**（SPEC 3.8~3.11）：干预台账（`riskRanking` 加权分）迟到/早退**各计一次**；评价台账
   （出勤率排行 + 学生档案）五个状态数**互斥**、组合态单列 —— **口径不同是刻意的，不许统一**。
   出勤率 = **1 − 缺勤 ÷ 应上**（迟到/早退/请假不进分子）；应上由 `countScheduledSessions` 按课表推算
   （放假日不算、调休走 `labelWeekdayOf`、休学跳过、**未点名按全勤**）；改课表会追溯重算、必须写在界面上；
-  **不许把"没点名"伪造成 present 行**。口径文案只在 `attendance_formula_sheet.dart` 一处。
-  **未来还没上的课不计入应上**（`AttendanceAnalytics.build` 的 `asOf`，默认今天）—— 否则默认
-  "本学期"会把期中出勤率稀释成六七成。**工具箱第 3 页「学生追踪」**（`student_track_panel.dart`）
-  按人看流水：异常次数降序、点姓名进详情（日期/课程/出勤情况），**正常出勤也列**（与档案页
-  "默认只列异常"刻意不同）；两页导出各管各的显示状态，走 `exportTrackWorkbook`。
+  **不许把"没点名"伪造成 present 行**。文案唯一来源 `attendance_formula_sheet.dart`。
+  **未来还没上的课不计入应上**（`AttendanceAnalytics.build` 的 `asOf`，默认今天），否则期中出勤率被稀释。
+  **工具箱第 3 页「学生追踪」**（`student_track_panel.dart`）：异常次数降序、点姓名进详情，
+  **正常出勤也列**（与档案页"默认只列异常"刻意不同）；导出走 `exportTrackWorkbook`。
 - **专注模式只有专注态锁屏**（暂停/休息不锁），`isBreak` 必须进快照；**计时必须墙钟口径**；统计只算 `completed`；
-  休息段不写 `focus_session`；`label` 落库稳定 id。**释放锁定必须无条件**（靠"我记得锁过"判断会漏掉
-  `stopLockTask()`，用户被钉在 App 里 —— 第 28 轮真事故）。准备态一屏与滚轮细则见 DETAIL。
+  休息段不写 `focus_session`；`label` 落库稳定 id。**释放锁定必须无条件**（漏掉
+  `stopLockTask()` 用户被钉在 App 里，第 28 轮真事故）。准备态一屏与滚轮细则见 DETAIL。
