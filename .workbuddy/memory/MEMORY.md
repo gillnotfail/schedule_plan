@@ -1,7 +1,7 @@
 # schedule_plan 长期约定
 
-> **只记「改错会出事」的硬约束**（注入上限约 10k 字节，超了后续会话看不到 → 只留红线）。
-> **细则/常量/文件清单在 `MEMORY-DETAIL.md`**（工具链故障、发布链路、课表格子与曲线、考勤、统计、专注模式等章节）。
+> **只记「改错会出事」的硬约束**（注入上限 ~10k，超了后续会话看不到）。
+> **细则/常量/文件清单在 `MEMORY-DETAIL.md`**（工具链、发布、课表格子、考勤、统计、专注模式等章节）。
 > 过程记录在 `YYYY-MM-DD.md`；需求唯一来源 `docs/SPEC.md`；发布手册 `docs/RELEASE.md`。
 
 ## 平台 / 需求
@@ -9,7 +9,7 @@
 - 只做 Android APK（iOS 不验证、不加鸿蒙）；**Windows 上 `README.md`/`readme.md` 是同一文件**。
 
 ## 工具链
-- 提交前 `flutter analyze --no-pub` 零 issue（含 `test/`）+ `flutter test` 全绿（当前 **548**）；
+- 提交前 `flutter analyze --no-pub` 零 issue（含 `test/`）+ `flutter test` 全绿（当前 **556**）；
   **跑前设 `NO_PROXY=localhost,127.0.0.1,::1`**（代理会劫持 flutter_tester 的 WebSocket）。
 - flutter 一律走 `C:\Users\jeo\AppData\Local\Temp\wb_run_flutter.py`（直调 `flutter.BAT`）；
   **以日志最后一行 `=== EXIT n ===` 为准**（PowerShell 承接输出时退出码不可信）。
@@ -43,11 +43,13 @@
 ## 发布（细则见 DETAIL）
 - **仓库必须公开**；**token 只放 `~/.schedule_plan-release.env`**，不进仓库、不进对话。
 - **`release.py` 顺序不能反**：提交 → 打标签 → 推送 → 再建 Release（要建 Release 必须带 `--push`）。
-- `version: x.y.z+N`，**N 必须递增**；**CHANGELOG 没对应版本节直接拒绝发布**（设计如此）；条目写用户看得懂的话。
+- `version: x.y.z+N`，**N 必须递增**；**CHANGELOG 没对应版本节拒绝发布**；条目写用户看得懂的话。
 - **双仓库**（Gitee 首选 + GitHub，各发一份）；清单必须保留单数 `assetsBase`；
   **`schemaVersion` 绝不因加字段 +1**（老客户端会判清单不可用 = 锁死已装机用户）。
-- 回验「本机连不上」≠「源坏了」（只有明确 4xx/5xx 才剔源）；发布最后清 jsDelivr 缓存（必须走 curl，
-  `status==finished` 不代表清成功，看 `throttled`）。
+- 回验「连不上」≠「源坏了」；清 jsDelivr 缓存走 curl（看 `throttled`，`finished` 不算数）。
+- **取清单 7 条源并发、谁先回用谁**（`manifestUrls`，SPEC 7.8）：Gitee raw 带 `?t=` → **Gitee 内容 API**
+  → raw 不带参 → GitHub raw → jsDelivr×3。**raw 实测回 451**、API 200 且不跳转（真保命源，别删）；
+  失败分 `network`/`manifest`，详情列每条源结论；**只有拿到清单才记 `lastCheckAt`**。
 - 分差掩码取高 15 位（bits 17..31）；三层安全网：清单 SHA-256 → 合成后交叉校验 → 生成端 `--verify`。
 - 安装走 `PackageInstaller`；`RandomAccessFile.writeFrom(list,start,end)` 第三参是**下标 end** 不是长度。
 - 构建 `flutter build apk --release`（签名 `android/key.properties` + `keystore.jks`，不入库）；
@@ -56,19 +58,19 @@
 ## 红线速查（常量与文件清单在 DETAIL）
 - **课表骨架：表永远是满的**。出厂作息唯一来源 `DatabaseSchema.generatePeriodRows`（禁止第二份循环），三层兜底缺一不可。
   「一键清空课表」**只清 `lesson`**；「在看哪套作息」必须**冷存储**，禁止按 `is_default`/第一个模板推导；
-  改节次时间时结束时间 = **本节自己的课堂时长**。
+  改节次时间时结束时间 = **本节课堂时长**。
 - **课表页不按班级切分、没有 FAB**；空格子点击判定只有一条「全库有没有课程」；**换课只改 `courseId` 不动 `classId`**；
   点格子一律**对话框**；「去点名」名单 = 该课**全部班级的并集**。
 - **表格与曲线档都必须一屏铺满**：禁止 `gridDayMinWidth × 天数` + 横向滚动；曲线档 `dayWidth = 可用宽 / 7`、
   走 `TimeAxis.fitted`，**不许有任何 `Scrollable`**。
 - **考勤记录不随课表变动删除**（`lesson_id` 可空 + `ON DELETE SET NULL` + 快照列，查询 LEFT JOIN + `COALESCE`）。
   状态是**平铺胶囊**，**不要退回「点击循环切换」**；**七枚胶囊 / 八种状态**：出 迟 早 缺 假 ｜ 休 免，
-  「迟到+早退」= **迟、早两枚同时亮**（用户明确否掉加第八枚）→ 一个枚举 `lateAndEarly`（库内 `late_early`）、
-  一条记录；单迟到再点「迟」**不写库**；统计**只算一次异常**但 `isLate`/`isEarlyLeave` 都认它（SQL 用 `IN (...)`）；
-  摘要按**枚举声明顺序**输出（`choices` 没有组合态，照它遍历会漏人）。
-  **休学 ≠ 免修**：休学**锁死日常状态**（出口=再点休学→「复学」确认）；免修只作角标、**不锁**。
-  **考勤日历格子只有四样标记**（唯一来源 `calendar_marks.dart`）：放假红点、调休上班紫点、未点名淡圈、
-  点过名红弧；**不许再加**，改任一标记必须同步改图例，否则"图例说的"和"格子画的"对不上。
+  「迟到+早退」= **迟、早两枚同亮**（否掉第八枚）→ 一个枚举 `lateAndEarly`（库内 `late_early`）、一条记录；
+  单迟到再点「迟」**不写库**；统计**只算一次异常**但 `isLate`/`isEarlyLeave` 都认（SQL 用 `IN (...)`）；
+  摘要按**枚举声明顺序**输出（照 `choices` 遍历会漏组合态）。
+  **休学 ≠ 免修**：休学**锁死日常状态**（再点→「复学」确认）；免修只作角标、**不锁**。
+  **考勤日历格子只有四样标记**（唯一来源 `calendar_marks.dart`）：放假红点、调休紫点、未点名淡圈、
+  点过名红弧；**不许再加**，改标记必须同步改图例，否则"图例说的"和"格子画的"对不上。
 - **跨 Tab 只能走 `AppNavigationState`**；`IndexedStack` 切回来既不 `initState` 也不重读库，凡可能被别处改的
   数据都要在切回时重载，**推子页面返回后也要 `_load()`**。考勤页切回要 `_loadClasses()` + `_loadDayLessons()`
   （班名别只读一次）；加载带**世代号**，旧返回丢弃。
@@ -77,19 +79,18 @@
   **「这天该上哪一套课」唯一入口 `HolidayService.dayOf(date).labelWeekday`**，禁止裸用 `date.weekday`。
 - **名单必须实时**（SPEC 2.12）：改名/转班/增删后去点名与切回 Tab 都得是新名单。
 - **动效只有 `AppMotion` 一个来源**，禁止裸写 `Duration(milliseconds:)`；过冲只用于位移/缩放，
-  喂给 `Interval.transform`/`lerpDouble` 必须 `.clamp(0,1)`；颜色/描边/透明度用单调的 `effects`。
+  喂给 `Interval.transform`/`lerpDouble` 必须 `.clamp(0,1)`；颜色/描边/透明度用 `effects`。
 - **`FilledButton`/`ElevatedButton`/`OutlinedButton` 不能直接放进 `Row`**（全局 `minimumSize` 撑成无限宽）；
   **所有 SnackBar 一律 2 秒**；**Android `INTERNET` 权限必须写在 `AndroidManifest.xml`**（release 不自动补）。
 - **设置页第一页只有四块**：课表与名单 / 系统设置 / 显示与语言 / 关于，**彩色标题卡在最底部**；
   「拍照生成课表」与「统计设置」不许回设置页（在工具箱教学成果齿轮）。
 - **统计 = 两本台账**（SPEC 3.8~3.11）：干预台账（`riskRanking` 加权分）迟到/早退**各计一次**；评价台账
   （出勤率排行 + 学生档案）五个状态数**互斥**、组合态单列 —— **口径不同是刻意的，不许统一**。
-  出勤率 = **1 − 缺勤 ÷ 应上**（迟到/早退/请假不进分子）；应上由 `countScheduledSessions` 按课表推算
-  （放假日不算、调休走 `labelWeekdayOf`、休学跳过、**未点名按全勤**）；改课表会追溯重算、必须写在界面上；
-  **不许把"没点名"伪造成 present 行**。文案唯一来源 `attendance_formula_sheet.dart`。
-  **未来还没上的课不计入应上**（`AttendanceAnalytics.build` 的 `asOf`，默认今天），否则期中出勤率被稀释。
-  **工具箱第 3 页「学生追踪」**（`student_track_panel.dart`）：异常次数降序、点姓名进详情，
-  **正常出勤也列**（与档案页"默认只列异常"刻意不同）；导出走 `exportTrackWorkbook`。
+  出勤率 = **1 − 缺勤 ÷ 应上**（迟到/早退/请假不进分子）；应上由 `countScheduledSessions` 推算
+  （放假日不算、调休走 `labelWeekdayOf`、休学跳过、**未点名按全勤**、**未来课不计入** `asOf`）；
+  改课表会追溯重算、必须写在界面上，**不许把"没点名"伪造成 present 行**；文案唯一来源 `attendance_formula_sheet.dart`。
+  **工具箱第 3 页「学生追踪」**（`student_track_panel.dart`）：异常次数降序、点姓名进详情，**正常出勤也列**；
+  导出走 `exportTrackWorkbook`。
 - **专注模式只有专注态锁屏**（暂停/休息不锁），`isBreak` 必须进快照；**计时必须墙钟口径**；统计只算 `completed`；
-  休息段不写 `focus_session`；`label` 落库稳定 id。**释放锁定必须无条件**（漏掉
-  `stopLockTask()` 用户被钉在 App 里，第 28 轮真事故）。准备态一屏与滚轮细则见 DETAIL。
+  休息段不写 `focus_session`；`label` 落库稳定 id。**释放锁定必须无条件**（漏 `stopLockTask()`
+  用户被钉在 App 里，第 28 轮真事故）。准备态与滚轮细则见 DETAIL。
