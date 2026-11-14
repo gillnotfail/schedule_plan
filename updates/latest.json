@@ -3,6 +3,51 @@
   "assetsBase": "https://gitee.com/jeo-xie/schedule_plan/releases/download",
   "releases": [
     {
+      "versionCode": 17,
+      "versionName": "1.0.16",
+      "tag": "v1.0.16",
+      "publishedAt": "2026-11-14T21:31:23+08:00",
+      "notes": [
+        "**检查更新失败时，终于能看出是哪一步断了**。以前不管什么原因都只写一句「版本信息暂时取不到」，现在分成两种：「没连上服务器，检查网络后重试」（网络不通）和「版本信息暂时取不到」（连上了但拿不到内容）。两种下面都会列出每条下载源试下来的结果（比如 `gitee 451 · gitee-api 超时 · github 握手失败`），报问题时把这一行发出来就能定位。",
+        "**补了五条获取更新信息的备用线路**。以前只有三条，其中两条在国内基本连不上，实际只靠 Gitee 一条撑着；某些网络下 Gitee 会把你悄悄跳到另一个子域名，那个子域名被拦时就全军覆没。现在七条同时试、哪条先回用哪条，其中一条特意走 Gitee 的接口写法，绕开那个可能被拦的子域名。",
+        "检查更新失败后不再记成「今天查过了」，网络恢复后下次打开就能重新检查，不用等一天。"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24548731,
+          "sha256": "24222bea5fedd2829ca8f1e6a8b1d14c66170c3092ce3d7f0d5bba6bcbf403f4"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22596803,
+          "sha256": "72e6fc126161a91910458427ee02b6430fa64c3b2a33101e80a783e018bd89bd"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 16,
+          "abi": "arm64-v8a",
+          "file": "patch-16-17-arm64-v8a.spdp",
+          "size": 4153223,
+          "targetSize": 24548731,
+          "sha256": "08f21f7fa85f1fcae914f9da0e7227e5eb2ca6a20998a8672550671d8450e6b4",
+          "baseSha256": "8187d0c40d1a693c0500a8019d660555093ed4a089a48c44947e8d283726ebd6"
+        },
+        {
+          "fromVersionCode": 16,
+          "abi": "armeabi-v7a",
+          "file": "patch-16-17-armeabi-v7a.spdp",
+          "size": 4590761,
+          "targetSize": 22596803,
+          "sha256": "8e0e47b989282c63d7b3e37602ca74d6a03a39d766e1f755dbf279686bf4f5c5",
+          "baseSha256": "cbd71ce1f8c30856425b98d4ef2c4c8c4c1f31238837eea81a78de045a8d1955"
+        }
+      ]
+    },
+    {
       "versionCode": 16,
       "versionName": "1.0.15",
       "tag": "v1.0.15",
@@ -761,7 +806,7 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-11-14T21:16:30+08:00",
+  "generatedAt": "2026-11-14T21:31:23+08:00",
   "assetsBases": [
     "https://gitee.com/jeo-xie/schedule_plan/releases/download",
     "https://github.com/gillnotfail/schedule_plan/releases/download"
