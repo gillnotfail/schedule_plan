@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ffi' show Abi;
 import 'dart:io';
 
@@ -188,6 +189,41 @@ class UpdateState {
   }
 }
 
+/// 一次取清单的结果：拿到的清单，加上**每条源试下来的结论**。
+///
+/// 分开持有是有原因的：以前[_fetchManifest]失败只返回一个 null，
+/// 于是"手机没网"和"清单内容不认"被报成同一句「版本信息暂时取不到」，
+/// 用户看到这句话完全无法判断是自己的网络还是发布出了问题。
+@immutable
+class ManifestFetchResult {
+  const ManifestFetchResult({
+    required this.manifest,
+    required this.attempts,
+    required this.reachedServer,
+  });
+
+  /// 拿到的清单；全失败时为 null。
+  final UpdateManifest? manifest;
+
+  /// 按尝试顺序记录：源短名 → 结论（`ok` / `200` / `内容不可用` / `超时` / `握手失败`）。
+  final Map<String, String> attempts;
+
+  /// 至少有一条来路返回过 200。为真说明**网络是通的**，问题在内容。
+  final bool reachedServer;
+
+  /// 给用户看的一行诊断。太长会挤，最多列四条。
+  String get summary {
+    if (attempts.isEmpty) {
+      return '';
+    }
+    final parts = <String>[
+      for (final entry in attempts.entries.take(4)) '${entry.key} ${entry.value}',
+    ];
+    final rest = attempts.length - parts.length;
+    return rest > 0 ? '${parts.join(' · ')} · 另 $rest 条' : parts.join(' · ');
+  }
+}
+
 /// 更新服务需要的"记忆"。抽成窄接口是为了让服务本体不依赖数据库也能单测。
 abstract interface class UpdatePreferences {
   Future<bool> autoCheckEnabled();
@@ -283,6 +319,10 @@ class UpdateService extends ChangeNotifier {
   /// 建连超时。
   static const Duration connectTimeout = Duration(seconds: 15);
 
+  /// 取清单的超时。比 [connectTimeout] 短得多：清单只有几十 KB，
+  /// 八秒还没回来说明这条来路当下就是不通，早点让别的源顶上。
+  static const Duration manifestTimeout = Duration(seconds: 8);
+
   /// 预留的磁盘余量：装完包还要解压、还要留出系统缓存的空间。
   static const int diskSlackBytes = 16 * 1024 * 1024;
 
@@ -367,12 +407,23 @@ class UpdateService extends ChangeNotifier {
       }
 
       final mirrors = await _preferences.mirrorPrefixes();
-      final manifest = await _fetchManifest(mirrors);
-      await _preferences.saveLastCheckAt(DateTime.now().millisecondsSinceEpoch);
+      final fetch = await _fetchManifest(mirrors);
+      final manifest = fetch.manifest;
       if (manifest == null) {
-        _fail(UpdateFailure.manifest, '清单不可用');
+        // 两种失败必须分开报：
+        //   · 一条源都没连上 → 用户的网络问题，说"没连上服务器"才有用；
+        //   · 连上了但内容不认 → 发布链路的问题，说"版本信息取不到"。
+        // 以前一律报后者，结果谁也判断不出该修哪一头。
+        if (fetch.reachedServer) {
+          _fail(UpdateFailure.manifest, fetch.summary);
+        } else {
+          _fail(UpdateFailure.network, fetch.summary);
+        }
         return;
       }
+      // 只有真拿到清单才算"今天查过了"。失败也记的话，网络恢复后
+      // 自动检查要等到明天才会再试。
+      await _preferences.saveLastCheckAt(DateTime.now().millisecondsSinceEpoch);
 
       final abi = currentAbiName();
       // 先只按版本号判断有没有新版。没有新版就到此为止——
@@ -592,6 +643,15 @@ class UpdateService extends ChangeNotifier {
   /// 加一个每次都变的查询串才能"发完立刻可见"。清单只有几 KB，
   /// 这点缓存收益不值得拿"晚半天才看到更新"去换。
   ///
+  /// 另外三条都是**被真实故障逼出来的**，不要随手删：
+  ///   · 第二条走 Gitee 的**内容 API**。Gitee 的 raw 现在会 302 到
+  ///     `raw.giteeusercontent.com`，而有些网络只放行 `gitee.com` 正域、
+  ///     把那个子域掐掉 —— 那时 raw 怎么试都失败，API 却是通的
+  ///     （公开仓库匿名可读，返回体多包一层 base64，见 [parseManifestBody]）。
+  ///   · 第三条是**不带时间戳**的同一条 raw：Gitee 对带查询串的密集 raw
+  ///     请求会回 `451`（风控），去掉 query 往往就恢复了。
+  ///   · jsDelivr 给三个 CDN 域名：国内不同运营商能通的不是同一个。
+  ///
   /// [epochSeconds] 只为测试可断言而存在，生产调用不传。
   static List<String> manifestUrls(
     List<String> mirrorPrefixes, {
@@ -599,10 +659,18 @@ class UpdateService extends ChangeNotifier {
   }) {
     final stamp =
         epochSeconds ?? DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final giteeRaw =
+        'https://gitee.com/$giteeRepositorySlug/raw/main/$manifestPath';
     final direct = <String>[
-      'https://gitee.com/$giteeRepositorySlug/raw/main/$manifestPath?t=$stamp',
-      'https://raw.githubusercontent.com/$githubRepositorySlug/main/$manifestPath',
-      'https://cdn.jsdelivr.net/gh/$githubRepositorySlug@main/$manifestPath',
+      '$giteeRaw?t=$stamp',
+      'https://gitee.com/api/v5/repos/$giteeRepositorySlug/contents/'
+          '$manifestPath?ref=main',
+      giteeRaw,
+      'https://raw.githubusercontent.com/$githubRepositorySlug/main/'
+          '$manifestPath',
+      for (final host in const <String>['cdn', 'fastly', 'gcore'])
+        'https://$host.jsdelivr.net/gh/$githubRepositorySlug@main/'
+            '$manifestPath',
     ];
     return <String>[
       ...direct,
@@ -611,24 +679,142 @@ class UpdateService extends ChangeNotifier {
     ];
   }
 
-  Future<UpdateManifest?> _fetchManifest(List<String> mirrors) async {
-    for (final url in manifestUrls(mirrors)) {
+  /// **并发**取清单：谁先送回可用的清单就用谁。
+  ///
+  /// 串行是行不通的——七条源每条各给八秒，最坏要等将近一分钟，
+  /// 用户会以为卡死。并发之后最坏也只等一个超时。
+  ///
+  /// 无论成败都把每条源的结论记进 [ManifestFetchResult.attempts]：
+  /// "取不到"和"取到了但内容不对"要能分开报，否则下次还是
+  /// 只看到一句"清单不可用"，谁也不知道该去查网络还是查发布。
+  Future<ManifestFetchResult> _fetchManifest(List<String> mirrors) async {
+    final urls = manifestUrls(mirrors);
+    final attempts = <String, String>{};
+    var reachedServer = false;
+    UpdateManifest? found;
+    final settled = Completer<void>();
+
+    void finishIfIdle() {
+      if (!settled.isCompleted) {
+        settled.complete();
+      }
+    }
+
+    Future<void> probe(String url) async {
+      final label = probeLabelOf(url);
       try {
-        final response = await _client.get(Uri.parse(url)).timeout(connectTimeout);
+        final response =
+            await _client.get(Uri.parse(url)).timeout(manifestTimeout);
         if (response.statusCode != 200) {
+          attempts[label] = '${response.statusCode}';
           AppLogger.w('清单地址返回 ${response.statusCode}：$url');
-          continue;
+          return;
         }
-        final manifest = UpdateManifest.tryParse(response.body);
-        if (manifest != null) {
-          return manifest;
+        // 拿到 200 就说明这条来路是通的，哪怕内容不认——
+        // 这决定了最终该报"网络"还是"清单"。
+        reachedServer = true;
+        final manifest = parseManifestBody(response.body);
+        if (manifest == null) {
+          attempts[label] = '内容不可用';
+          AppLogger.w('清单内容不可用：$url');
+          return;
         }
-        AppLogger.w('清单内容不可用：$url');
+        attempts[label] = 'ok';
+        if (found == null) {
+          found = manifest;
+          finishIfIdle();
+        }
+      } on TimeoutException {
+        attempts[label] = '超时';
+        AppLogger.w('取清单超时：$url');
       } catch (error, stack) {
+        attempts[label] = shortErrorOf(error);
         AppLogger.e('取清单失败：$url', error: error, stack: stack);
       }
     }
-    return null;
+
+    final probes = <Future<void>>[for (final url in urls) probe(url)];
+    // 全部落地（含成功的那些）时收尾；成功的那些会提前 finishIfIdle。
+    unawaited(Future.wait(probes).then((_) => finishIfIdle()));
+
+    await settled.future;
+    return ManifestFetchResult(
+      manifest: found,
+      // 成功的那些源里，晚到的 probe 可能还在写 attempts；
+      // 这里存一份快照，别让结果对象在返回之后还在变。
+      attempts: Map<String, String>.of(attempts),
+      reachedServer: reachedServer,
+    );
+  }
+
+  /// 把响应体变成清单。
+  ///
+  /// 两条来路的响应形状不一样：raw / jsDelivr 直接给清单本身，而 Gitee 的
+  /// 内容 API 会在外面包一层 `{"content": "<base64>", "encoding": "base64"}`。
+  /// 所以先按清单解，解不动再按 API 包装解——这条兜底本来就是为绕开
+  /// raw 子域存在的，不能因为形状不同就白丢一次机会。
+  static UpdateManifest? parseManifestBody(String body) {
+    final direct = UpdateManifest.tryParse(body);
+    if (direct != null) {
+      return direct;
+    }
+    Object? decoded;
+    try {
+      decoded = jsonDecode(body);
+    } on FormatException {
+      return null;
+    }
+    if (decoded is! Map<String, dynamic> || decoded['encoding'] != 'base64') {
+      return null;
+    }
+    final content = decoded['content'];
+    if (content is! String) {
+      return null;
+    }
+    try {
+      // Gitee 的 base64 按 60 字符换行，解码前要把换行去掉。
+      final text = utf8.decode(
+        base64Decode(content.replaceAll(RegExp(r'\s'), '')),
+      );
+      return UpdateManifest.tryParse(text);
+    } catch (error) {
+      AppLogger.w('解 base64 清单失败：$error');
+      return null;
+    }
+  }
+
+  /// 诊断用的源短名。同一个 host 只留一条结论，免得七条源把界面挤爆。
+  static String probeLabelOf(String url) {
+    final uri = Uri.tryParse(url);
+    final host = uri?.host ?? url;
+    if (host.endsWith('jsdelivr.net')) {
+      // cdn / fastly / gcore：这三个才是国内能通与否的分水岭
+      return host.split('.').first;
+    }
+    if (host == 'gitee.com') {
+      return (uri?.path.contains('/api/') ?? false) ? 'gitee-api' : 'gitee';
+    }
+    if (host.endsWith('githubusercontent.com')) {
+      return 'github';
+    }
+    return host;
+  }
+
+  /// 把底层异常压成两个字，写进失败详情给用户看。
+  static String shortErrorOf(Object error) {
+    if (error is HandshakeException) {
+      return '握手失败';
+    }
+    if (error is SocketException) {
+      return '连不上';
+    }
+    if (error is HttpException) {
+      return '连接中断';
+    }
+    if (error is FormatException) {
+      return '地址无效';
+    }
+    return error.runtimeType.toString();
   }
 
   /// 算出本机已装 APK 的指纹，再让清单给出带分差的方案。
