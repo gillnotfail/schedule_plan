@@ -18,31 +18,30 @@
 - **`CreateFile failed 231`（管道耗尽）是进程环境问题**，判据是「当场起一个 Dart 子进程」；
   处置是请用户自己终端跑 .bat（终端看似正常、静默返回空都是假象）。
 - **.bat 里禁止用 `if errorlevel 1` 当门禁**（`flutter.BAT` 成功也返回非 0，会静默跳过后续全部流程）。
-- **导出文件名统一走 `buildExportFileName`**（`导出时间-对象-内容`），禁止手拼；
-  课程名/学生名过 `sanitizeFilePart`（`/:*?`→横线、截断 40）。
+- **导出文件名统一走 `buildExportFileName`**（`导出时间-对象-内容`），禁止手拼；名字过 `sanitizeFilePart`。
 - 批量改代码走独立 .py（每处 `assert 旧串 in s`；CRLF 用 `newline=''` 读）；**同一文件多处改动一条条 Edit**。
-- widget 测试：改窗口用 `tester.view.devicePixelRatio/physicalSize` + `addTearDown(tester.view.reset)`；
-  `find.text` 撞刻度用 `find.descendant` 限定；`initState` 读 sqlite 要用 `tester.runAsync` 放它跑完；
-  **统计页有常驻动画 → 不能 `pumpAndSettle`**，改 `tester.pump(400ms)`。
+- widget 测试：窗口用 `tester.view.physicalSize/devicePixelRatio` + `addTearDown(tester.view.reset)`；
+  `find.text` 撞刻度用 `find.descendant` 限定；`initState` 读 sqlite 用 `tester.runAsync` 放它跑完；
+  **有常驻动画的页（统计）不能 `pumpAndSettle`**，改 `tester.pump(400ms)`。
 
 ## 数据模型
 - `lesson.period_index` 相对 `class.template_id`；**冲突检测按真实时间重叠，禁止比 period_index**。
 - 时间存 `"HH:mm"`、日期存 `"YYYY-MM-DD"`；考勤唯一键 `(student_id, lesson_id, date)`。
 - DB `version=9`、**16 张表**（`schema_test.dart` 断言数量/顺序，加删表同步改）；加表一律**纯加表加列**；
   **不动 `migrate()` 的 `rebuildingCourse` 段**（否则 DROP course 级联清空 lesson）。
-- **删模块前按 import 路径全库 grep（下划线形式）**，别只搜驼峰类名（有一文件多类的仓库）。
+- **删模块前按 import 路径全库 grep（下划线形式）**，别只搜驼峰类名。
 - 桌面 sqflite 先 `AppDatabase._ensureDatabaseFactory()`；ff 包 import 要 `hide DatabaseException`，别与 `sqflite` 同时 import。
 - 课程配色唯一口径 `CourseDetail.color`，只走 `parseHexColor`；**铺满一块的地方都要再过 `solidFillColor`**（白字对比度 ≥ 3.2）。
 - 翻月走 `DateUtils.shiftMonth`（`DateTime(y,m±1,d)` 会进位）；加天用 `DateTime(y,m,d+n)`。
 
 ## i18n
 - 禁止硬编码，全走 `app_zh/en.arb` + `context.l10n`，zh/en 严格对齐（当前各 **822** 键）。
-- **加键一律走 `.workbuddy/tools/add_l10n_keys.py`**（幂等）：`NEW_KEYS` 加、`UPDATE_KEYS` 改（内含 assert）、
-  `PLACEHOLDERS` 加 `@key`；跑完 `gen-l10n` 再 analyze。**别拿 `"...元数据",\n}` 当锚点**（三个 dict 都以它结尾）。
+- **加键一律走 `.workbuddy/tools/add_l10n_keys.py`**（幂等）：`NEW_KEYS` / `UPDATE_KEYS`（内含 assert）/
+  `PLACEHOLDERS`；跑完 `gen-l10n` 再 analyze。**别拿 `"...元数据",\n}` 当锚点**（三个 dict 都这么结尾）。
 
 ## 发布（细则见 DETAIL）
 - **仓库必须公开**；**token 只放 `~/.schedule_plan-release.env`**，不进仓库、不进对话。
-- **`release.py` 顺序不能反**：提交 → 打标签 → 推送 → 再建 Release（要建 Release 必须带 `--push`）。
+- **`release.py` 顺序不能反**：提交→打标签→推送→再建 Release（建 Release 必带 `--push`）。
 - `version: x.y.z+N`，**N 必须递增**；**CHANGELOG 没对应版本节拒绝发布**；条目写用户看得懂的话。
 - **双仓库**（Gitee 首选 + GitHub，各发一份）；清单必须保留单数 `assetsBase`；
   **`schemaVersion` 绝不因加字段 +1**（老客户端会判清单不可用 = 锁死已装机用户）。
@@ -55,9 +54,8 @@
 - 构建 `flutter build apk --release`（签名 `android/key.properties` + `keystore.jks`，不入库）；
   改 proguard 别删 `-dontwarn com.google.android.play.core.**`。
 
-- **备份恢复禁止 `INSERT OR REPLACE`**（SQLite 先删后插 → 覆盖 `class` 级联删 lesson/student、
-  覆盖 `schedule_template` 撞 RESTRICT）：一律"先 UPDATE 再 INSERT"；判空看**条目主表行数**
-  （出厂作息自带 50 行）；运行时键（快照/节流/跳过版本）不进备份。
+- **备份恢复禁止 `INSERT OR REPLACE`**（先删后插 → 覆盖 `class` 级联删 lesson/student、覆盖
+  `schedule_template` 撞 RESTRICT）：一律"先 UPDATE 再 INSERT"；判空看**条目主表行数**（出厂作息 50 行）。
 
 ## 红线速查（常量与文件清单在 DETAIL）
 - **课表骨架：表永远是满的**。出厂作息唯一来源 `DatabaseSchema.generatePeriodRows`（禁止第二份循环），三层兜底缺一不可。
