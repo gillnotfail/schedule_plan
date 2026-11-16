@@ -1570,5 +1570,116 @@
     }
   },
   "statFormulaLine6": "Only lessons up to today are counted; future lessons are excluded",
-  "statAllCourses": "All courses"
+  "statAllCourses": "All courses",
+  "backupTitle": "Data backup",
+  "backupEntryTitle": "Data backup",
+  "backupEntryDesc": "Save rosters, timetable and attendance to a file you can bring back",
+  "backupIntroTitle": "A backup is one file",
+  "backupIntroBody": "You pick where it goes (Downloads, Documents or a cloud drive). Uninstalling clears the app's own data but never touches files you saved out. After reinstalling, bring it back with \"Restore from a backup file\" below.",
+  "backupGroupPick": "What to back up",
+  "backupGroupRestore": "Bring data back",
+  "backupSliceAll": "Select all",
+  "backupSliceAllDesc": "Everything below, in a single file",
+  "backupSliceStudents": "Students",
+  "backupSliceStudentsDesc": "Names, student numbers, genders and classes",
+  "backupSliceClasses": "Classes",
+  "backupSliceClassesDesc": "Class, grade, head teacher, colour and its periods",
+  "backupSliceCourses": "Courses",
+  "backupSliceCoursesDesc": "Courses, rooms, classes, suspension & exemption flags",
+  "backupSliceTimetable": "Timetable",
+  "backupSliceTimetableDesc": "Lessons placed by weekday and period",
+  "backupSliceAttendance": "Attendance",
+  "backupSliceAttendanceDesc": "Every record, with status and notes",
+  "backupSliceTags": "Tags",
+  "backupSliceTagsDesc": "Tags and star ratings",
+  "backupSliceSettings": "Preferences",
+  "backupSliceSettingsDesc": "Default status, thresholds, makeup-day choices",
+  "backupSliceCountChip": "{count}",
+  "backupSliceEmptyChip": "None",
+  "backupSliceImpliedChip": "+{count}",
+  "backupSubjectAll": "All data",
+  "backupSubjectMixed": "{count}-items",
+  "backupAction": "Save backup to a file",
+  "backupActionBusy": "Packing your data…",
+  "backupNoData": "The selected items are still empty — add some data first",
+  "backupSaveDialogTitle": "Save data backup",
+  "backupSaved": "Backup saved",
+  "backupSavedInApp": "No location chosen — the backup is kept inside the app. Share it out with the button on the right",
+  "backupShare": "Share",
+  "backupFailed": "Backup failed: {error}",
+  "backupRestoreAction": "Restore from a backup file",
+  "backupRestoreActionDesc": "Pick a .json backup you saved earlier",
+  "backupRestoreNote": "Restoring only adds and updates — records that aren't in the backup stay as they are. To start over, use \"Clear all data\" in system settings.",
+  "backupRestoreEmpty": "This backup holds no data to restore",
+  "backupRestoreConfirmTitle": "Overwrite with this backup?",
+  "backupRestoreConfirmBody": "Made on {time}, with {slices} item(s) and {rows} records. Records sharing a number are replaced by the backup's version; nothing outside the backup is deleted.",
+  "backupRestoreConfirmAction": "Restore",
+  "backupRestoreSchemaWarn": "The backup comes from database version {version}, not the current one — check rosters and timetable after restoring.",
+  "backupRestoreDone": "Restored {rows} records — switch pages to see them",
+  "backupRestoreFailed": "Restore failed and nothing changed: {error}",
+  "backupErrorNotBackup": "This file isn't a backup from this app",
+  "backupErrorNewer": "This backup comes from a newer version — update the app first",
+  "backupErrorBroken": "The backup file can't be read; it may be damaged",
+  "@backupSliceCountChip": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@backupSliceImpliedChip": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@backupSubjectMixed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@backupFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@backupRestoreConfirmBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "slices": {
+        "type": "int"
+      },
+      "rows": {
+        "type": "int"
+      }
+    }
+  },
+  "@backupRestoreSchemaWarn": {
+    "placeholders": {
+      "version": {
+        "type": "int"
+      }
+    }
+  },
+  "@backupRestoreDone": {
+    "placeholders": {
+      "rows": {
+        "type": "int"
+      }
+    }
+  },
+  "@backupRestoreFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

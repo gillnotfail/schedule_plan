@@ -2629,4 +2629,178 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statAllCourses => 'All courses';
+
+  @override
+  String get backupTitle => 'Data backup';
+
+  @override
+  String get backupEntryTitle => 'Data backup';
+
+  @override
+  String get backupEntryDesc =>
+      'Save rosters, timetable and attendance to a file you can bring back';
+
+  @override
+  String get backupIntroTitle => 'A backup is one file';
+
+  @override
+  String get backupIntroBody =>
+      'You pick where it goes (Downloads, Documents or a cloud drive). Uninstalling clears the app\'s own data but never touches files you saved out. After reinstalling, bring it back with \"Restore from a backup file\" below.';
+
+  @override
+  String get backupGroupPick => 'What to back up';
+
+  @override
+  String get backupGroupRestore => 'Bring data back';
+
+  @override
+  String get backupSliceAll => 'Select all';
+
+  @override
+  String get backupSliceAllDesc => 'Everything below, in a single file';
+
+  @override
+  String get backupSliceStudents => 'Students';
+
+  @override
+  String get backupSliceStudentsDesc =>
+      'Names, student numbers, genders and classes';
+
+  @override
+  String get backupSliceClasses => 'Classes';
+
+  @override
+  String get backupSliceClassesDesc =>
+      'Class, grade, head teacher, colour and its periods';
+
+  @override
+  String get backupSliceCourses => 'Courses';
+
+  @override
+  String get backupSliceCoursesDesc =>
+      'Courses, rooms, classes, suspension & exemption flags';
+
+  @override
+  String get backupSliceTimetable => 'Timetable';
+
+  @override
+  String get backupSliceTimetableDesc => 'Lessons placed by weekday and period';
+
+  @override
+  String get backupSliceAttendance => 'Attendance';
+
+  @override
+  String get backupSliceAttendanceDesc => 'Every record, with status and notes';
+
+  @override
+  String get backupSliceTags => 'Tags';
+
+  @override
+  String get backupSliceTagsDesc => 'Tags and star ratings';
+
+  @override
+  String get backupSliceSettings => 'Preferences';
+
+  @override
+  String get backupSliceSettingsDesc =>
+      'Default status, thresholds, makeup-day choices';
+
+  @override
+  String backupSliceCountChip(int count) {
+    return '$count';
+  }
+
+  @override
+  String get backupSliceEmptyChip => 'None';
+
+  @override
+  String backupSliceImpliedChip(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get backupSubjectAll => 'All data';
+
+  @override
+  String backupSubjectMixed(int count) {
+    return '$count-items';
+  }
+
+  @override
+  String get backupAction => 'Save backup to a file';
+
+  @override
+  String get backupActionBusy => 'Packing your data…';
+
+  @override
+  String get backupNoData =>
+      'The selected items are still empty — add some data first';
+
+  @override
+  String get backupSaveDialogTitle => 'Save data backup';
+
+  @override
+  String get backupSaved => 'Backup saved';
+
+  @override
+  String get backupSavedInApp =>
+      'No location chosen — the backup is kept inside the app. Share it out with the button on the right';
+
+  @override
+  String get backupShare => 'Share';
+
+  @override
+  String backupFailed(String error) {
+    return 'Backup failed: $error';
+  }
+
+  @override
+  String get backupRestoreAction => 'Restore from a backup file';
+
+  @override
+  String get backupRestoreActionDesc => 'Pick a .json backup you saved earlier';
+
+  @override
+  String get backupRestoreNote =>
+      'Restoring only adds and updates — records that aren\'t in the backup stay as they are. To start over, use \"Clear all data\" in system settings.';
+
+  @override
+  String get backupRestoreEmpty => 'This backup holds no data to restore';
+
+  @override
+  String get backupRestoreConfirmTitle => 'Overwrite with this backup?';
+
+  @override
+  String backupRestoreConfirmBody(String time, int slices, int rows) {
+    return 'Made on $time, with $slices item(s) and $rows records. Records sharing a number are replaced by the backup\'s version; nothing outside the backup is deleted.';
+  }
+
+  @override
+  String get backupRestoreConfirmAction => 'Restore';
+
+  @override
+  String backupRestoreSchemaWarn(int version) {
+    return 'The backup comes from database version $version, not the current one — check rosters and timetable after restoring.';
+  }
+
+  @override
+  String backupRestoreDone(int rows) {
+    return 'Restored $rows records — switch pages to see them';
+  }
+
+  @override
+  String backupRestoreFailed(String error) {
+    return 'Restore failed and nothing changed: $error';
+  }
+
+  @override
+  String get backupErrorNotBackup => 'This file isn\'t a backup from this app';
+
+  @override
+  String get backupErrorNewer =>
+      'This backup comes from a newer version — update the app first';
+
+  @override
+  String get backupErrorBroken =>
+      'The backup file can\'t be read; it may be damaged';
 }

@@ -789,6 +789,145 @@ NEW_KEYS = {
         "zh": "左右滑动 · 共 {count} 页",
         "en": "Swipe · {count} pages",
     },
+    # ---- 第 36 轮：数据备份 / 恢复 ----
+    # 背景（用户原话）："我已经记录了一部分数据，如果我卸载重新安装，那么数据
+    # 就没了，也就是说数据的备份很重要。" 所以这一页的目标只有一个——
+    # 让人在重装前把自己的东西存成一个能带走的文件，装回来以后再倒回去。
+    #
+    # 文案要交代三件事：文件存在哪（用户自己选位置）、勾选之间会互相带上
+    # （考勤必须连着人和课）、恢复只覆盖不删除。剩下的一律不写。
+    "backupTitle": {"zh": "数据备份", "en": "Data backup"},
+    "backupEntryTitle": {"zh": "数据备份", "en": "Data backup"},
+    "backupEntryDesc": {
+        "zh": "把名单、课表、考勤存成文件，重装后能导回来",
+        "en": "Save rosters, timetable and attendance to a file you can bring back",
+    },
+    "backupIntroTitle": {"zh": "备份会存成一个文件", "en": "A backup is one file"},
+    "backupIntroBody": {
+        "zh": "位置由你在系统对话框里选（下载、文档或网盘）。卸载应用会清掉应用内的"
+              "数据，但不会动你存出去的文件；换手机或重装之后，用下面的"
+              "「从备份文件恢复」把它挑回来。",
+        "en": "You pick where it goes (Downloads, Documents or a cloud drive). "
+              "Uninstalling clears the app's own data but never touches files you saved out. "
+              "After reinstalling, bring it back with \"Restore from a backup file\" below.",
+    },
+    "backupGroupPick": {"zh": "要备份什么", "en": "What to back up"},
+    "backupGroupRestore": {"zh": "换回数据", "en": "Bring data back"},
+    "backupSliceAll": {"zh": "全选", "en": "Select all"},
+    "backupSliceAllDesc": {
+        "zh": "把下面全部内容装进一个文件",
+        "en": "Everything below, in a single file",
+    },
+    "backupSliceStudents": {"zh": "学生名单", "en": "Students"},
+    "backupSliceStudentsDesc": {
+        "zh": "姓名、学号、性别、所属班级",
+        "en": "Names, student numbers, genders and classes",
+    },
+    "backupSliceClasses": {"zh": "班级名单", "en": "Classes"},
+    "backupSliceClassesDesc": {
+        "zh": "班级、年级、班主任、配色与所用作息",
+        "en": "Class, grade, head teacher, colour and its periods",
+    },
+    "backupSliceCourses": {"zh": "课程", "en": "Courses"},
+    "backupSliceCoursesDesc": {
+        "zh": "课程、教室、上课班级、休学与免修标记",
+        "en": "Courses, rooms, classes, suspension & exemption flags",
+    },
+    "backupSliceTimetable": {"zh": "课表", "en": "Timetable"},
+    "backupSliceTimetableDesc": {
+        "zh": "每周排的课，第几天第几节上什么",
+        "en": "Lessons placed by weekday and period",
+    },
+    "backupSliceAttendance": {"zh": "考勤记录", "en": "Attendance"},
+    "backupSliceAttendanceDesc": {
+        "zh": "逐条的出勤情况与备注",
+        "en": "Every record, with status and notes",
+    },
+    "backupSliceTags": {"zh": "表现标签", "en": "Tags"},
+    "backupSliceTagsDesc": {
+        "zh": "标签与星级评价",
+        "en": "Tags and star ratings",
+    },
+    "backupSliceSettings": {"zh": "偏好设置", "en": "Preferences"},
+    "backupSliceSettingsDesc": {
+        "zh": "默认考勤状态、风险阈值、调休安排",
+        "en": "Default status, thresholds, makeup-day choices",
+    },
+    "backupSliceCountChip": {"zh": "{count} 条", "en": "{count}"},
+    "backupSliceEmptyChip": {"zh": "空", "en": "None"},
+    # 被依赖自动带上的条目：勾选框是灰的，胶囊说明"它也跟着进去了多少条"
+    "backupSliceImpliedChip": {"zh": "含 {count} 条", "en": "+{count}"},
+    "backupSubjectAll": {"zh": "全部数据", "en": "All data"},
+    "backupSubjectMixed": {"zh": "{count}项", "en": "{count}-items"},
+    "backupAction": {"zh": "备份到本机文件", "en": "Save backup to a file"},
+    "backupActionBusy": {"zh": "正在整理数据…", "en": "Packing your data…"},
+    "backupNoData": {
+        "zh": "选中的内容里还没有数据，先录入再来备份",
+        "en": "The selected items are still empty — add some data first",
+    },
+    "backupSaveDialogTitle": {"zh": "保存数据备份", "en": "Save data backup"},
+    "backupSaved": {"zh": "备份已保存", "en": "Backup saved"},
+    "backupSavedInApp": {
+        "zh": "没选保存位置，备份已留在应用内，可以点右边分享出去",
+        "en": "No location chosen — the backup is kept inside the app. Share it out with the button on the right",
+    },
+    "backupShare": {"zh": "分享", "en": "Share"},
+    "backupFailed": {"zh": "备份失败：{error}", "en": "Backup failed: {error}"},
+    "backupRestoreAction": {
+        "zh": "从备份文件恢复",
+        "en": "Restore from a backup file",
+    },
+    "backupRestoreActionDesc": {
+        "zh": "选一个之前存出来的 .json 备份",
+        "en": "Pick a .json backup you saved earlier",
+    },
+    "backupRestoreNote": {
+        "zh": "恢复只做加和改，不删东西：备份里没有的记录会原样留着。"
+              "真要从头再来，用系统设置里的「清空数据」。",
+        "en": "Restoring only adds and updates — records that aren't in the backup stay as they are. "
+              "To start over, use \"Clear all data\" in system settings.",
+    },
+    "backupRestoreEmpty": {
+        "zh": "这个备份里没有可恢复的数据",
+        "en": "This backup holds no data to restore",
+    },
+    "backupRestoreConfirmTitle": {
+        "zh": "用这份备份覆盖？",
+        "en": "Overwrite with this backup?",
+    },
+    "backupRestoreConfirmBody": {
+        "zh": "这份备份是 {time} 做的，含 {slices} 项内容、共 {rows} 条记录。"
+              "编号相同的记录会被备份里的内容替换，备份以外的数据不会删除。",
+        "en": "Made on {time}, with {slices} item(s) and {rows} records. "
+              "Records sharing a number are replaced by the backup's version; "
+              "nothing outside the backup is deleted.",
+    },
+    "backupRestoreConfirmAction": {"zh": "恢复", "en": "Restore"},
+    "backupRestoreSchemaWarn": {
+        "zh": "备份来自数据库版本 {version}，与当前版本不同，恢复后请核对名单与课表。",
+        "en": "The backup comes from database version {version}, not the current one — "
+              "check rosters and timetable after restoring.",
+    },
+    "backupRestoreDone": {
+        "zh": "已恢复 {rows} 条记录，切换页面后生效",
+        "en": "Restored {rows} records — switch pages to see them",
+    },
+    "backupRestoreFailed": {
+        "zh": "恢复失败，数据没有变动：{error}",
+        "en": "Restore failed and nothing changed: {error}",
+    },
+    "backupErrorNotBackup": {
+        "zh": "这个文件不是本应用的备份",
+        "en": "This file isn't a backup from this app",
+    },
+    "backupErrorNewer": {
+        "zh": "这份备份来自更新版本的应用，请先把应用更新到最新版",
+        "en": "This backup comes from a newer version — update the app first",
+    },
+    "backupErrorBroken": {
+        "zh": "备份文件读不出来，可能已经损坏",
+        "en": "The backup file can't be read; it may be damaged",
+    },
 }
 
 # 需要改口径的旧键（用户规格变了，文案必须跟着走，否则和界面行为对不上）
@@ -1119,6 +1258,19 @@ PLACEHOLDERS = {
     }},
     "trackUnmarkedNote": {"placeholders": {"count": {"type": "int"}}},
     "toolboxSwipeHintTotal": {"placeholders": {"count": {"type": "int"}}},
+    # ---- 第 36 轮：数据备份 ----
+    "backupSliceCountChip": {"placeholders": {"count": {"type": "int"}}},
+    "backupSliceImpliedChip": {"placeholders": {"count": {"type": "int"}}},
+    "backupSubjectMixed": {"placeholders": {"count": {"type": "int"}}},
+    "backupFailed": {"placeholders": {"error": {"type": "String"}}},
+    "backupRestoreConfirmBody": {"placeholders": {
+        "time": {"type": "String"},
+        "slices": {"type": "int"},
+        "rows": {"type": "int"},
+    }},
+    "backupRestoreSchemaWarn": {"placeholders": {"version": {"type": "int"}}},
+    "backupRestoreDone": {"placeholders": {"rows": {"type": "int"}}},
+    "backupRestoreFailed": {"placeholders": {"error": {"type": "String"}}},
 }
 
 

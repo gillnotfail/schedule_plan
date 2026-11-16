@@ -3,6 +3,52 @@
   "assetsBase": "https://gitee.com/jeo-xie/schedule_plan/releases/download",
   "releases": [
     {
+      "versionCode": 18,
+      "versionName": "1.0.17",
+      "tag": "v1.0.17",
+      "publishedAt": "2026-11-16T20:46:31+08:00",
+      "notes": [
+        "**数据备份**：设置页「课表与名单」下面多了一个入口，可以把学生名单、班级名单、课程、课表、考勤记录、表现标签、偏好设置**分开挑着备份**，也可以一次全选，存成一个文件放在你选的位置（下载、文档或网盘）。换手机、重装、或者哪天数据乱了，用同一个页面里的「从备份文件恢复」把它挑回来。",
+        "勾「考勤记录」会自动把学生、班级、课程、课表一起勾上（考勤要能找到人和课才恢复得回去），这些行会标成「含 N 条」；不想备份的项目取消勾就行。",
+        "恢复前会告诉你这份备份是什么时候做的、含几项内容、多少条记录，确认之后才会动数据。恢复只做\"加回来\"和\"改回去\"，**不会删掉备份里没有的记录**；万一中途出错，整份回滚，数据保持原样。",
+        "系统保存对话框万一没弹出或被你取消了，文件还留在应用里，提示条上有个「分享」可以发到微信。"
+      ],
+      "assets": [
+        {
+          "abi": "arm64-v8a",
+          "file": "app-arm64-v8a-release.apk",
+          "size": 24614867,
+          "sha256": "90ba1480b846835f7440a0b8686693d04bf2501605cd29fcdb63a9631617614b"
+        },
+        {
+          "abi": "armeabi-v7a",
+          "file": "app-armeabi-v7a-release.apk",
+          "size": 22646555,
+          "sha256": "3b7d2f9a6af1f07bf01ba66afc6693a0c843cc67947650cba6b92ca265b8595d"
+        }
+      ],
+      "deltas": [
+        {
+          "fromVersionCode": 17,
+          "abi": "arm64-v8a",
+          "file": "patch-17-18-arm64-v8a.spdp",
+          "size": 4211005,
+          "targetSize": 24614867,
+          "sha256": "51f4ccadac37715698055da3f08027cef82a53757a5318a5a4cedb50aff9587a",
+          "baseSha256": "24222bea5fedd2829ca8f1e6a8b1d14c66170c3092ce3d7f0d5bba6bcbf403f4"
+        },
+        {
+          "fromVersionCode": 17,
+          "abi": "armeabi-v7a",
+          "file": "patch-17-18-armeabi-v7a.spdp",
+          "size": 4665073,
+          "targetSize": 22646555,
+          "sha256": "2de129ba8801c2bc83a0177b2b989c919b38520f85717855ef566c79707c3970",
+          "baseSha256": "72e6fc126161a91910458427ee02b6430fa64c3b2a33101e80a783e018bd89bd"
+        }
+      ]
+    },
+    {
       "versionCode": 17,
       "versionName": "1.0.16",
       "tag": "v1.0.16",
@@ -806,7 +852,7 @@
       "deltas": []
     }
   ],
-  "generatedAt": "2026-11-14T21:31:23+08:00",
+  "generatedAt": "2026-11-16T20:46:31+08:00",
   "assetsBases": [
     "https://gitee.com/jeo-xie/schedule_plan/releases/download",
     "https://github.com/gillnotfail/schedule_plan/releases/download"

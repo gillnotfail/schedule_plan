@@ -4745,6 +4745,300 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All courses'**
   String get statAllCourses;
+
+  /// No description provided for @backupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data backup'**
+  String get backupTitle;
+
+  /// No description provided for @backupEntryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data backup'**
+  String get backupEntryTitle;
+
+  /// No description provided for @backupEntryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Save rosters, timetable and attendance to a file you can bring back'**
+  String get backupEntryDesc;
+
+  /// No description provided for @backupIntroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A backup is one file'**
+  String get backupIntroTitle;
+
+  /// No description provided for @backupIntroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You pick where it goes (Downloads, Documents or a cloud drive). Uninstalling clears the app\'s own data but never touches files you saved out. After reinstalling, bring it back with \"Restore from a backup file\" below.'**
+  String get backupIntroBody;
+
+  /// No description provided for @backupGroupPick.
+  ///
+  /// In en, this message translates to:
+  /// **'What to back up'**
+  String get backupGroupPick;
+
+  /// No description provided for @backupGroupRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring data back'**
+  String get backupGroupRestore;
+
+  /// No description provided for @backupSliceAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get backupSliceAll;
+
+  /// No description provided for @backupSliceAllDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything below, in a single file'**
+  String get backupSliceAllDesc;
+
+  /// No description provided for @backupSliceStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'Students'**
+  String get backupSliceStudents;
+
+  /// No description provided for @backupSliceStudentsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Names, student numbers, genders and classes'**
+  String get backupSliceStudentsDesc;
+
+  /// No description provided for @backupSliceClasses.
+  ///
+  /// In en, this message translates to:
+  /// **'Classes'**
+  String get backupSliceClasses;
+
+  /// No description provided for @backupSliceClassesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Class, grade, head teacher, colour and its periods'**
+  String get backupSliceClassesDesc;
+
+  /// No description provided for @backupSliceCourses.
+  ///
+  /// In en, this message translates to:
+  /// **'Courses'**
+  String get backupSliceCourses;
+
+  /// No description provided for @backupSliceCoursesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Courses, rooms, classes, suspension & exemption flags'**
+  String get backupSliceCoursesDesc;
+
+  /// No description provided for @backupSliceTimetable.
+  ///
+  /// In en, this message translates to:
+  /// **'Timetable'**
+  String get backupSliceTimetable;
+
+  /// No description provided for @backupSliceTimetableDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Lessons placed by weekday and period'**
+  String get backupSliceTimetableDesc;
+
+  /// No description provided for @backupSliceAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get backupSliceAttendance;
+
+  /// No description provided for @backupSliceAttendanceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Every record, with status and notes'**
+  String get backupSliceAttendanceDesc;
+
+  /// No description provided for @backupSliceTags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get backupSliceTags;
+
+  /// No description provided for @backupSliceTagsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags and star ratings'**
+  String get backupSliceTagsDesc;
+
+  /// No description provided for @backupSliceSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get backupSliceSettings;
+
+  /// No description provided for @backupSliceSettingsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Default status, thresholds, makeup-day choices'**
+  String get backupSliceSettingsDesc;
+
+  /// No description provided for @backupSliceCountChip.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}'**
+  String backupSliceCountChip(int count);
+
+  /// No description provided for @backupSliceEmptyChip.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get backupSliceEmptyChip;
+
+  /// No description provided for @backupSliceImpliedChip.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String backupSliceImpliedChip(int count);
+
+  /// No description provided for @backupSubjectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All data'**
+  String get backupSubjectAll;
+
+  /// No description provided for @backupSubjectMixed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}-items'**
+  String backupSubjectMixed(int count);
+
+  /// No description provided for @backupAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save backup to a file'**
+  String get backupAction;
+
+  /// No description provided for @backupActionBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Packing your data…'**
+  String get backupActionBusy;
+
+  /// No description provided for @backupNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected items are still empty — add some data first'**
+  String get backupNoData;
+
+  /// No description provided for @backupSaveDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save data backup'**
+  String get backupSaveDialogTitle;
+
+  /// No description provided for @backupSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved'**
+  String get backupSaved;
+
+  /// No description provided for @backupSavedInApp.
+  ///
+  /// In en, this message translates to:
+  /// **'No location chosen — the backup is kept inside the app. Share it out with the button on the right'**
+  String get backupSavedInApp;
+
+  /// No description provided for @backupShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get backupShare;
+
+  /// No description provided for @backupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup failed: {error}'**
+  String backupFailed(String error);
+
+  /// No description provided for @backupRestoreAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from a backup file'**
+  String get backupRestoreAction;
+
+  /// No description provided for @backupRestoreActionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a .json backup you saved earlier'**
+  String get backupRestoreActionDesc;
+
+  /// No description provided for @backupRestoreNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring only adds and updates — records that aren\'t in the backup stay as they are. To start over, use \"Clear all data\" in system settings.'**
+  String get backupRestoreNote;
+
+  /// No description provided for @backupRestoreEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup holds no data to restore'**
+  String get backupRestoreEmpty;
+
+  /// No description provided for @backupRestoreConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overwrite with this backup?'**
+  String get backupRestoreConfirmTitle;
+
+  /// No description provided for @backupRestoreConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Made on {time}, with {slices} item(s) and {rows} records. Records sharing a number are replaced by the backup\'s version; nothing outside the backup is deleted.'**
+  String backupRestoreConfirmBody(String time, int slices, int rows);
+
+  /// No description provided for @backupRestoreConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get backupRestoreConfirmAction;
+
+  /// No description provided for @backupRestoreSchemaWarn.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup comes from database version {version}, not the current one — check rosters and timetable after restoring.'**
+  String backupRestoreSchemaWarn(int version);
+
+  /// No description provided for @backupRestoreDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored {rows} records — switch pages to see them'**
+  String backupRestoreDone(int rows);
+
+  /// No description provided for @backupRestoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore failed and nothing changed: {error}'**
+  String backupRestoreFailed(String error);
+
+  /// No description provided for @backupErrorNotBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'This file isn\'t a backup from this app'**
+  String get backupErrorNotBackup;
+
+  /// No description provided for @backupErrorNewer.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup comes from a newer version — update the app first'**
+  String get backupErrorNewer;
+
+  /// No description provided for @backupErrorBroken.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup file can\'t be read; it may be damaged'**
+  String get backupErrorBroken;
 }
 
 class _AppLocalizationsDelegate

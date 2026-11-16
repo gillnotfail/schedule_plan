@@ -19,13 +19,15 @@ import 'package:schedule_plan/features/management/class_list_page.dart';
 import 'package:schedule_plan/features/management/course_list_page.dart';
 import 'package:schedule_plan/features/management/student_import_page.dart';
 import 'package:schedule_plan/features/management/student_list_page.dart';
+import 'package:schedule_plan/features/settings/backup_page.dart';
 import 'package:schedule_plan/features/settings/system_settings_page.dart';
 import 'package:schedule_plan/features/settings/update_page.dart';
 
 /// 设置页（模块七 + 用户规格）。
 ///
 /// 用户规格（第 22 轮重排）：第一页**只有四块**，干净、简练、一眼看完——
-/// 1. 课表与名单：学生名单 / Excel 批量导入学生名单 / 班级管理 / 课程管理；
+/// 1. 课表与名单：学生名单 / Excel 批量导入学生名单 / 班级管理 / 课程管理 /
+///    数据备份（第 36 轮追加，见 [BackupPage]）；
 /// 2. 系统设置：**一条入口**，点进 [SystemSettingsPage]（考勤默认状态、调休、
 ///    通知权限、时间列级联更新、清空数据都在那一页里）；
 /// 3. 显示与语言：主题 / 语言；
@@ -207,6 +209,15 @@ class _SettingsPageState extends State<SettingsPage> {
                 subtitle: l10n.courseManagementDesc,
                 gradient: const <Color>[Color(0xFFFFA94D), Color(0xFFE8710A)],
                 onTap: () => pushAppPage(context, const CourseListPage()),
+              ),
+              // 第 36 轮：数据备份。摆在「课表与名单」这一组的末尾而不是系统设置里——
+              // 用户是在"要重装了、怕数据丢"的当口找它，翻两层菜单找不见就等于没有。
+              SettingsTile(
+                icon: Icons.backup_outlined,
+                title: l10n.backupEntryTitle,
+                subtitle: l10n.backupEntryDesc,
+                gradient: const <Color>[Color(0xFF4DD0E1), Color(0xFF00838F)],
+                onTap: () => pushAppPage(context, const BackupPage()),
               ),
             ],
           ),

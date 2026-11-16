@@ -18,6 +18,7 @@ import 'package:schedule_plan/data/repositories/student_repository.dart';
 import 'package:schedule_plan/data/repositories/template_repository.dart';
 import 'package:schedule_plan/data/repositories/todo_repository.dart';
 import 'package:schedule_plan/data/services/cleanup_service.dart';
+import 'package:schedule_plan/data/services/backup_service.dart';
 import 'package:schedule_plan/data/services/holiday_sync_service.dart';
 import 'package:schedule_plan/data/services/notification_service.dart';
 import 'package:schedule_plan/data/services/reminder_scheduler.dart';
@@ -52,6 +53,9 @@ class AppDependencies {
   late final NotificationService notifications;
   late final ReminderScheduler reminders;
   late final CleanupService cleanup;
+
+  /// 数据备份 / 恢复（重装前把名单、课表、考勤存成一个文件带走）。
+  late final BackupService backup;
 
   /// 节假日数据的联网保鲜（内置表兜底 + 每年自动取回新年度安排）。
   late final HolidaySyncService holidaySync;
@@ -91,6 +95,7 @@ class AppDependencies {
     );
     deps.holidaySync = HolidaySyncService();
     deps.updates = UpdateService();
+    deps.backup = BackupService();
 
     await deps.settingsState.load();
     await deps.themeController.load();
@@ -160,6 +165,7 @@ class AppDependenciesScope extends StatelessWidget {
         Provider<ImportLogRepository>.value(value: dependencies.importLogs),
         Provider<ReminderScheduler>.value(value: dependencies.reminders),
         Provider<CleanupService>.value(value: dependencies.cleanup),
+        Provider<BackupService>.value(value: dependencies.backup),
         Provider<NotificationService>.value(value: dependencies.notifications),
         ChangeNotifierProvider<SettingsState>.value(value: dependencies.settingsState),
         ChangeNotifierProvider<ThemeController>.value(value: dependencies.themeController),
