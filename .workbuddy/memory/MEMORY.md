@@ -9,17 +9,17 @@
 - 只做 Android APK（iOS 不验证、不加鸿蒙）；**Windows 上 `README.md`/`readme.md` 是同一文件**。
 
 ## 工具链
-- 提交前 `flutter analyze --no-pub` 零 issue（含 `test/`）+ `flutter test` 全绿（当前 **556**）；
+- 提交前 `flutter analyze --no-pub` 零 issue（含 `test/`）+ `flutter test` 全绿（当前 **578**）；
   **跑前设 `NO_PROXY=localhost,127.0.0.1,::1`**（代理会劫持 flutter_tester 的 WebSocket）。
 - flutter 一律走 `C:\Users\jeo\AppData\Local\Temp\wb_run_flutter.py`（直调 `flutter.BAT`）；
   **以日志最后一行 `=== EXIT n ===` 为准**（PowerShell 承接输出时退出码不可信）。
 - **同一时刻只跑一个 flutter 命令**（并发撞 `sqlite3.dll`，删 `build/native_assets` 重跑）；
   **长命令必须显式给 `timeout`**（默认 120s 就掐，`run_in_background` 不豁免）。
-- **`CreateFile failed 231`（管道耗尽）是 WorkBuddy 进程环境问题，重启电脑无效**：判据只有
-  「当场起一个 Dart 子进程」；处置是请用户在自家终端跑 .bat。假象：Bash 看似正常、PowerShell 静默返回空。
+- **`CreateFile failed 231`（管道耗尽）是进程环境问题**，判据是「当场起一个 Dart 子进程」；
+  处置是请用户自己终端跑 .bat（终端看似正常、静默返回空都是假象）。
 - **.bat 里禁止用 `if errorlevel 1` 当门禁**（`flutter.BAT` 成功也返回非 0，会静默跳过后续全部流程）。
-- **导出文件名统一走 `core/utils/file_naming.dart` 的 `buildExportFileName`**（`导出时间-对象-内容.xlsx`），
-  禁止在调用处手拼；课程名/学生名要过 `sanitizeFilePart`（`/:*?` 换横线、截断 40 字）。
+- **导出文件名统一走 `buildExportFileName`**（`导出时间-对象-内容`），禁止手拼；
+  课程名/学生名过 `sanitizeFilePart`（`/:*?`→横线、截断 40）。
 - 批量改代码走独立 .py（每处 `assert 旧串 in s`；CRLF 用 `newline=''` 读）；**同一文件多处改动一条条 Edit**。
 - widget 测试：改窗口用 `tester.view.devicePixelRatio/physicalSize` + `addTearDown(tester.view.reset)`；
   `find.text` 撞刻度用 `find.descendant` 限定；`initState` 读 sqlite 要用 `tester.runAsync` 放它跑完；
@@ -36,7 +36,7 @@
 - 翻月走 `DateUtils.shiftMonth`（`DateTime(y,m±1,d)` 会进位）；加天用 `DateTime(y,m,d+n)`。
 
 ## i18n
-- 禁止硬编码，全走 `app_zh/en.arb` + `context.l10n`，zh/en 严格对齐（当前各 **773** 键）。
+- 禁止硬编码，全走 `app_zh/en.arb` + `context.l10n`，zh/en 严格对齐（当前各 **822** 键）。
 - **加键一律走 `.workbuddy/tools/add_l10n_keys.py`**（幂等）：`NEW_KEYS` 加、`UPDATE_KEYS` 改（内含 assert）、
   `PLACEHOLDERS` 加 `@key`；跑完 `gen-l10n` 再 analyze。**别拿 `"...元数据",\n}` 当锚点**（三个 dict 都以它结尾）。
 
@@ -46,7 +46,7 @@
 - `version: x.y.z+N`，**N 必须递增**；**CHANGELOG 没对应版本节拒绝发布**；条目写用户看得懂的话。
 - **双仓库**（Gitee 首选 + GitHub，各发一份）；清单必须保留单数 `assetsBase`；
   **`schemaVersion` 绝不因加字段 +1**（老客户端会判清单不可用 = 锁死已装机用户）。
-- 回验「连不上」≠「源坏了」；清 jsDelivr 缓存走 curl（看 `throttled`，`finished` 不算数）。
+- 回验「连不上」≠「源坏了」；清 jsDelivr 缓存看 `throttled`（`finished` 不算数）。
 - **取清单 7 条源并发、谁先回用谁**（`manifestUrls`，SPEC 7.8）：Gitee raw 带 `?t=` → **Gitee 内容 API**
   → raw 不带参 → GitHub raw → jsDelivr×3。**raw 实测回 451**、API 200 且不跳转（真保命源，别删）；
   失败分 `network`/`manifest`，详情列每条源结论；**只有拿到清单才记 `lastCheckAt`**。
@@ -54,6 +54,10 @@
 - 安装走 `PackageInstaller`；`RandomAccessFile.writeFrom(list,start,end)` 第三参是**下标 end** 不是长度。
 - 构建 `flutter build apk --release`（签名 `android/key.properties` + `keystore.jks`，不入库）；
   改 proguard 别删 `-dontwarn com.google.android.play.core.**`。
+
+- **备份恢复禁止 `INSERT OR REPLACE`**（SQLite 先删后插 → 覆盖 `class` 级联删 lesson/student、
+  覆盖 `schedule_template` 撞 RESTRICT）：一律"先 UPDATE 再 INSERT"；判空看**条目主表行数**
+  （出厂作息自带 50 行）；运行时键（快照/节流/跳过版本）不进备份。
 
 ## 红线速查（常量与文件清单在 DETAIL）
 - **课表骨架：表永远是满的**。出厂作息唯一来源 `DatabaseSchema.generatePeriodRows`（禁止第二份循环），三层兜底缺一不可。
